@@ -11,6 +11,7 @@ import PostDetailModal from '../components/roommates/PostDetailModal.jsx'
 import { matchCount } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
 import BlockConfirmModal from '../components/roommates/BlockConfirmModal.jsx'
+import ReportModal from '../components/roommates/ReportModal.jsx'
 import RequestsInboxModal from '../components/roommates/RequestsInboxModal.jsx'
 import RequestConfirmModal from '../components/roommates/RequestConfirmModal.jsx'
 import RoommateCard from '../components/roommates/RoommateCard.jsx'
@@ -19,6 +20,7 @@ import { DORMITORIES } from '../data/dormitories.js'
 import { GENDERS } from '../data/roommateOptions.js'
 import { authMode, useAuth } from '../hooks/useAuth.js'
 import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
+import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import { blockAuthor, cancelRequest, fetchInboxCounts, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
 import { browsableSemesters, semesterLabel } from '../lib/semester.js'
 import {
@@ -114,6 +116,10 @@ export default function RoommatesPage() {
   const [inbox, setInbox] = useState(null)
   // 글쓴이 차단 확인 창 (게시글)
   const [blockPost, setBlockPost] = useState(null)
+  // 신고 창 (게시글)
+  const [reportTarget, setReportTarget] = useState(null)
+  // 운영자가 이용을 정지한 계정인지
+  const [suspension, setSuspension] = useState({ suspended: false, until: null })
   // 모바일에서 필터 펼침
   const [filtersOpen, setFiltersOpen] = useState(false)
   // 룸메 신청 확인 창. { post, mode: 'send' | 'cancel' }
@@ -218,6 +224,12 @@ export default function RoommatesPage() {
       // 배지와 "신청함" 표시만 못 보여 줄 뿐
     }
   }
+
+  // 이용 정지 여부 (게시판을 열 때 한 번)
+  useEffect(() => {
+    if (!unlocked) return setSuspension({ suspended: false, until: null })
+    fetchMyStatus().then(setSuspension)
+  }, [unlocked, user?.id])
 
   useEffect(() => {
     refreshRequests()
@@ -350,6 +362,17 @@ export default function RoommatesPage() {
     setBlockPost(post)
   }
 
+  // 게시글 신고 (+ 원하면 글쓴이 차단)
+  async function submitReport({ reason, detail, block }) {
+    await reportPost(reportTarget, reason, detail, user.id)
+    if (block) {
+      await blockAuthor(reportTarget, user.id)
+      setDetail(null)
+      refreshRequests()
+      reload()
+    }
+  }
+
   async function confirmBlockAuthor() {
     await blockAuthor(blockPost, user.id)
     setBlockPost(null)
@@ -371,6 +394,7 @@ export default function RoommatesPage() {
     setInbox(null)
     setConfirm(null)
     setBlockPost(null)
+    setReportTarget(null)
     setDetail(null)
     setBoard({ status: 'loading', items: [], total: 0, loading: true })
   }
@@ -429,6 +453,18 @@ export default function RoommatesPage() {
       </aside>
 
       <section ref={feedRef} className="rm-feed" aria-label="룸메이트 찾기 게시글">
+        {suspension.suspended && (
+          <div className="notice notice-danger" role="alert">
+            <IconAlert width={18} height={18} />
+            <p>
+              신고가 확인되어 룸메이트 찾기 이용이 정지된 계정이에요
+              {suspension.until
+                ? ` (${new Date(suspension.until).toLocaleDateString('ko-KR')}까지)`
+                : ''}
+              . 글쓰기·룸메 신청·답장을 할 수 없고, 내 글은 다른 사람에게 보이지 않아요.
+            </p>
+          </div>
+        )}
         {roommateStorage === 'local' && (
           <div className="notice">
             <IconInfo width={18} height={18} />
@@ -475,6 +511,7 @@ export default function RoommatesPage() {
                         onOpen={setDetail}
                         onRequest={handleRequest}
                         onEdit={openEditor}
+                        onReport={setReportTarget}
                       />
                     ))}
                   </div>
@@ -603,6 +640,7 @@ export default function RoommatesPage() {
         onEdit={openEditor}
         onRequest={handleRequest}
         onBlock={user ? openBlockAuthor : null}
+        onReport={user ? setReportTarget : null}
       />
       {user && (
         <>
@@ -634,6 +672,19 @@ export default function RoommatesPage() {
             }
             onClose={() => setBlockPost(null)}
             onConfirm={confirmBlockAuthor}
+          />
+          <ReportModal
+            key={reportTarget ? `report-${reportTarget.id}` : 'report'}
+            target={
+              reportTarget && {
+                title: '이 글을 신고할까요?',
+                context: `게시글 · ${DORMITORIES.find((d) => d.code === reportTarget.dormitory)?.name ?? ''}${
+                  reportTarget.semester ? ` · ${semesterLabel(reportTarget.semester)}` : ''
+                }`,
+              }
+            }
+            onClose={() => setReportTarget(null)}
+            onSubmit={submitReport}
           />
         </>
       )}

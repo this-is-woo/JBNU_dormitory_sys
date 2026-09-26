@@ -4,7 +4,7 @@ import { requestButton } from './RoommateCard.jsx'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
 
 /** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개. 연락은 룸메 신청으로 */
-export default function PostDetailModal({ post, mine = false, sent = false, myGender = null, onClose, onEdit, onRequest, onBlock }) {
+export default function PostDetailModal({ post, mine = false, sent = false, myGender = null, onClose, onEdit, onRequest, onBlock, onReport }) {
   const action = post && requestButton(post, mine, sent, myGender)
   return (
     <Modal
@@ -39,8 +39,13 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
                 수정
               </button>
             )}
+            {!mine && onReport && (
+              <button type="button" className="btn btn-ghost rq-block" onClick={() => onReport(post)}>
+                신고
+              </button>
+            )}
             {!mine && onBlock && (
-              <button type="button" className="btn btn-ghost rq-block" onClick={() => onBlock(post)}>
+              <button type="button" className="btn btn-ghost rq-danger" onClick={() => onBlock(post)}>
                 차단
               </button>
             )}

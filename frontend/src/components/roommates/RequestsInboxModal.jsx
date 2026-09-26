@@ -10,11 +10,13 @@ import {
   replyToRequest,
   unblock,
 } from '../../lib/roommateRequests.js'
+import { reportRequest } from '../../lib/roommateReports.js'
 import { semesterLabel } from '../../lib/semester.js'
 import ChoiceGroup from '../common/ChoiceGroup.jsx'
 import { IconAlert } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
 import BlockConfirmModal from './BlockConfirmModal.jsx'
+import ReportModal from './ReportModal.jsx'
 import { CompareTable } from './MatchReport.jsx'
 import { collegeName, dormName, genderLabel, matchCount, timeAgo } from './postFormat.js'
 
@@ -110,7 +112,7 @@ function ReplyBox({ request, userId, onSaved, onCancel }) {
   return null
 }
 
-function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied, onBlock }) {
+function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied, onBlock, onReport }) {
   const [open, setOpen] = useState(false)
   const [replying, setReplying] = useState(false)
   const a = request.applicant
@@ -181,7 +183,10 @@ function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied
             답장하기
           </button>
         )}
-        <button type="button" className="btn btn-ghost btn-sm rq-block" onClick={() => onBlock(request, index)}>
+        <button type="button" className="btn btn-ghost btn-sm rq-block" onClick={() => onReport(request, index)}>
+          신고
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm rq-danger" onClick={() => onBlock(request, index)}>
           차단
         </button>
       </div>
@@ -278,6 +283,7 @@ function ReceivedTab({ postId, user, myChecklist, onBlocked }) {
   const [state, setState] = useList(() => fetchReceivedRequests(user.id, postId), [postId])
   const [sort, setSort] = useState('match')
   const [blockTarget, setBlockTarget] = useState(null)
+  const [reportTarget, setReportTarget] = useState(null)
 
   // 신청자 번호는 글마다 신청한 순서대로 (정렬을 바꿔도 그대로)
   const rows = useMemo(() => {
@@ -291,6 +297,17 @@ function ReceivedTab({ postId, user, myChecklist, onBlocked }) {
 
   const replied = (id, saved) =>
     setState((s) => ({ ...s, items: s.items.map((r) => (r.id === id ? { ...r, ...saved } : r)) }))
+
+  // 신고 (+ 원하면 함께 차단)
+  async function report({ reason, detail, block: alsoBlock }) {
+    const { request } = reportTarget
+    await reportRequest(request, reason, detail, user.id)
+    if (alsoBlock) {
+      await blockApplicant(request, user.id)
+      setState((s) => ({ ...s, items: s.items.filter((r) => r.id !== request.id) }))
+      onBlocked()
+    }
+  }
 
   async function block() {
     await blockApplicant(blockTarget.request, user.id)
@@ -329,6 +346,7 @@ function ReceivedTab({ postId, user, myChecklist, onBlocked }) {
                 showPost={!postId}
                 onReplied={replied}
                 onBlock={(request, i) => setBlockTarget({ request, index: i })}
+                onReport={(request, i) => setReportTarget({ request, index: i })}
               />
             ))}
           </ul>
@@ -344,6 +362,17 @@ function ReceivedTab({ postId, user, myChecklist, onBlocked }) {
         }
         onClose={() => setBlockTarget(null)}
         onConfirm={block}
+      />
+      <ReportModal
+        key={reportTarget ? `report-${reportTarget.request.id}` : 'report'}
+        target={
+          reportTarget && {
+            title: '이 신청을 신고할까요?',
+            context: `신청자 ${reportTarget.index} · 받은 신청 · ${postContext(reportTarget.request)}`,
+          }
+        }
+        onClose={() => setReportTarget(null)}
+        onSubmit={report}
       />
     </>
   )

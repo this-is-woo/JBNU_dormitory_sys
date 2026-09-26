@@ -16,8 +16,9 @@ export function requestButton(post, mine, sent, myGender) {
  * match: 내 체크리스트와 같은 답의 수 (내 글이거나 모르면 null)
  * sent: 내가 이 글에 룸메 신청을 보냈는지, myGender: 내 체크리스트의 성별
  * onRequest: 남의 글이면 신청 보내기/취소, 내 글이면 받은 신청 보기
+ * onReport: 남의 글 신고 (없으면 버튼을 숨긴다)
  */
-export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit }) {
+export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit, onReport }) {
   const action = requestButton(post, mine, sent, myGender)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
@@ -70,10 +71,16 @@ export default function RoommateCard({ post, mine, sent = false, myGender = null
           {action.label}
           {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
         </button>
-        {mine && (
+        {mine ? (
           <button type="button" className="btn btn-ghost btn-sm rm-edit-btn" onClick={() => onEdit(post)}>
             수정
           </button>
+        ) : (
+          onReport && (
+            <button type="button" className="btn btn-ghost btn-sm rm-edit-btn rm-report-btn" onClick={() => onReport(post)}>
+              신고
+            </button>
+          )
         )}
       </footer>
     </article>

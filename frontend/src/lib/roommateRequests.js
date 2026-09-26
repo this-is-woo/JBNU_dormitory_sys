@@ -25,6 +25,7 @@ const ERRORS = {
   duplicate: '이미 신청한 글이에요.',
   too_long: '입력한 글이 너무 길어요.',
   forbidden: '차단할 수 없는 사용자예요.',
+  suspended: '이용이 정지된 계정이라 신청·답장을 할 수 없어요.',
 }
 
 function read(key, fallback) {

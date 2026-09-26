@@ -24,7 +24,8 @@
   font-size: 13px;
 }
 
-.choice:hover:not(:disabled) {
+/* 선택된 칩은 hover 에도 색을 유지 (글자색이 배경색과 같아져 안 보이던 문제) */
+.choice:hover:not(:disabled):not(.is-selected) {
   border-color: var(--c-text-3);
   color: var(--c-text);
 }

@@ -1225,16 +1225,12 @@
   gap: 8px;
 }
 
-.rq-card-actions .rq-block {
-  margin-left: auto;
-}
-
 .rq-block {
   color: var(--c-text-3);
 }
 
 .rq-block:hover {
-  color: var(--c-danger);
+  color: var(--c-text);
 }
 
 .rq-block-effects {
@@ -1458,6 +1454,143 @@
   .rm-toolbar-meta {
     display: none;
   }
+}
+
+/* ── 신고 ── */
+.rm-report-btn {
+  color: var(--c-text-3);
+}
+
+.rm-report-btn:hover,
+.rq-danger:hover {
+  color: var(--c-danger);
+}
+
+.rq-danger {
+  color: var(--c-text-3);
+}
+
+.rq-card-actions .rq-block {
+  margin-left: auto;
+}
+
+.rq-card-actions .rq-block + .rq-danger {
+  margin-left: 0;
+}
+
+.rp {
+  display: grid;
+  gap: 18px;
+}
+
+.rp-field {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rp-field legend,
+.rp-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rp-label {
+  margin-bottom: 0;
+}
+
+.rp-label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.rp-label .tabular {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.rp-required {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--c-danger-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-danger);
+}
+
+.rp-field textarea {
+  height: auto;
+  padding: 11px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.rp-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-check input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--c-danger);
+}
+
+.rp-check small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.rp-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+.rp-done {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 24px 8px 12px;
+  text-align: center;
+  line-height: 1.7;
+  color: var(--c-text-2);
+}
+
+.rp-done-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--c-success-soft);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--c-success);
 }
 
 /* ── 모집완료 ── */
