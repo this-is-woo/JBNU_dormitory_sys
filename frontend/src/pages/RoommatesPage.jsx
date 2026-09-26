@@ -188,7 +188,7 @@ function RoommateBoard({ user }) {
 }
 
 export default function RoommatesPage() {
-  const { status, user, signIn, signOut } = useAuth()
+  const { status, user, signIn, signInWithIdToken, signOut } = useAuth()
 
   return (
     <>
@@ -219,7 +219,7 @@ export default function RoommatesPage() {
       )}
       {status === 'signedOut' && (
         <div className="container">
-          <LoginGate onSignIn={signIn} />
+          <LoginGate onSignIn={signIn} onIdToken={signInWithIdToken} />
         </div>
       )}
       {status === 'signedIn' && <RoommateBoard key={user.id} user={user} />}

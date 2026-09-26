@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
+import GoogleSignInButton from './GoogleSignInButton.jsx'
 
 function GoogleMark(props) {
   return (
@@ -20,7 +21,7 @@ const PERKS = [
 ]
 
 /** 룸메이트 찾기는 구글 로그인 후 이용 */
-export default function LoginGate({ onSignIn }) {
+export default function LoginGate({ onSignIn, onIdToken }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,10 +53,21 @@ export default function LoginGate({ onSignIn }) {
           ))}
         </ul>
 
-        <button type="button" className="btn btn-google btn-lg" onClick={handleClick} disabled={pending}>
-          {pending ? <span className="spinner" aria-hidden="true" /> : <GoogleMark />}
-          Google 계정으로 로그인
-        </button>
+        {authMode === 'google-button' ? (
+          // 구글 공식 버튼: 로그인 창에 이 사이트 주소(브랜드 인증 후에는 앱 이름)가 표시된다
+          <GoogleSignInButton
+            onCredential={(token, nonce) => {
+              setError('')
+              return onIdToken(token, nonce)
+            }}
+            onError={setError}
+          />
+        ) : (
+          <button type="button" className="btn btn-google btn-lg" onClick={handleClick} disabled={pending}>
+            {pending ? <span className="spinner" aria-hidden="true" /> : <GoogleMark />}
+            Google 계정으로 로그인
+          </button>
+        )}
         <p className="login-gate-privacy">
           로그인하면 이메일과 이름만 받아 본인 확인에 쓰고, 게시글에는 표시하지 않아요.{' '}
           <Link to="/privacy">개인정보처리방침</Link>

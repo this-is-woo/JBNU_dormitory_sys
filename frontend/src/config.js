@@ -5,6 +5,10 @@ export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || ''
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY)
 
+// Google Cloud → OAuth 클라이언트(웹 애플리케이션)의 클라이언트 ID. 공개해도 되는 값이다.
+// 있으면 구글 공식 로그인 버튼을, 없으면 Supabase 로그인 페이지로 이동하는 방식을 쓴다.
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+
 export const OFFICIAL_DORM_URL = 'https://likehome.jbnu.ac.kr'
 export const JBNU_URL = 'https://www.jbnu.ac.kr'
 

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { isSupabaseConfigured } from '../config.js'
+import { GOOGLE_CLIENT_ID, isSupabaseConfigured } from '../config.js'
 
 // Supabase 가 연결되지 않은 개발 환경에서는 실제 구글 로그인 대신 이 브라우저에만 저장되는 데모 계정을 쓴다.
 const DEMO_USER_KEY = 'jbnu-dorm:demo-user'
 const DEMO_USER = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@jbnu.ac.kr', name: '데모 사용자' }
 
-export const authMode = isSupabaseConfigured ? 'google' : 'demo'
+// demo: Supabase 미연결 / google-button: 구글 공식 버튼(GIS) / google-redirect: Supabase 로그인 페이지로 이동
+export const authMode = !isSupabaseConfigured ? 'demo' : GOOGLE_CLIENT_ID ? 'google-button' : 'google-redirect'
 
 const toUser = (u) =>
   u && {
@@ -69,6 +70,13 @@ export function useAuth() {
     if (error) throw new Error('구글 로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.')
   }, [])
 
+  /** 구글 공식 버튼이 넘겨준 ID 토큰으로 Supabase 세션을 만든다 (세션은 onAuthStateChange 로 반영) */
+  const signInWithIdToken = useCallback(async (token, nonce) => {
+    const { supabase } = await import('../lib/supabase.js')
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token, nonce })
+    if (error) throw new Error('구글 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.')
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) {
       try {
@@ -81,9 +89,11 @@ export function useAuth() {
     }
     const { supabase } = await import('../lib/supabase.js')
     await supabase.auth.signOut()
+    // 구글 원탭 자동 로그인이 바로 다시 로그인시키지 않도록
+    window.google?.accounts?.id?.disableAutoSelect()
     setUser(null)
   }, [])
 
   const status = user === undefined ? 'loading' : user ? 'signedIn' : 'signedOut'
-  return { status, user: user ?? null, signIn, signOut }
+  return { status, user: user ?? null, signIn, signInWithIdToken, signOut }
 }

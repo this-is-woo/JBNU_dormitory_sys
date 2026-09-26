@@ -143,6 +143,48 @@
   color: #1f1f1f;
 }
 
+/* 구글 공식 버튼(GIS): 구글이 iframe 으로 그리므로 크기·위치만 맞춘다 */
+.google-btn {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+}
+
+.google-btn-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.google-btn-placeholder {
+  position: absolute;
+  inset: 0;
+  max-width: 400px;
+  margin: 0 auto;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c-surface) 25%, var(--c-surface-2) 50%, var(--c-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.google-btn.is-pending .google-btn-slot {
+  visibility: hidden;
+}
+
+.google-btn-pending {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+
 .login-gate-card .rm-error {
   flex: none;
 }

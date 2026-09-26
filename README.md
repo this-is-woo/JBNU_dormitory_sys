@@ -206,7 +206,11 @@ npm run dev
 3. Authentication → **URL Configuration**
    - Site URL: `https://<vercel-도메인>`
    - Redirect URLs: `http://localhost:5173/**`, `https://<vercel-도메인>/**`
-4. `supabase/migrations/20260927000000_roommates.sql` 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
+4. Vercel 환경변수 `VITE_GOOGLE_CLIENT_ID` 에 1번의 클라이언트 ID 를 넣고 다시 배포
+   - 이 값이 있으면 구글 공식 로그인 버튼(Google Identity Services)을 쓰고, 로그인 창에 Supabase 주소 대신 사이트 주소가 표시됩니다.
+   - 없으면 Supabase 로그인 페이지로 이동하는 방식으로 동작합니다.
+   - 로컬에서 버튼을 쓰려면 승인된 JavaScript 원본에 `http://localhost` 와 `http://localhost:5173` 을 모두 추가합니다.
+5. `supabase/migrations/20260927000000_roommates.sql` 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
 
 전북대 계정(`@jbnu.ac.kr`)만 허용하려면 RLS 정책에 `(auth.jwt() ->> 'email') like '%@jbnu.ac.kr'` 조건을 더하면 됩니다.
 
