@@ -310,6 +310,8 @@ svg {
 .input,
 .select {
   width: 100%;
+  /* 입력 중 띄어쓰기 폭을 2/3 정도로 (기본 공백은 글자 크기의 약 0.25~0.3em) */
+  word-spacing: -0.09em;
   height: 46px;
   padding: 0 14px;
   border: 1px solid var(--c-border-strong);

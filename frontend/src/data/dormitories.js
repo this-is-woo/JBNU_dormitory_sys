@@ -39,7 +39,7 @@ export const DORMITORIES = [
     infoUrl: infoUrl('C5000'),
     name: '새빛관',
     type: 'B',
-    genders: ['남', '여'],
+    genders: ['여'],
     rooms: ['2인실'],
     meal: '직영급식 (미선택 가능)',
     eligibility: '학부 · 일반대학원',

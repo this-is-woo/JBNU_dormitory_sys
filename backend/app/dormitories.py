@@ -41,7 +41,7 @@ DORM_ROOMS: tuple[DormRoom, ...] = (
     DormRoom("changui_1", "창의관", "1인실", "D", ("남", "여"), 88.0),
     DormRoom("changui_2", "창의관", "2인실", "D", ("남", "여"), 85.0),
     DormRoom("hanbit_2", "한빛관", "2인실", "B", ("남",), 85.0, _GENERAL),
-    DormRoom("saebit_2", "새빛관", "2인실", "B", ("남", "여"), 83.0, _GENERAL),
+    DormRoom("saebit_2", "새빛관", "2인실", "B", ("여",), 83.0, _GENERAL),
     DormRoom("hanbit_4", "한빛관", "4인실", "B", ("남",), 80.0, _GENERAL),
     DormRoom("daedong_2", "대동관", "2인실", "B", ("남",), 78.0, _GENERAL),
     DormRoom("chambit_2", "참빛관", "2인실", "A", ("남", "여"), 76.0, _GENERAL),

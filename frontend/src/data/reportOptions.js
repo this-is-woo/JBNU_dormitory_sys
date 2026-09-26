@@ -21,7 +21,7 @@ export const APPLY_ROOMS = [
     colleges: 'general',
     halls: [
       { code: 'hanbit', label: '한빛관', genders: ['남'] },
-      { code: 'saebit', label: '새빛관', genders: ['남', '여'] },
+      { code: 'saebit', label: '새빛관', genders: ['여'] },
       { code: 'daedong', label: '대동관', genders: ['남'] },
     ],
   },

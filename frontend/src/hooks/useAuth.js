@@ -3,6 +3,8 @@ import { GOOGLE_CLIENT_ID, isSupabaseConfigured } from '../config.js'
 
 // Supabase 가 연결되지 않은 개발 환경에서는 실제 구글 로그인 대신 이 브라우저에만 저장되는 데모 계정을 쓴다.
 const DEMO_USER_KEY = 'jbnu-dorm:demo-user'
+// 데모 계정의 로그인·로그아웃을 같은 화면의 다른 컴포넌트(헤더 메뉴 ↔ 룸메이트 페이지)에 알린다
+const DEMO_AUTH_EVENT = 'jbnu-dorm:demo-auth'
 const DEMO_USER = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@jbnu.ac.kr', name: '데모 사용자' }
 
 // demo: Supabase 미연결 / google-button: 구글 공식 버튼(GIS) / google-redirect: Supabase 로그인 페이지로 이동
@@ -31,7 +33,11 @@ export function useAuth() {
   const [user, setUser] = useState(() => (isSupabaseConfigured ? undefined : readDemoUser()))
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return
+    if (!isSupabaseConfigured) {
+      const sync = () => setUser(readDemoUser())
+      window.addEventListener(DEMO_AUTH_EVENT, sync)
+      return () => window.removeEventListener(DEMO_AUTH_EVENT, sync)
+    }
     let active = true
     let subscription
     import('../lib/supabase.js').then(({ supabase }) => {
@@ -55,6 +61,7 @@ export function useAuth() {
         // 저장하지 못해도 이번 화면에서는 로그인 상태를 유지
       }
       setUser(DEMO_USER)
+      window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
     const { supabase } = await import('../lib/supabase.js')
@@ -85,6 +92,7 @@ export function useAuth() {
         // 무시
       }
       setUser(null)
+      window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
     const { supabase } = await import('../lib/supabase.js')

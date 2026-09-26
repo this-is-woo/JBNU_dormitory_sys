@@ -61,39 +61,31 @@
   cursor: pointer;
 }
 
-/* 모바일 */
+.nav-toggle {
+  position: relative;
+  color: var(--c-text);
+}
+
+/* 로그인 상태 표시 */
+.nav-toggle-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--c-bg);
+  border-radius: 50%;
+  background: var(--c-success);
+  box-sizing: content-box;
+}
+
+/* 모바일: 헤더 메뉴 대신 서랍(MobileDrawer) */
 @media (max-width: 760px) {
   .nav-toggle {
     display: inline-flex;
   }
 
   .site-nav {
-    position: fixed;
-    top: var(--header-h);
-    left: 0;
-    right: 0;
-    padding: 10px 14px 16px;
-    background: var(--c-bg);
-    border-bottom: 1px solid var(--c-border);
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-6px);
-    transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
-  }
-
-  .site-nav.is-open {
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-  }
-
-  .site-nav ul {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .site-nav a {
-    padding: 12px 16px;
+    display: none;
   }
 }

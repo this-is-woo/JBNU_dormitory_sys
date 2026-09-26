@@ -60,7 +60,7 @@ export default function RequestConfirmModal({ target, match = null, onClose, onC
           <div className="rq-target">
             <div>
               <strong>{dormName(post.dormitory)}</strong>
-              {post.semester && <span>{semesterLabel(post.semester)} 입사</span>}
+              {post.semester && <span>{semesterLabel(post.semester)} 입주</span>}
             </div>
             <span className="rq-target-who">
               {collegeName(post.collegeCode)} · {post.age}세 · {genderLabel(post.gender)}

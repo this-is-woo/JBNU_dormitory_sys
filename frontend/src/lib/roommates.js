@@ -1,5 +1,5 @@
 import { isSupabaseConfigured } from '../config.js'
-import { localRequestCount } from './roommateRequests.js'
+import { isLocallyBlocked, localRequestCount } from './roommateRequests.js'
 import { currentSemester } from './semester.js'
 
 // 룸메이트 찾기는 구글 로그인한 사용자만 이용한다.
@@ -14,12 +14,12 @@ const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString()
 
 // 화면 확인용 예시 글 (Supabase 미연결 상태에서 "예시" 표시와 함께 보이고, 잠긴 게시판의 흐린 미리보기로도 쓴다)
 // prettier-ignore
-export const SAMPLE_POSTS = [
+const SAMPLES = [
   {
     id: 'sample-1',
     createdAt: hoursAgo(0.7),
     semester: currentSemester(),
-    dormitory: 'saebit',
+    dormitory: 'daedong',
     gender: '남',
     age: 22,
     collegeCode: 'engineering',
@@ -71,6 +71,9 @@ export const SAMPLE_POSTS = [
     isSample: true,
   },
 ]
+
+// 예시 글의 글쓴이 id 는 `${id}-author` (데모에서 차단 기능을 확인할 수 있도록)
+export const SAMPLE_POSTS = SAMPLES.map((p) => ({ ...p, authorId: `${p.id}-author` }))
 
 const fromRow = (row) => ({
   id: row.id,
@@ -145,17 +148,21 @@ const byOpenThenNewest = (a, b) =>
 
 /**
  * 게시글 한 페이지. 필터와 페이지 나누기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
- * @param {{ page?: number, semester?: string|null, dormitory?: string|null, gender?: string|null }} options  page 는 1부터
+ * @param {{ page?: number, semester?: string|null, dormitory?: string|null, gender?: string|null, userId?: string }} options
+ *   page 는 1부터. userId 는 로컬 모드에서 차단한 사이의 글을 숨기는 데만 쓴다 (Supabase 에서는 DB 정책이 숨긴다)
  * @returns {Promise<{ items: object[], total: number }>}
  */
-export async function fetchRoommatePage({ page = 1, semester = null, dormitory = null, gender = null } = {}) {
+export async function fetchRoommatePage({ page = 1, semester = null, dormitory = null, gender = null, userId = null } = {}) {
   const from = (page - 1) * PAGE_SIZE
   if (!isSupabaseConfigured) {
     const all = [...readLocal(), ...SAMPLE_POSTS]
       .map((p) => ({ ...p, semester: p.semester ?? currentSemester() }))
       .filter(
         (p) =>
-          (!semester || p.semester === semester) && (!dormitory || p.dormitory === dormitory) && (!gender || p.gender === gender),
+          (!semester || p.semester === semester) &&
+          (!dormitory || p.dormitory === dormitory) &&
+          (!gender || p.gender === gender) &&
+          !isLocallyBlocked(userId, p.authorId),
       )
       .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
       .sort(byOpenThenNewest)

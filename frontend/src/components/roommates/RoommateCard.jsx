@@ -3,20 +3,22 @@ import { semesterLabel } from '../../lib/semester.js'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
 
 /** 카드·자세히 보기 공통: 룸메 신청 버튼의 문구와 모양 */
-export function requestButton(post, mine, sent) {
+export function requestButton(post, mine, sent, myGender) {
   if (mine) return { label: '받은 신청', tone: 'btn-secondary', count: post.requestCount }
   if (sent) return { label: '신청함 ✓', tone: 'btn-secondary is-sent' }
+  // 룸메이트는 같은 성별끼리만
+  if (myGender && post.gender !== myGender) return { label: '같은 성별만 신청 가능', tone: 'btn-secondary', disabled: true }
   if (post.isClosed) return { label: '모집 마감', tone: 'btn-secondary', disabled: true }
   return { label: '룸메 신청', tone: 'btn-primary' }
 }
 
 /**
  * match: 내 체크리스트와 같은 답의 수 (내 글이거나 모르면 null)
- * sent: 내가 이 글에 룸메 신청을 보냈는지
+ * sent: 내가 이 글에 룸메 신청을 보냈는지, myGender: 내 체크리스트의 성별
  * onRequest: 남의 글이면 신청 보내기/취소, 내 글이면 받은 신청 보기
  */
-export default function RoommateCard({ post, mine, sent = false, match = null, onOpen, onRequest, onEdit }) {
-  const action = requestButton(post, mine, sent)
+export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit }) {
+  const action = requestButton(post, mine, sent, myGender)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
       <header className="rm-card-head">
@@ -37,7 +39,7 @@ export default function RoommateCard({ post, mine, sent = false, match = null, o
       <div className="rm-dorm">
         <div className="rm-dorm-main">
           <span className="rm-dorm-name">{dormName(post.dormitory)}</span>
-          {post.semester && <span className="rm-semester">{semesterLabel(post.semester)} 입사</span>}
+          {post.semester && <span className="rm-semester">{semesterLabel(post.semester)} 입주</span>}
         </div>
         <span className="rm-mbti">{post.mbti ?? 'MBTI 비공개'}</span>
       </div>

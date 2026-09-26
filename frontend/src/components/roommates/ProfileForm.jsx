@@ -37,6 +37,8 @@ function validateStep(step, f) {
     const age = Number(f.age)
     if (!f.gender) return '성별을 골라 주세요.'
     if (!f.dormitory) return '호관을 골라 주세요.'
+    if (!DORMITORIES.find((d) => d.code === f.dormitory)?.genders.includes(f.gender))
+      return '고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.'
     if (!Number.isInteger(age) || age < AGE_MIN || age > AGE_MAX) return `나이는 ${AGE_MIN}~${AGE_MAX} 사이로 입력해 주세요.`
     if (!f.collegeCode) return '단과대학을 골라 주세요.'
     if (!f.mbtiUnknown && f.mbti.some((c) => !c)) return 'MBTI 네 글자를 모두 고르거나 “잘 모름”을 선택해 주세요.'
@@ -87,7 +89,7 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
 
   const answeredCount = CHECKLIST_ITEMS.filter((i) => isAnswered(form.checklist[i.key])).length
 
-  // 남자 전용 호관은 여자를 고르면 선택할 수 없다
+  // 성별 전용 호관(한빛·대동관 남자, 새빛관 여자)은 다른 성별을 고르면 선택할 수 없다
   const dormOptions = DORMITORIES.map((d) => ({
     value: d.code,
     label: d.name,

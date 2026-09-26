@@ -1042,19 +1042,6 @@
   color: var(--c-text-3);
 }
 
-.rq-card-main {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 18px;
-}
-
-.rq-card-body {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
 .rq-card-top {
   display: flex;
   align-items: center;
@@ -1147,93 +1134,6 @@
   color: var(--c-primary-text);
 }
 
-/* ── 일치도 시각화 ── */
-.mr-ring {
-  --mr-color: var(--c-primary);
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-}
-
-.mr-ring.is-high {
-  --mr-color: var(--c-success);
-}
-
-.mr-ring.is-low {
-  --mr-color: var(--c-warning);
-}
-
-.mr-ring-track {
-  fill: none;
-  stroke: var(--c-surface-2);
-  stroke-width: 7;
-}
-
-.mr-ring-value {
-  fill: none;
-  stroke: var(--mr-color);
-  stroke-width: 7;
-  stroke-linecap: round;
-  transition: stroke-dasharray 0.4s ease;
-}
-
-.mr-ring-text {
-  fill: var(--c-text);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.mr-ring-label {
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  color: var(--mr-color);
-}
-
-.mr-sections {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 16px;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mr-sections li {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--c-text-2);
-}
-
-.mr-section-name {
-  white-space: nowrap;
-}
-
-.mr-section-bar {
-  display: flex;
-  gap: 3px;
-}
-
-.mr-section-bar span {
-  flex: 1;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--c-surface-2);
-}
-
-.mr-section-bar span.is-on {
-  background: var(--c-primary);
-}
-
-.mr-section-count {
-  min-width: 24px;
-  text-align: right;
-  color: var(--c-text-3);
-}
-
 .mr-compare {
   display: grid;
   gap: 12px;
@@ -1307,18 +1207,256 @@
     padding: 14px;
   }
 
-  .rq-card-main {
-    gap: 12px;
-  }
-
-  .mr-sections {
-    grid-template-columns: 1fr;
-  }
-
   .mr-compare-head,
   .mr-compare-row {
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
     gap: 6px;
+  }
+}
+
+.rq-card-top {
+  flex-wrap: wrap;
+}
+
+.rq-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rq-card-actions .rq-block {
+  margin-left: auto;
+}
+
+.rq-block {
+  color: var(--c-text-3);
+}
+
+.rq-block:hover {
+  color: var(--c-danger);
+}
+
+.rq-block-effects {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-2);
+}
+
+/* 답장 */
+.rq-reply {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--c-primary-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rq-reply p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rq-reply-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.rq-reply-head > span:first-child {
+  font-weight: 700;
+  color: var(--c-primary-text);
+}
+
+.rq-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+
+.rq-reply-head .rq-link:first-of-type {
+  margin-left: auto;
+}
+
+.rq-link:hover {
+  color: var(--c-text);
+  text-decoration: underline;
+}
+
+.rq-reply-edit {
+  display: grid;
+  gap: 8px;
+}
+
+.rq-reply-edit textarea {
+  height: auto;
+  padding: 11px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.rq-reply-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rq-reply-actions .tabular {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.rq-waiting {
+  padding: 10px 14px;
+  border: 1px dashed var(--c-border-strong);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.rq-hint {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+/* 차단 목록 */
+.rq-blocks {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.rq-blocks li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.rq-blocks li + li {
+  border-top: 1px solid var(--c-border);
+}
+
+.rq-blocks div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rq-blocks strong {
+  font-size: 14px;
+}
+
+.rq-blocks time {
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+/* ── 모바일 필터 접기 ── */
+.rm-filter-toggle {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .rm-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--c-text);
+    cursor: pointer;
+  }
+
+  .rm-filter-toggle.is-open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .rm-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--c-primary);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .rm-filter-summary {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--c-text-3);
+  }
+
+  .rm-filter-chevron {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin: -4px 2px 0 4px;
+    border-right: 2px solid var(--c-text-3);
+    border-bottom: 2px solid var(--c-text-3);
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+  }
+
+  .rm-filter-toggle.is-open .rm-filter-chevron {
+    margin-top: 4px;
+    transform: rotate(-135deg);
+  }
+
+  .rm-layout > .rm-filters:not(.is-open) {
+    display: none;
+  }
+
+  .rm-layout > .rm-filters.is-open {
+    margin-top: -24px;
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
+/* 모바일: 계정 정보·로그아웃은 오른쪽 위 메뉴로 옮기고, 글 수는 필터 버튼에 보여 준다 */
+@media (max-width: 760px) {
+  .rm-toolbar-meta {
+    display: none;
   }
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
 import { IconAlert, IconInfo } from '../components/common/Icons.jsx'
@@ -9,7 +10,8 @@ import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
 import PostDetailModal from '../components/roommates/PostDetailModal.jsx'
 import { matchCount } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
-import ReceivedRequestsModal from '../components/roommates/ReceivedRequestsModal.jsx'
+import BlockConfirmModal from '../components/roommates/BlockConfirmModal.jsx'
+import RequestsInboxModal from '../components/roommates/RequestsInboxModal.jsx'
 import RequestConfirmModal from '../components/roommates/RequestConfirmModal.jsx'
 import RoommateCard from '../components/roommates/RoommateCard.jsx'
 import RoommateForm from '../components/roommates/RoommateForm.jsx'
@@ -17,7 +19,7 @@ import { DORMITORIES } from '../data/dormitories.js'
 import { GENDERS } from '../data/roommateOptions.js'
 import { authMode, useAuth } from '../hooks/useAuth.js'
 import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
-import { cancelRequest, countNewRequests, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
+import { blockAuthor, cancelRequest, fetchInboxCounts, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
 import { browsableSemesters, semesterLabel } from '../lib/semester.js'
 import {
   PAGE_SIZE,
@@ -34,13 +36,14 @@ const withAll = (options) => [{ value: ALL, label: '전체' }, ...options]
 const INITIAL_FILTERS = { semester: ALL, dormitory: ALL, gender: ALL }
 const SEMESTER_OPTIONS = browsableSemesters().map((s) => ({ value: s, label: semesterLabel(s) }))
 
-// 로그인·체크리스트 등록 뒤에 이어서 할 일 ('write' | 'myPosts' | 'unlock' | 'requests')
+// 로그인·체크리스트 등록 뒤에 이어서 할 일 ('write' | 'myPosts' | 'unlock' | 'requests' | 'profile')
 // 구글 로그인 페이지로 이동했다 돌아오는 경우를 위해 sessionStorage 에도 남긴다.
 const AFTER_LOGIN_KEY = 'jbnu-dorm:after-login'
 const LOGIN_REASONS = {
   write: '글을 쓰려면 로그인이 필요해요.',
   myPosts: '내가 쓴 글을 보려면 로그인이 필요해요.',
-  requests: '받은 신청을 보려면 로그인이 필요해요.',
+  requests: '신청 내역을 보려면 로그인이 필요해요.',
+  profile: '내 체크리스트를 보려면 로그인이 필요해요.',
   unlock: '로그인하고 체크리스트를 등록하면 글을 볼 수 있어요.',
 }
 const NEEDS_PROFILE = ['write', 'unlock', 'requests']
@@ -107,15 +110,21 @@ export default function RoommatesPage() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [myPostsOpen, setMyPostsOpen] = useState(false)
   const [detail, setDetail] = useState(null)
-  // 받은 신청 창. null: 닫힘 / {}: 전체 / { postId }: 그 글에 온 신청만
+  // 신청 내역 창. null: 닫힘 / { tab }: 전체 / { postId }: 그 글에 온 신청만
   const [inbox, setInbox] = useState(null)
+  // 글쓴이 차단 확인 창 (게시글)
+  const [blockPost, setBlockPost] = useState(null)
+  // 모바일에서 필터 펼침
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // 룸메 신청 확인 창. { post, mode: 'send' | 'cancel' }
   const [confirm, setConfirm] = useState(null)
   const [sentIds, setSentIds] = useState(() => new Set())
-  const [newRequests, setNewRequests] = useState(0)
+  const [counts, setCounts] = useState({ requests: 0, replies: 0 })
   const [loginOpen, setLoginOpen] = useState(false)
   const [pending, setPending] = useState(() => readAfterLogin())
 
+  const location = useLocation()
+  const navigate = useNavigate()
   const signedIn = authStatus === 'signedIn'
   const unlocked = signedIn && Boolean(profile.data)
   const gateStage =
@@ -147,6 +156,7 @@ export default function RoommatesPage() {
     let active = true
     setBoard((b) => ({ ...b, loading: true }))
     fetchRoommatePage({
+      userId: user?.id,
       page,
       semester: filters.semester === ALL ? null : filters.semester,
       dormitory: filters.dormitory === ALL ? null : filters.dormitory,
@@ -162,7 +172,7 @@ export default function RoommatesPage() {
     return () => {
       active = false
     }
-  }, [unlocked, page, filters.semester, filters.dormitory, filters.gender, reloadKey])
+  }, [unlocked, user?.id, page, filters.semester, filters.dormitory, filters.gender, reloadKey])
 
   // 로그인과 체크리스트 확인이 끝나면, 누르려던 버튼의 동작을 이어서 한다
   useEffect(() => {
@@ -175,25 +185,34 @@ export default function RoommatesPage() {
     finishPending(pending)
   }, [pending, signedIn, profile.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 모바일 메뉴의 바로가기(내 체크리스트·내가 쓴 글·신청 내역·로그인)로 들어온 경우
+  useEffect(() => {
+    const action = location.state?.action
+    if (!action || authStatus === 'loading') return
+    navigate(location.pathname, { replace: true, state: null })
+    requireAccess(action)
+  }, [location.key, authStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function finishPending(action) {
     writeAfterLogin(null)
     setPending(null)
+    if (action === 'profile') setProfileOpen(true)
     if (action === 'write') setEditor({ post: null })
     if (action === 'myPosts') setMyPostsOpen(true)
-    if (action === 'requests') setInbox({})
+    if (action === 'requests') setInbox({ tab: counts.replies > 0 && !counts.requests ? 'sent' : 'received' })
   }
 
-  // 새 신청 수(툴바 배지)와 내가 신청한 글. 주기적으로 확인하지 않고,
+  // 새 신청·답장 수(툴바 배지)와 내가 신청한 글. 주기적으로 확인하지 않고,
   // 게시판을 열 때와 다른 탭에 갔다가 돌아올 때만 불러온다 (서버 요청 절약)
   async function refreshRequests() {
     if (!unlocked) {
-      setNewRequests(0)
+      setCounts({ requests: 0, replies: 0 })
       setSentIds(new Set())
       return
     }
     try {
-      const [count, sent] = await Promise.all([countNewRequests(user.id), fetchSentPostIds(user.id)])
-      setNewRequests(count)
+      const [next, sent] = await Promise.all([fetchInboxCounts(user.id), fetchSentPostIds(user.id)])
+      setCounts(next)
       setSentIds(new Set(sent))
     } catch {
       // 배지와 "신청함" 표시만 못 보여 줄 뿐
@@ -259,6 +278,16 @@ export default function RoommatesPage() {
     setPage(1)
   }
   const filtered = Object.values(filters).some((v) => v !== ALL)
+  const activeFilters = Object.values(filters).filter((v) => v !== ALL).length
+  const filterSummary =
+    [
+      filters.semester !== ALL && semesterLabel(filters.semester),
+      filters.dormitory !== ALL && DORMITORIES.find((d) => d.code === filters.dormitory)?.name,
+      filters.gender !== ALL && GENDERS.find((g) => g.value === filters.gender)?.label,
+    ]
+      .filter(Boolean)
+      .join(' · ') || '전체 글'
+  const filterCount = unlocked && status === 'ready' ? ` · ${total}개` : ''
   const isMine = (post) => Boolean(user) && post.authorId === user.id
 
   const replacePost = (post) =>
@@ -290,7 +319,7 @@ export default function RoommatesPage() {
 
   async function confirmRequest(message) {
     const { post, mode } = confirm
-    if (mode === 'send') await sendRequest(post, message, user.id)
+    if (mode === 'send') await sendRequest(post, message, user.id, profile.data?.gender)
     else await cancelRequest(post.id, user.id)
     setSentIds((prev) => {
       const next = new Set(prev)
@@ -308,6 +337,27 @@ export default function RoommatesPage() {
     reload()
   }
 
+  // 보낸 신청 탭에서 취소하면 카드의 "신청함" 표시도 지운다
+  function handleCanceled(postId) {
+    setSentIds((prev) => {
+      const next = new Set(prev)
+      next.delete(postId)
+      return next
+    })
+  }
+
+  function openBlockAuthor(post) {
+    setBlockPost(post)
+  }
+
+  async function confirmBlockAuthor() {
+    await blockAuthor(blockPost, user.id)
+    setBlockPost(null)
+    setDetail(null)
+    refreshRequests()
+    reload()
+  }
+
   function openEditor(post) {
     setDetail(null)
     setMyPostsOpen(false)
@@ -320,15 +370,33 @@ export default function RoommatesPage() {
     setMyPostsOpen(false)
     setInbox(null)
     setConfirm(null)
+    setBlockPost(null)
     setDetail(null)
     setBoard({ status: 'loading', items: [], total: 0, loading: true })
   }
 
   const openWrite = () => requireAccess('write')
+  const newTotal = counts.requests + counts.replies
 
   const board$ = (
     <>
-      <aside className="rm-filters" aria-label="게시글 필터">
+      {/* 모바일에서는 필터를 접어 두고 버튼으로 펼친다 */}
+      <button
+        type="button"
+        className={`rm-filter-toggle${filtersOpen ? ' is-open' : ''}`}
+        onClick={() => setFiltersOpen((v) => !v)}
+        aria-expanded={filtersOpen}
+        aria-controls="rm-filters"
+      >
+        <span>필터</span>
+        {activeFilters > 0 && <span className="rm-filter-count tabular">{activeFilters}</span>}
+        <span className="rm-filter-summary">
+          {filterSummary}
+          {filterCount}
+        </span>
+        <span className="rm-filter-chevron" aria-hidden="true" />
+      </button>
+      <aside id="rm-filters" className={`rm-filters${filtersOpen ? ' is-open' : ''}`} aria-label="게시글 필터">
         <div className="rm-filter">
           <h2>학기</h2>
           <ChoiceGroup
@@ -402,6 +470,7 @@ export default function RoommatesPage() {
                         post={post}
                         mine={isMine(post)}
                         sent={sentIds.has(post.id)}
+                        myGender={profile.data.gender}
                         match={isMine(post) ? null : matchCount(profile.data.checklist, post.checklist)}
                         onOpen={setDetail}
                         onRequest={handleRequest}
@@ -436,7 +505,7 @@ export default function RoommatesPage() {
       <title>룸메이트 찾기 | JBNU Dormi</title>
       <PageHeader
         title="나와 잘 맞는 룸메이트 찾기"
-        lead="전북대 룸메이트 체크리스트로 생활 습관을 남기고, 마음에 드는 글에 룸메 신청을 보내 보세요. 비슷한 생활 패턴의 룸메이트를 만나면 기숙사 생활이 훨씬 편해져요."
+        lead="전북대 룸메이트 체크리스트로 생활 습관을 남기고, 마음에 드는 글에 룸메 신청을 보내 보세요. 룸메이트는 같은 성별끼리만 신청할 수 있어요. 비슷한 생활 패턴의 룸메이트를 만나면 기숙사 생활이 훨씬 편해져요."
       />
 
       <div className="container rm-toolbar">
@@ -448,10 +517,10 @@ export default function RoommatesPage() {
             내가 쓴 글
           </button>
           <button type="button" className="btn btn-secondary btn-lg rm-inbox-btn" onClick={() => requireAccess('requests')}>
-            받은 신청
-            {newRequests > 0 && (
-              <span className="rm-unread tabular" aria-label={`새 신청 ${newRequests}건`}>
-                {newRequests > 99 ? '99+' : newRequests}
+            신청 내역
+            {newTotal > 0 && (
+              <span className="rm-unread tabular" aria-label={`새 신청·답장 ${newTotal}건`}>
+                {newTotal > 99 ? '99+' : newTotal}
               </span>
             )}
           </button>
@@ -529,9 +598,11 @@ export default function RoommatesPage() {
         post={detail}
         mine={detail ? isMine(detail) : false}
         sent={detail ? sentIds.has(detail.id) : false}
+        myGender={profile.data?.gender ?? null}
         onClose={() => setDetail(null)}
         onEdit={openEditor}
         onRequest={handleRequest}
+        onBlock={user ? openBlockAuthor : null}
       />
       {user && (
         <>
@@ -542,11 +613,27 @@ export default function RoommatesPage() {
             onClose={() => setConfirm(null)}
             onConfirm={confirmRequest}
           />
-          <ReceivedRequestsModal
+          <RequestsInboxModal
             request={inbox}
             user={user}
             myChecklist={profile.data?.checklist ?? null}
+            counts={counts}
             onClose={closeInbox}
+            onChanged={reload}
+            onCanceled={handleCanceled}
+          />
+          <BlockConfirmModal
+            key={blockPost?.id ?? 'none'}
+            target={
+              blockPost && {
+                title: '이 글쓴이를 차단할까요?',
+                context: `게시글 · ${DORMITORIES.find((d) => d.code === blockPost.dormitory)?.name ?? ''}${
+                  blockPost.semester ? ` · ${semesterLabel(blockPost.semester)}` : ''
+                }`,
+              }
+            }
+            onClose={() => setBlockPost(null)}
+            onConfirm={confirmBlockAuthor}
           />
         </>
       )}

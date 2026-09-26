@@ -103,3 +103,39 @@ export const IconBell = (p) => (
     <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" />
   </svg>
 )
+
+export const IconHome = (p) => (
+  <svg {...base} {...p}>
+    <path d="M3 10.5 12 3l9 7.5M5 9v11h5v-6h4v6h5V9" />
+  </svg>
+)
+
+export const IconUsers = (p) => (
+  <svg {...base} {...p}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+)
+
+export const IconChevronRight = (p) => (
+  <svg {...base} {...p}>
+    <path d="m9 6 6 6-6 6" />
+  </svg>
+)
+
+export const IconLogout = (p) => (
+  <svg {...base} {...p}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+  </svg>
+)
+
+export const IconClipboard = (p) => (
+  <svg {...base} {...p}>
+    <path d="M9 4h6v3H9zM9 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3M9 12h6M9 16h4" />
+  </svg>
+)
+
+export const IconPencil = (p) => (
+  <svg {...base} {...p}>
+    <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4M13.5 6.5l4 4" />
+  </svg>
+)

@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -145,7 +145,8 @@ npm run dev
 | `room_eligibility` | 호실 유형별 지원 가능 단과대학 | 누구나 읽기 |
 | `admission_cutoffs` | 과거 합격선 (모델 학습·검증용) | 누구나 읽기 |
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
-| `roommate_requests` | 룸메 신청 (신청자 → 글쓴이, 한마디 선택) | 직접 접근 불가, `send/cancel/list` 신청 함수로만. 글쓴이만 신청자 정보를 봄 |
+| `roommate_requests` | 룸메 신청 (신청자 → 글쓴이, 한마디 선택) + 글쓴이의 답장 | 직접 접근 불가, 신청·답장 함수로만. 글쓴이만 신청자 정보를, 신청자만 답장을 봄 |
+| `roommate_blocks` | 차단 (차단한 사이는 서로의 글이 안 보이고 신청 불가) | 직접 접근 불가, `block/list/unblock` 함수로만 |
 | `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
 | `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
 | `roommate_profiles` | 내 체크리스트 (기본 정보 + 체크리스트) | 본인만 |
@@ -197,9 +198,13 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 2. **글쓰기**: 소개(선택)만 적습니다. 기본 정보·체크리스트는 내 체크리스트 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.
 - **학기**: 글마다 학기(예: 2026년 2학기)가 있고, 글쓰기에서는 이번 학기와 **다음 학기 한 학기 미리**만 고를 수 있습니다. 사이드바에서 학기별로 볼 수 있습니다. (1학기 3~8월, 2학기 9~2월)
 3. **룸메 신청**: 남의 글에서 [룸메 신청]을 누르면 확인 창이 뜨고, 한마디(선택, 200자)를 남겨 보낼 수 있습니다.
+   **같은 성별의 글에만** 신청할 수 있습니다 (다른 성별 글은 [같은 성별만 신청 가능]으로 잠김, DB 에서도 막음).
    보낸 글은 카드에 [신청함 ✓]으로 표시되고, 다시 누르면 취소할 수 있습니다. 모집완료 글에는 신청할 수 없습니다.
-4. **받은 신청**: 툴바의 [받은 신청](새 신청 수 배지) 또는 내 글 카드의 [받은 신청 N]에서 신청자의 기본 정보와 18개 답을 봅니다.
-   나와의 일치도를 도넛(%)·섹션별 막대·항목별 비교표로 보여 주고, 잘 맞는 순/최신순으로 정렬할 수 있습니다.
+4. **신청 내역** (툴바, 새 신청·답장 수 배지): 받은 신청 / 보낸 신청 / 차단 목록 탭.
+   - 받은 신청: 신청자의 기본 정보, "18개 중 N개가 나와 같아요", 항목별 비교표. 잘 맞는 순/최신순 정렬. 신청마다 **답장**(300자) 한 번 (수정·삭제 가능).
+   - 보낸 신청: 내가 보낸 신청과 글쓴이의 답장, 신청 취소.
+   - 차단 목록: 서로 익명이라 "어디서 차단했는지"만 보여 주고, 해제할 수 있습니다.
+5. **차단**: 받은 신청의 [차단], 게시글 자세히 보기의 [차단]. 차단한 사이는 서로의 글이 안 보이고, 서로 신청할 수 없고, 두 사람 사이의 신청·답장은 지워집니다.
    실시간 알림이나 주기적 확인은 없고, 게시판을 열 때와 탭으로 돌아올 때만 새 신청 수를 확인합니다 (서버 요청 절약).
 
 - 체크리스트를 등록하면 각 카드에 **"나와 N/18 일치"** (같은 답의 수)가 보입니다.

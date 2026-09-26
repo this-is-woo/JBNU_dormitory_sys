@@ -4,8 +4,8 @@ import { requestButton } from './RoommateCard.jsx'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
 
 /** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개. 연락은 룸메 신청으로 */
-export default function PostDetailModal({ post, mine = false, sent = false, onClose, onEdit, onRequest }) {
-  const action = post && requestButton(post, mine, sent)
+export default function PostDetailModal({ post, mine = false, sent = false, myGender = null, onClose, onEdit, onRequest, onBlock }) {
+  const action = post && requestButton(post, mine, sent, myGender)
   return (
     <Modal
       open={Boolean(post)}
@@ -19,9 +19,11 @@ export default function PostDetailModal({ post, mine = false, sent = false, onCl
             <p className="rm-contact">
               {mine
                 ? '신청한 사람들의 체크리스트를 나와 비교해 볼 수 있어요.'
-                : sent
-                  ? '신청을 보냈어요. 글쓴이가 확인하면 연락이 올 거예요.'
-                  : '마음에 들면 룸메 신청을 보내 보세요.'}
+                : action.disabled && !post.isClosed
+                  ? '룸메이트는 같은 성별끼리만 신청할 수 있어요.'
+                  : sent
+                    ? '신청을 보냈어요. 글쓴이의 답장은 [신청 내역 → 보낸 신청]에서 볼 수 있어요.'
+                    : '마음에 들면 룸메 신청을 보내 보세요.'}
             </p>
             <button
               type="button"
@@ -35,6 +37,11 @@ export default function PostDetailModal({ post, mine = false, sent = false, onCl
             {mine && (
               <button type="button" className="btn btn-secondary" onClick={() => onEdit(post)}>
                 수정
+              </button>
+            )}
+            {!mine && onBlock && (
+              <button type="button" className="btn btn-ghost rq-block" onClick={() => onBlock(post)}>
+                차단
               </button>
             )}
           </>
