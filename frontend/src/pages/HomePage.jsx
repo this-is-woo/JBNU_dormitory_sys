@@ -93,7 +93,7 @@ function BlockHead({ id, title, desc }) {
   return (
     <header className="block-head">
       <h2 id={id}>{title}</h2>
-      <p>{desc}</p>
+      {desc && <p>{desc}</p>}
     </header>
   )
 }
@@ -225,7 +225,7 @@ export default function HomePage() {
 
       <div className="container home-blocks">
         <section className="home-block" aria-labelledby="block-score">
-          <BlockHead id="block-score" title="환산점수 계산" desc="입력하는 즉시 공식 선발 기준으로 환산점수가 계산돼요." />
+          <BlockHead id="block-score" title="환산점수 계산" />
           {regionsError && (
             <div className="notice notice-danger" role="alert">
               <IconAlert width={18} height={18} />
@@ -248,7 +248,7 @@ export default function HomePage() {
         </section>
 
         <section className="home-block" aria-labelledby="block-rules">
-          <BlockHead id="block-rules" title="환산점수 계산 방법" desc="전북대학교 생활관 모집안내의 점수 산출 방법을 그대로 따릅니다." />
+          <BlockHead id="block-rules" title="환산점수 계산 방법" />
           <div className="formula-card">
             <FormulaDisplay />
             <p className="formula-note">최종 점수는 소수점 셋째 자리에서 반올림합니다.</p>

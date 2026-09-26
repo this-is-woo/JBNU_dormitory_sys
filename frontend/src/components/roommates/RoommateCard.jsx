@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
 import { semesterLabel } from '../../lib/semester.js'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
@@ -12,13 +13,52 @@ export function requestButton(post, mine, sent, myGender) {
   return { label: '룸메 신청', tone: 'btn-primary' }
 }
 
+const CLAMP_LINES = 5
+
+/** 본문: 5줄이 넘으면 접어 두고 [더보기]로 펼친다 */
+function PostContent({ text }) {
+  const ref = useRef(null)
+  const [expanded, setExpanded] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
+
+  // 카드 폭이 바뀌거나(화면 회전·창 크기) 웹 글꼴이 늦게 적용되면 줄 수도 바뀌므로 다시 잰다.
+  // 펼친 동안에는 접힌 상태를 기준으로 판단할 수 없어 그대로 둔다.
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || expanded) return
+    let alive = true
+    const measure = () => alive && setOverflowing(el.scrollHeight > el.clientHeight + 1)
+    measure()
+    document.fonts?.ready.then(measure)
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => {
+      alive = false
+      observer.disconnect()
+    }
+  }, [text, expanded])
+
+  return (
+    <div className="rm-content">
+      <p ref={ref} className={`rm-content-text${expanded ? '' : ' is-clamped'}`} style={{ '--clamp': CLAMP_LINES }}>
+        {text}
+      </p>
+      {(overflowing || expanded) && (
+        <button type="button" className="rm-more-btn" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+          {expanded ? '접기' : '더보기'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 /**
  * match: 내 체크리스트와 같은 답의 수 (내 글이거나 모르면 null)
  * sent: 내가 이 글에 룸메 신청을 보냈는지, myGender: 내 체크리스트의 성별
  * onRequest: 남의 글이면 신청 보내기/취소, 내 글이면 받은 신청 보기
- * onReport: 남의 글 신고 (없으면 버튼을 숨긴다)
+ * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  */
-export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit, onReport }) {
+export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit, onReport, onDelete }) {
   const action = requestButton(post, mine, sent, myGender)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
@@ -29,6 +69,16 @@ export default function RoommateCard({ post, mine, sent = false, myGender = null
             {post.age}세 · {genderLabel(post.gender)}
           </span>
         </div>
+        {match !== null && (
+          <div className="rm-match" title="내 체크리스트와 답이 같은 항목 수">
+            <span className="rm-match-bar" aria-hidden="true">
+              <span style={{ width: `${(match / CHECKLIST_ITEMS.length) * 100}%` }} />
+            </span>
+            <span className="tabular">
+              나와 <strong>{match}</strong>/{CHECKLIST_ITEMS.length} 일치
+            </span>
+          </div>
+        )}
         <div className="rm-when">
           {post.isClosed && <span className="rm-closed-badge">모집완료</span>}
           {mine && <span className="chip chip-primary">내 글</span>}
@@ -45,18 +95,7 @@ export default function RoommateCard({ post, mine, sent = false, myGender = null
         <span className="rm-mbti">{post.mbti ?? 'MBTI 비공개'}</span>
       </div>
 
-      {match !== null && (
-        <div className="rm-match" title="내 체크리스트와 답이 같은 항목 수">
-          <span className="rm-match-bar" aria-hidden="true">
-            <span style={{ width: `${(match / CHECKLIST_ITEMS.length) * 100}%` }} />
-          </span>
-          <span className="tabular">
-            나와 <strong>{match}</strong>/{CHECKLIST_ITEMS.length} 일치
-          </span>
-        </div>
-      )}
-
-      {post.content ? <p className="rm-content">{post.content}</p> : <div className="rm-content" />}
+      {post.content ? <PostContent text={post.content} /> : <div className="rm-content" />}
 
       <footer className="rm-card-foot">
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => onOpen(post)}>
@@ -72,9 +111,16 @@ export default function RoommateCard({ post, mine, sent = false, myGender = null
           {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
         </button>
         {mine ? (
-          <button type="button" className="btn btn-ghost btn-sm rm-edit-btn" onClick={() => onEdit(post)}>
-            수정
-          </button>
+          <div className="rm-own-actions">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onEdit(post)}>
+              수정
+            </button>
+            {onDelete && (
+              <button type="button" className="btn btn-ghost btn-sm rm-delete-btn" onClick={() => onDelete(post)}>
+                삭제
+              </button>
+            )}
+          </div>
         ) : (
           onReport && (
             <button type="button" className="btn btn-ghost btn-sm rm-edit-btn rm-report-btn" onClick={() => onReport(post)}>

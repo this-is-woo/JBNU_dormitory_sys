@@ -129,6 +129,8 @@
 }
 
 .rm-card {
+  /* 카드 폭에 맞춰 머리 배치를 바꾼다 (.rm-match) */
+  container: rm-card / inline-size;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -166,7 +168,7 @@
 .rm-card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px 12px;
 }
 
 .rm-who {
@@ -237,6 +239,36 @@
   line-height: 1.7;
   color: var(--c-text);
   white-space: pre-line;
+}
+
+.rm-content-text {
+  overflow-wrap: anywhere;
+}
+
+/* 5줄이 넘는 본문은 접어 둔다 (RoommateCard 의 PostContent) */
+.rm-content-text.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: var(--clamp);
+  line-clamp: var(--clamp);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rm-more-btn {
+  margin-top: 4px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.rm-more-btn:hover {
+  color: var(--c-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .rm-card-foot {
@@ -755,9 +787,38 @@
 .rm-match {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 13px;
   color: var(--c-text-2);
+  white-space: nowrap;
+}
+
+/* 카드 머리(단과대학과 작성 시각 사이)에 들어가므로 막대를 짧게, 자리가 모자라면 막대부터 줄어든다 */
+.rm-card-head .rm-match {
+  min-width: 0;
+}
+
+/* 자리가 모자라도 단과대학 이름은 줄바꿈하지 않는다 */
+.rm-card-head .rm-who {
+  flex-shrink: 0;
+}
+
+.rm-card-head .rm-match-bar {
+  flex: 0 1 auto;
+  width: 72px;
+  min-width: 24px;
+}
+
+/* 아주 좁은 카드(작은 휴대폰)에서는 한 줄에 다 들어가지 않으므로 머리 아래 줄로 내린다 */
+@container rm-card (max-width: 330px) {
+  .rm-card-head {
+    flex-wrap: wrap;
+  }
+
+  .rm-card-head .rm-match {
+    order: 3;
+    flex-basis: 100%;
+  }
 }
 
 .rm-match strong {
@@ -840,6 +901,20 @@
 
 .rm-edit-btn {
   margin-left: auto;
+}
+
+/* 내 글의 [수정] [삭제]: 줄이 바뀌어도 둘이 함께 오른쪽에 붙어 있게 묶는다 */
+.rm-own-actions {
+  display: flex;
+  margin-left: auto;
+}
+
+.rm-delete-btn {
+  color: var(--c-text-3);
+}
+
+.rm-delete-btn:hover {
+  color: var(--c-danger);
 }
 
 .my-post-requests {
@@ -1634,7 +1709,8 @@
 }
 
 .rm-card.is-closed > :not(.rm-card-head):not(.rm-card-foot),
-.rm-card.is-closed .rm-who {
+.rm-card.is-closed .rm-who,
+.rm-card.is-closed .rm-match {
   opacity: 0.45;
   filter: grayscale(1);
 }

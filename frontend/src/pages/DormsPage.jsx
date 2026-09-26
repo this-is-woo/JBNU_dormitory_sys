@@ -3,7 +3,6 @@ import { IconExternal, IconInfo } from "../components/common/Icons.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 import FeeTable from "../components/dorms/FeeTable.jsx";
 import MealTable from "../components/dorms/MealTable.jsx";
-import { OFFICIAL_DORM_URL } from "../config.js";
 import {
   FEE_SOURCE,
   MEAL_TIMES,
@@ -14,13 +13,6 @@ import { DORMITORIES, SELECTION_TYPES } from "../data/dormitories.js";
 import { fetchDormitories } from "../lib/dormitories.js";
 import "./DormsPage.css";
 
-const SECTIONS = [
-  { id: "dorms", label: "생활관 소개" },
-  { id: "fees", label: "학기 생활관비" },
-  { id: "winter", label: "겨울방학 관리비" },
-  { id: "meals", label: "식당 이용 시간" },
-];
-
 function Source() {
   return (
     <p className="fee-source">
@@ -30,16 +22,6 @@ function Source() {
       </a>{" "}
       · {FEE_SOURCE.checkedAt} 확인
     </p>
-  );
-}
-
-function Notes({ items }) {
-  return (
-    <ul className="fee-notes">
-      {items.map((n) => (
-        <li key={n}>{n}</li>
-      ))}
-    </ul>
   );
 }
 
@@ -69,28 +51,7 @@ export default function DormsPage() {
   return (
     <>
       <title>생활관 안내 | JBNU Dormi</title>
-      <PageHeader
-        title="전주캠퍼스 생활관 한눈에 보기"
-        lead="생활관은 지원 타입(A~D)별로, 같은 관이라도 호실 유형별로 환산점수 고득점순 선발됩니다. 생활관비와 식당 이용 시간도 한곳에 모았어요."
-      >
-        <nav className="dorms-nav" aria-label="생활관 안내 목차">
-          {SECTIONS.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="dorms-nav-link">
-              {s.label}
-            </a>
-          ))}
-        </nav>
-        <div className="dorms-meta">
-          <a
-            href={OFFICIAL_DORM_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-secondary btn-sm"
-          >
-            생활관 공식 홈페이지 <IconExternal width={14} height={14} />
-          </a>
-        </div>
-      </PageHeader>
+      <PageHeader title="전주캠퍼스 생활관 한눈에 보기" />
 
       <div className="container dorms-content">
         <Section
@@ -163,25 +124,15 @@ export default function DormsPage() {
             ))}
           </ul>
           <FeeTable data={SEMESTER_FEES} showUtility />
-          <Notes items={SEMESTER_FEES.notes} />
           <Source />
         </Section>
 
-        <Section
-          id="winter"
-          title={WINTER_FEES.title}
-          desc="방학 중 특별개관 기간의 관리비예요. 합계 = 관리비 + 급식비 (단위: 원)"
-        >
+        <Section id="winter" title={WINTER_FEES.title}>
           <FeeTable data={WINTER_FEES} />
-          <Notes items={WINTER_FEES.notes} />
           <Source />
         </Section>
 
-        <Section
-          id="meals"
-          title={MEAL_TIMES.title}
-          desc="식사 시간은 반드시 지켜야 해요."
-        >
+        <Section id="meals" title={MEAL_TIMES.title}>
           <MealTable data={MEAL_TIMES} />
           <dl className="meal-places">
             {MEAL_TIMES.places.map((p) => (
@@ -191,7 +142,6 @@ export default function DormsPage() {
               </div>
             ))}
           </dl>
-          <Notes items={MEAL_TIMES.notes} />
           <Source />
         </Section>
       </div>

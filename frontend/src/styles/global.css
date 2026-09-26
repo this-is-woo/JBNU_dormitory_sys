@@ -88,6 +88,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
+  /* 스크롤바 자리를 항상 남겨 둔다. 모달이 열려 스크롤이 잠길 때(Modal.css) 페이지가 옆으로 밀리지 않는다. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -319,6 +321,14 @@ svg {
   background-color: var(--c-bg);
   font-size: 15px;
   transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+/* 휴대폰 기본 한글 글꼴은 공백이 더 넓어 보여 조금 더 줄인다 (약 1/2) */
+@media (max-width: 640px) {
+  .input,
+  .select {
+    word-spacing: -0.14em;
+  }
 }
 
 .input::placeholder {

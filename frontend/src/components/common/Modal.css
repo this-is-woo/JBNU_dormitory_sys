@@ -22,6 +22,13 @@
   backdrop-filter: blur(3px);
 }
 
+/* 모달이 열려 있는 동안 뒤 페이지는 스크롤되지 않는다.
+   모달이 여러 개 겹쳐도 하나라도 열려 있으면 잠기고, 모두 닫히면 저절로 풀린다.
+   (스크롤바 자리는 global.css 의 html scrollbar-gutter 로 남겨 두어 페이지가 옆으로 밀리지 않는다) */
+html:has(.modal[open]) {
+  overflow: hidden;
+}
+
 @keyframes modal-in {
   from {
     opacity: 0;
@@ -73,6 +80,8 @@
 .modal-body {
   padding: 24px 28px;
   overflow-y: auto;
+  /* 모달 본문 끝까지 스크롤해도 뒤 페이지로 스크롤이 넘어가지 않게 */
+  overscroll-behavior: contain;
 }
 
 .modal-foot {

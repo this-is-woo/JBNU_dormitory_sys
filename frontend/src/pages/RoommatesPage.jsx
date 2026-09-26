@@ -6,6 +6,7 @@ import { IconAlert, IconInfo } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Pagination from '../components/common/Pagination.jsx'
 import BoardGate from '../components/roommates/BoardGate.jsx'
+import DeletePostModal from '../components/roommates/DeletePostModal.jsx'
 import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
 import PostDetailModal from '../components/roommates/PostDetailModal.jsx'
 import { matchCount } from '../components/roommates/postFormat.js'
@@ -27,6 +28,7 @@ import {
   PAGE_SIZE,
   SAMPLE_POSTS,
   createRoommatePost,
+  deleteRoommatePost,
   fetchRoommatePage,
   roommateStorage,
   updateRoommatePost,
@@ -116,6 +118,8 @@ export default function RoommatesPage() {
   const [inbox, setInbox] = useState(null)
   // 글쓴이 차단 확인 창 (게시글)
   const [blockPost, setBlockPost] = useState(null)
+  // 카드의 [삭제]로 지우려는 내 글
+  const [deletingPost, setDeletingPost] = useState(null)
   // 신고 창 (게시글)
   const [reportTarget, setReportTarget] = useState(null)
   // 운영자가 이용을 정지한 계정인지
@@ -373,6 +377,14 @@ export default function RoommatesPage() {
     }
   }
 
+  async function confirmDeletePost() {
+    await deleteRoommatePost(deletingPost.id, user.id)
+    setDeletingPost(null)
+    setDetail(null)
+    refreshRequests()
+    reload()
+  }
+
   async function confirmBlockAuthor() {
     await blockAuthor(blockPost, user.id)
     setBlockPost(null)
@@ -511,6 +523,7 @@ export default function RoommatesPage() {
                         onOpen={setDetail}
                         onRequest={handleRequest}
                         onEdit={openEditor}
+                        onDelete={setDeletingPost}
                         onReport={setReportTarget}
                       />
                     ))}
@@ -659,6 +672,12 @@ export default function RoommatesPage() {
             onClose={closeInbox}
             onChanged={reload}
             onCanceled={handleCanceled}
+          />
+          <DeletePostModal
+            key={deletingPost?.id ?? 'none'}
+            post={deletingPost}
+            onClose={() => setDeletingPost(null)}
+            onConfirm={confirmDeletePost}
           />
           <BlockConfirmModal
             key={blockPost?.id ?? 'none'}
