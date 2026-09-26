@@ -62,7 +62,11 @@ export default function Footer() {
           본 서비스는 전북대학교 공식 서비스가 아니며 예측 결과는 참고용입니다. 실제 선발 기준과 결과는 생활관
           공지사항을 확인하세요.
         </p>
-        <p>© {new Date().getFullYear()} JBNU Dormitory Predictor</p>
+        <p className="footer-legal">
+          <Link to="/privacy">개인정보처리방침</Link>
+          <Link to="/terms">서비스 약관</Link>
+          <span>© {new Date().getFullYear()} JBNU Dormitory Predictor</span>
+        </p>
       </div>
     </footer>
   )

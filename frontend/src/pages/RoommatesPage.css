@@ -147,6 +147,18 @@
   flex: none;
 }
 
+.login-gate-privacy {
+  margin-top: -6px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.login-gate-privacy a {
+  color: var(--c-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .login-gate-demo {
   font-size: 13px;
   color: var(--c-text-3);

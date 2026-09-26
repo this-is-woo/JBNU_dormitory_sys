@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
 
 function GoogleMark(props) {
@@ -55,6 +56,10 @@ export default function LoginGate({ onSignIn }) {
           {pending ? <span className="spinner" aria-hidden="true" /> : <GoogleMark />}
           Google 계정으로 로그인
         </button>
+        <p className="login-gate-privacy">
+          로그인하면 이메일과 이름만 받아 본인 확인에 쓰고, 게시글에는 표시하지 않아요.{' '}
+          <Link to="/privacy">개인정보처리방침</Link>
+        </p>
         {error && (
           <p className="rm-error" role="alert">
             {error}

@@ -64,8 +64,21 @@
   color: var(--c-text-3);
 }
 
-.footer-bottom p:last-child {
+.footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
   white-space: nowrap;
+}
+
+.footer-legal a {
+  color: var(--c-text-2);
+}
+
+.footer-legal a:hover {
+  color: var(--c-text);
+  text-decoration: underline;
 }
 
 @media (max-width: 860px) {
