@@ -248,8 +248,11 @@
 }
 
 .rm-contact {
-  flex: 1;
+  /* 버튼과 한 줄에 들어가지 않으면 안내 문구가 윗줄을 통째로 쓴다 */
+  flex: 1 1 240px;
+  min-width: 0;
   font-size: 14px;
+  line-height: 1.5;
   color: var(--c-text);
 }
 
@@ -1591,6 +1594,24 @@
   font-size: 24px;
   font-weight: 800;
   color: var(--c-success);
+}
+
+/* 글 자세히 보기 하단: 모바일에서는 안내 문구 한 줄 + 버튼 한 줄 */
+@media (max-width: 560px) {
+  .modal-foot .rm-contact {
+    flex-basis: 100%;
+    font-size: 13px;
+    color: var(--c-text-2);
+  }
+
+  .modal-foot .rm-request-btn {
+    flex: 1;
+  }
+
+  .modal-foot .rq-block,
+  .modal-foot .rq-danger {
+    padding-inline: 12px;
+  }
 }
 
 /* ── 모집완료 ── */
