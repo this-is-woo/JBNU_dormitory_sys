@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconAlert, IconInfo } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
+import Pagination from '../components/common/Pagination.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
@@ -10,7 +11,7 @@ import RoommateForm from '../components/roommates/RoommateForm.jsx'
 import { DORMITORIES } from '../data/dormitories.js'
 import { GENDERS } from '../data/roommateOptions.js'
 import { authMode, useAuth } from '../hooks/useAuth.js'
-import { createRoommatePost, fetchRoommatePosts, roommateStorage, updateRoommatePost } from '../lib/roommates.js'
+import { PAGE_SIZE, createRoommatePost, fetchRoommatePage, roommateStorage, updateRoommatePost } from '../lib/roommates.js'
 import './RoommatesPage.css'
 
 const ALL = 'all'
@@ -42,10 +43,6 @@ function writeAfterLogin(action) {
   }
 }
 
-function matches(post, f) {
-  return (f.dormitory === ALL || post.dormitory === f.dormitory) && (f.gender === ALL || post.gender === f.gender)
-}
-
 function AccountBar({ status, user, onLogin, onLogout }) {
   if (status === 'loading') return <span className="rm-account-placeholder" aria-hidden="true" />
   if (status !== 'signedIn') {
@@ -71,9 +68,12 @@ function AccountBar({ status, user, onLogin, onLogout }) {
 
 export default function RoommatesPage() {
   const { status: authStatus, user, signIn, signInWithIdToken, signOut } = useAuth()
-  const [posts, setPosts] = useState([])
-  const [status, setStatus] = useState('loading')
+  // 지금 페이지의 글만 들고 있는다. status: 'loading'(처음) | 'ready' | 'error', loading: 페이지 넘기는 중
+  const [board, setBoard] = useState({ status: 'loading', items: [], total: 0, loading: true })
+  const [page, setPage] = useState(1)
+  const [reloadKey, setReloadKey] = useState(0)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
+  const feedRef = useRef(null)
   // null: 닫힘 / { post: null }: 새 글 / { post }: 수정
   const [editor, setEditor] = useState(null)
   const [myPostsOpen, setMyPostsOpen] = useState(false)
@@ -83,17 +83,30 @@ export default function RoommatesPage() {
 
   useEffect(() => {
     let active = true
-    fetchRoommatePosts()
-      .then((data) => {
+    setBoard((b) => ({ ...b, loading: true }))
+    fetchRoommatePage({
+      page,
+      dormitory: filters.dormitory === ALL ? null : filters.dormitory,
+      gender: filters.gender === ALL ? null : filters.gender,
+    })
+      .then(({ items, total, outOfRange }) => {
         if (!active) return
-        setPosts(data)
-        setStatus('ready')
+        // 마지막 페이지의 글이 모두 지워졌으면 앞 페이지로
+        if (page > 1 && (outOfRange || items.length === 0)) return setPage((p) => p - 1)
+        setBoard({ status: 'ready', items, total, loading: false })
       })
-      .catch(() => active && setStatus('error'))
+      .catch(() => active && setBoard((b) => ({ ...b, status: 'error', loading: false })))
     return () => {
       active = false
     }
-  }, [])
+  }, [page, filters.dormitory, filters.gender, reloadKey])
+
+  const reload = () => setReloadKey((k) => k + 1)
+
+  function goToPage(next) {
+    setPage(next)
+    feedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // 로그인이 끝나면 창을 닫고, 누르려던 버튼의 동작을 이어서 한다
   useEffect(() => {
@@ -105,16 +118,21 @@ export default function RoommatesPage() {
     if (action === 'myPosts') setMyPostsOpen(true)
   }, [authStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 모집 중인 글을 먼저, 모집완료 글은 뒤로 (각각 최신순 유지)
-  const visible = useMemo(
-    () => posts.filter((p) => matches(p, filters)).sort((a, b) => Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed))),
-    [posts, filters],
-  )
-  const setFilter = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }))
+  const { status, items: visible, total } = board
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const setFilter = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }))
+    setPage(1)
+  }
+  const resetFilters = () => {
+    setFilters(INITIAL_FILTERS)
+    setPage(1)
+  }
   const filtered = filters.dormitory !== ALL || filters.gender !== ALL
   const isMine = (post) => Boolean(user) && post.authorId === user.id
 
-  const replacePost = (post) => setPosts((prev) => prev.map((p) => (p.id === post.id ? post : p)))
+  const replacePost = (post) =>
+    setBoard((b) => ({ ...b, items: b.items.map((p) => (p.id === post.id ? post : p)) }))
 
   /** 로그인해 있으면 바로, 아니면 로그인 창을 띄우고 로그인 뒤에 한다 */
   function requireLogin(action, run) {
@@ -132,8 +150,10 @@ export default function RoommatesPage() {
     if (editor?.post) {
       replacePost(await updateRoommatePost(editor.post.id, values, user.id))
     } else {
-      const saved = await createRoommatePost(values, user.id)
-      setPosts((prev) => [saved, ...prev])
+      await createRoommatePost(values, user.id)
+      // 새 글은 첫 페이지 맨 위에 온다
+      if (page === 1) reload()
+      else setPage(1)
     }
     setEditor(null)
   }
@@ -174,7 +194,7 @@ export default function RoommatesPage() {
           </button>
         </div>
         <div className="rm-toolbar-meta">
-          {status === 'ready' && <span className="rm-count tabular">게시글 {posts.length}개</span>}
+          {status === 'ready' && <span className="rm-count tabular">게시글 {total}개</span>}
           <AccountBar status={authStatus} user={user} onLogin={() => setLoginFor('none')} onLogout={handleLogout} />
         </div>
       </div>
@@ -196,13 +216,13 @@ export default function RoommatesPage() {
             <ChoiceGroup label="성별 필터" size="sm" options={withAll(GENDERS)} value={filters.gender} onChange={setFilter('gender')} />
           </div>
           {filtered && (
-            <button type="button" className="btn btn-ghost btn-sm rm-filter-reset" onClick={() => setFilters(INITIAL_FILTERS)}>
+            <button type="button" className="btn btn-ghost btn-sm rm-filter-reset" onClick={resetFilters}>
               필터 초기화
             </button>
           )}
         </aside>
 
-        <section className="rm-feed" aria-label="룸메이트 찾기 게시글">
+        <section ref={feedRef} className="rm-feed" aria-label="룸메이트 찾기 게시글">
           {roommateStorage === 'local' && (
             <div className="notice">
               <IconInfo width={18} height={18} />
@@ -229,16 +249,19 @@ export default function RoommatesPage() {
 
           {status === 'ready' &&
             (visible.length ? (
-              <div className="rm-grid">
-                {visible.map((post) => (
-                  <RoommateCard key={post.id} post={post} mine={isMine(post)} onOpen={setDetail} onEdit={openEditor} />
-                ))}
-              </div>
+              <>
+                <div className={`rm-grid${board.loading ? ' is-loading' : ''}`} aria-busy={board.loading}>
+                  {visible.map((post) => (
+                    <RoommateCard key={post.id} post={post} mine={isMine(post)} onOpen={setDetail} onEdit={openEditor} />
+                  ))}
+                </div>
+                <Pagination page={page} pageCount={pageCount} onChange={goToPage} />
+              </>
             ) : (
               <div className="rm-empty">
                 <p>{filtered ? '조건에 맞는 글이 없어요.' : '아직 등록된 글이 없어요.'}</p>
                 {filtered ? (
-                  <button type="button" className="btn btn-secondary" onClick={() => setFilters(INITIAL_FILTERS)}>
+                  <button type="button" className="btn btn-secondary" onClick={resetFilters}>
                     필터 초기화
                   </button>
                 ) : (
@@ -273,8 +296,8 @@ export default function RoommatesPage() {
             onClose={() => setMyPostsOpen(false)}
             onView={setDetail}
             onEdit={openEditor}
-            onChanged={replacePost}
-            onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+            onChanged={reload}
+            onDeleted={reload}
           />
         </>
       )}

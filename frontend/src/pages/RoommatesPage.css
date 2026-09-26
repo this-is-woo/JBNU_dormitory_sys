@@ -143,6 +143,13 @@
   border-color: var(--c-border-strong);
 }
 
+/* 페이지를 넘기는 동안 이전 글을 흐리게 */
+.rm-grid.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
 .rm-skeleton {
   min-height: 300px;
   background: linear-gradient(90deg, var(--c-surface) 25%, var(--c-surface-2) 50%, var(--c-surface) 75%);

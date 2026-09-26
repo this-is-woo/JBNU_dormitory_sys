@@ -89,3 +89,19 @@ def test_cors_preflight(client):
         headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "POST"},
     )
     assert res.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_health_keepalive_is_throttled(client, monkeypatch):
+    from app.routers import health as health_router
+    from app.services import supabase_client
+
+    calls = []
+    monkeypatch.setattr(supabase_client, "get_supabase", lambda: object())
+    monkeypatch.setattr(supabase_client, "_last_keepalive", 0.0)
+    monkeypatch.setattr(health_router, "keepalive", lambda: calls.append(1))
+
+    for _ in range(3):
+        assert client.get("/health").status_code == 200
+    assert calls == [1]  # 6시간 안에는 한 번만
+
+    assert supabase_client.keepalive_due(now=supabase_client._last_keepalive + supabase_client.KEEPALIVE_INTERVAL)

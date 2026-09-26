@@ -134,17 +134,37 @@ async function client() {
 
 export const roommateStorage = isSupabaseConfigured ? 'supabase' : 'local'
 
-/** 최신 글부터 */
-export async function fetchRoommatePosts() {
-  if (!isSupabaseConfigured) return [...readLocal(), ...SAMPLE_POSTS]
+export const PAGE_SIZE = 12
+
+// 모집 중인 글 먼저, 그다음 최신순
+const byOpenThenNewest = (a, b) =>
+  Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed)) || b.createdAt.localeCompare(a.createdAt)
+
+/**
+ * 게시글 한 페이지. 필터와 페이지 나누기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
+ * @param {{ page?: number, dormitory?: string|null, gender?: string|null }} options  page 는 1부터
+ * @returns {Promise<{ items: object[], total: number }>}
+ */
+export async function fetchRoommatePage({ page = 1, dormitory = null, gender = null } = {}) {
+  const from = (page - 1) * PAGE_SIZE
+  if (!isSupabaseConfigured) {
+    const all = [...readLocal(), ...SAMPLE_POSTS]
+      .filter((p) => (!dormitory || p.dormitory === dormitory) && (!gender || p.gender === gender))
+      .sort(byOpenThenNewest)
+    return { items: all.slice(from, from + PAGE_SIZE), total: all.length }
+  }
   const supabase = await client()
-  const { data, error } = await supabase
-    .from('roommate_posts')
-    .select(COLUMNS)
+  let query = supabase.from('roommate_posts').select(COLUMNS, { count: 'exact' })
+  if (dormitory) query = query.eq('dormitory_code', dormitory)
+  if (gender) query = query.eq('gender', gender)
+  const { data, count, error } = await query
+    .order('is_closed', { ascending: true })
     .order('created_at', { ascending: false })
-    .limit(300)
+    .range(from, from + PAGE_SIZE - 1)
+  // 마지막 페이지의 글이 지워져 페이지 범위를 벗어난 경우
+  if (error?.code === 'PGRST103') return { items: [], total: 0, outOfRange: true }
   if (error) throw new Error('게시글을 불러오지 못했어요.')
-  return data.map(fromRow)
+  return { items: data.map(fromRow), total: count ?? data.length }
 }
 
 /** 로그인한 계정으로 쓴 글 */
