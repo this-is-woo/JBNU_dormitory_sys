@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { PrivacyPage, TermsPage } from './pages/PolicyPage.jsx'
 import RoommatesPage from './pages/RoommatesPage.jsx'
+import SupportPage from './pages/SupportPage.jsx'
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
       { path: '/predict', element: <Navigate to="/" replace /> },
       { path: '/roommates', element: <RoommatesPage /> },
       { path: '/dorms', element: <DormsPage /> },
+      { path: '/support', element: <SupportPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/terms', element: <TermsPage /> },
       { path: '*', element: <NotFoundPage /> },

@@ -48,6 +48,26 @@
   background: var(--c-surface-2);
 }
 
+.site-nav a {
+  white-space: nowrap;
+}
+
+/* 서랍으로 바뀌기 전 좁은 화면: 메뉴 4개가 한 줄에 들어가도록 간격을 줄인다 */
+@media (max-width: 960px) {
+  .header-inner {
+    gap: 24px;
+  }
+
+  .site-nav ul {
+    gap: 2px;
+  }
+
+  .site-nav a {
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+}
+
 .nav-toggle {
   display: none;
   margin-left: auto;

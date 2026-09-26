@@ -10,6 +10,7 @@ export const NAV_ITEMS = [
   { to: '/', label: '홈', end: true },
   { to: '/roommates', label: '룸메이트 찾기' },
   { to: '/dorms', label: '생활관 안내' },
+  { to: '/support', label: '개발자 삼각김밥 사주기' },
 ]
 
 export default function Header() {

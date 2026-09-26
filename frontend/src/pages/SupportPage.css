@@ -1,0 +1,129 @@
+/* 개발자 삼각김밥 사주기 (/support) */
+/* 머리말은 단어 중간에서 줄이 바뀌지 않게 */
+.support-lead {
+  word-break: keep-all;
+}
+
+.support {
+  display: grid;
+  gap: 48px;
+  max-width: 720px;
+  padding-bottom: 80px;
+}
+
+.support-card {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 36px 32px;
+  text-align: center;
+}
+
+.support-card h2 {
+  font-size: 22px;
+}
+
+/* QR: 어두운 화면에서도 찍히도록 흰 바탕 위에 둔다 */
+.support-qr {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.support-qr img {
+  width: 220px;
+  height: auto;
+  padding: 10px;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.support-qr figcaption {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.support-btn {
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  border-color: #fee500;
+  background: #fee500;
+  font-weight: 700;
+  color: #191919;
+}
+
+.support-btn:hover {
+  border-color: #f5d800;
+  background: #f5d800;
+}
+
+.support-hint {
+  margin-top: -6px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+/* 이렇게 쓸게요 */
+.support-uses {
+  display: grid;
+  gap: 16px;
+}
+
+.support-uses h2 {
+  font-size: 22px;
+}
+
+.support-uses ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.support-uses li {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px;
+}
+
+.support-uses li strong {
+  font-size: 15px;
+}
+
+.support-uses li p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-2);
+}
+
+.support-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+@media (max-width: 640px) {
+  .support {
+    gap: 36px;
+    padding-bottom: 56px;
+  }
+
+  .support-card {
+    padding: 28px 18px;
+  }
+
+  /* 휴대폰에서는 버튼을 누르는 게 편하므로 QR 을 작게 */
+  .support-qr img {
+    width: 168px;
+  }
+
+  .support-uses ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

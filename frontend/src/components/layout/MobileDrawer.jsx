@@ -10,12 +10,16 @@ import {
   IconClose,
   IconHome,
   IconLogout,
+  IconOnigiri,
   IconPencil,
   IconUsers,
 } from '../common/Icons.jsx'
 import './MobileDrawer.css'
 
 const NAV_ICONS = { '/': IconHome, '/roommates': IconUsers, '/dorms': IconBuilding }
+
+// 후원 페이지는 페이지 목록이 아니라 맨 아래 '후원' 칸에 따로 둔다
+const SUPPORT_PATH = '/support'
 
 // 룸메이트 찾기 바로가기: /roommates 로 이동하면서 열 창을 알려 준다 (RoommatesPage 가 location.state 로 받는다)
 const ROOMMATE_ACTIONS = [
@@ -28,8 +32,10 @@ const ROOMMATE_ACTIONS = [
  * 모바일 메뉴: 오른쪽에서 밀려 나오는 서랍.
  * 프로필(로그인 계정) · 페이지 이동 · 룸메이트 바로가기 · 로그아웃
  */
-export default function MobileDrawer({ open, onClose, items, auth }) {
+export default function MobileDrawer({ open, onClose, items: allItems, auth }) {
   const navigate = useNavigate()
+  const items = allItems.filter((item) => item.to !== SUPPORT_PATH)
+  const support = allItems.find((item) => item.to === SUPPORT_PATH)
   const closeRef = useRef(null)
   const { status, user, signOut } = auth
   const signedIn = status === 'signedIn'
@@ -152,6 +158,24 @@ export default function MobileDrawer({ open, onClose, items, auth }) {
                 ))}
               </ul>
             </section>
+          )}
+
+          {/* 후원 */}
+          {support && (
+            <nav className="drawer-section" aria-label="후원">
+              <h2>후원</h2>
+              <ul className="drawer-list">
+                <li style={{ '--i': items.length + (signedIn ? ROOMMATE_ACTIONS.length : 0) }}>
+                  <NavLink to={support.to} onClick={onClose} className="drawer-item">
+                    <span className="drawer-item-icon">
+                      <IconOnigiri width={18} height={18} />
+                    </span>
+                    <span className="drawer-item-label">{support.label}</span>
+                    <IconChevronRight className="drawer-item-arrow" width={16} height={16} />
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
           )}
         </div>
 
