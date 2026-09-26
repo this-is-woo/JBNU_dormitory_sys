@@ -91,14 +91,43 @@
   }
 }
 
-@media (max-width: 520px) {
+.footer-disclaimer-short {
+  display: none;
+}
+
+/* 모바일: 로고 · 한 줄 안내 · 약관 링크만 */
+@media (max-width: 560px) {
+  .site-footer {
+    margin-top: 64px;
+  }
+
   .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    display: block;
+    padding-top: 28px;
+    padding-bottom: 16px;
+  }
+
+  .footer-about p,
+  .footer-col {
+    display: none;
   }
 
   .footer-bottom {
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding-top: 16px;
+    padding-bottom: 28px;
+  }
+
+  .footer-disclaimer-full {
+    display: none;
+  }
+
+  .footer-disclaimer-short {
+    display: inline;
+  }
+
+  .footer-legal {
+    gap: 4px 14px;
   }
 }

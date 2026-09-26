@@ -58,9 +58,12 @@ export default function Footer() {
       </div>
 
       <div className="container footer-bottom">
-        <p>
-          본 서비스는 전북대학교 공식 서비스가 아니며 예측 결과는 참고용입니다. 실제 선발 기준과 결과는 생활관
-          공지사항을 확인하세요.
+        <p className="footer-disclaimer">
+          <span className="footer-disclaimer-full">
+            본 서비스는 전북대학교 공식 서비스가 아니며 예측 결과는 참고용입니다. 실제 선발 기준과 결과는 생활관
+            공지사항을 확인하세요.
+          </span>
+          <span className="footer-disclaimer-short">전북대학교 비공식 서비스 · 예측 결과는 참고용</span>
         </p>
         <p className="footer-legal">
           <Link to="/privacy">개인정보처리방침</Link>

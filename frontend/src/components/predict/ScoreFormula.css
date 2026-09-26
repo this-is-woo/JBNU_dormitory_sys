@@ -48,3 +48,23 @@
   color: var(--c-primary-text);
   font-weight: 700;
 }
+
+/* 모바일: 분수가 카드 밖으로 나가지 않게 글자와 간격을 줄인다 */
+@media (max-width: 560px) {
+  .formula-display {
+    gap: 8px 8px;
+    font-size: 15px;
+  }
+
+  .fd-group {
+    gap: 6px;
+  }
+
+  .fd-num {
+    padding: 0 2px 5px;
+  }
+
+  .fd-num .f-op {
+    margin: 0 2px;
+  }
+}

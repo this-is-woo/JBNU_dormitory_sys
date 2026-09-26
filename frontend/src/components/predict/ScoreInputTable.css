@@ -171,6 +171,9 @@
 
   .score-table tbody td:last-child {
     border-bottom: 0;
+    /* 세로 배치에서는 마지막 칸(환산점수)이 카드 아래 두 모서리를 모두 채운다 */
+    border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+    border-bottom-right-radius: calc(var(--radius-lg) - 1px);
   }
 
   .score-table tbody td:first-child {

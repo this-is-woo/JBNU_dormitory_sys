@@ -133,7 +133,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -147,7 +147,7 @@ npm run dev
 | `room_eligibility` | 호실 유형별 지원 가능 단과대학 | 누구나 읽기 |
 | `admission_cutoffs` | 과거 합격선 (모델 학습·검증용) | 누구나 읽기 |
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
-| `roommate_posts` | 룸메이트 찾기 게시글 | 로그인 사용자만 읽기·쓰기, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
+| `roommate_posts` | 룸메이트 찾기 게시글 | 누구나 읽기, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
 
 ### ② Render — 백엔드
 
@@ -183,7 +183,7 @@ npm run dev
 
 ## 룸메이트 찾기
 
-`/roommates` 페이지. **구글 로그인한 사용자만** 글을 보고 쓸 수 있습니다. (다른 페이지는 로그인 없이 이용)
+`/roommates` 페이지. 게시글은 누구나 볼 수 있고, **글쓰기·내 글 관리는 구글 로그인**이 필요합니다. (글쓰기를 누르면 로그인 창이 뜨고, 로그인하면 바로 글쓰기가 이어짐)
 
 글쓰기는 3단계 창입니다.
 
@@ -192,7 +192,7 @@ npm run dev
 3. **소개 · 연락**: 자유 자기소개(선택), 연락 방법(오픈채팅 링크 권장)
 
 - 체크리스트 답변은 `roommate_posts.checklist`(jsonb)에 저장됩니다. 항목을 바꾸려면 `roommateChecklist.js` 만 수정하면 됩니다.
-- **필터**: 호관·성별 + 체크리스트 18개 항목. 항목끼리는 모두 만족(AND), 한 항목에서 여러 답을 고르면 그중 하나(OR).
+- **필터**: 호관·성별
 - **내가 쓴 글**: 글마다 `user_id`(= `auth.uid()`)가 저장되고, RLS 정책으로 글쓴이만 수정·삭제·모집완료를 바꿀 수 있습니다.
   모집완료 글은 흐리게 표시되고 목록 뒤로 밀립니다.
 - Supabase 가 연결되지 않았으면 구글 로그인 대신 **데모 계정**으로 로그인되고, 글은 그 브라우저에만 저장됩니다. (화면 확인용 "예시" 글 3개가 함께 보임)
@@ -210,7 +210,7 @@ npm run dev
    - 이 값이 있으면 구글 공식 로그인 버튼(Google Identity Services)을 쓰고, 로그인 창에 Supabase 주소 대신 사이트 주소가 표시됩니다.
    - 없으면 Supabase 로그인 페이지로 이동하는 방식으로 동작합니다.
    - 로컬에서 버튼을 쓰려면 승인된 JavaScript 원본에 `http://localhost` 와 `http://localhost:5173` 을 모두 추가합니다.
-5. `supabase/migrations/20260927000000_roommates.sql` 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
+5. `supabase/migrations/20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` 순서로 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
 
 전북대 계정(`@jbnu.ac.kr`)만 허용하려면 RLS 정책에 `(auth.jwt() ->> 'email') like '%@jbnu.ac.kr'` 조건을 더하면 됩니다.
 

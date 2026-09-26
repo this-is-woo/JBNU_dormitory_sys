@@ -1,4 +1,9 @@
 .rm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 32px;
 }
 
@@ -9,14 +14,34 @@
   gap: 10px;
 }
 
-/* ── 로그인 계정 ── */
+.rm-toolbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ── 로그인 상태 ── */
+.rm-login {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 999px;
+}
+
+.rm-account-placeholder {
+  width: 1px;
+  height: 44px;
+}
+
 .rm-account {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: 24px;
-  padding: 8px 8px 8px 14px;
+  min-width: 0;
+  max-width: 100%;
+  height: 44px;
+  padding: 0 6px 0 14px;
   border: 1px solid var(--c-border);
   border-radius: 999px;
   background: var(--c-surface);
@@ -24,29 +49,24 @@
 }
 
 .rm-account-dot {
+  flex-shrink: 0;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--c-success);
 }
 
-.rm-account-who {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-}
-
-.rm-account-who strong {
-  font-weight: 600;
-}
-
 .rm-account-email {
-  color: var(--c-text-3);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-text-2);
 }
 
 .rm-account-signout {
-  height: 30px;
+  flex-shrink: 0;
+  height: 32px;
   padding: 0 12px;
   border: 1px solid var(--c-border-strong);
   border-radius: 999px;
@@ -63,66 +83,58 @@
   color: var(--c-text);
 }
 
-/* ── 로그인 안내 ── */
-.login-gate {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0 24px;
-}
-
-.login-gate-card {
+/* ── 로그인 창 ── */
+.login-box {
   display: grid;
-  justify-items: center;
   gap: 20px;
-  width: 100%;
-  max-width: 560px;
-  padding: 48px 40px 40px;
+}
+
+.login-points {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 18px;
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   background: var(--c-surface);
-  text-align: center;
-}
-
-.login-gate-card h2 {
-  font-size: clamp(22px, 2.6vw, 28px);
-  line-height: 1.3;
-}
-
-.login-gate-lead {
-  margin-top: -8px;
-  font-size: 15px;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--c-text-2);
 }
 
-.login-gate-perks {
-  display: grid;
-  gap: 1px;
-  width: 100%;
-  margin: 4px 0;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  background: var(--c-border);
-  list-style: none;
-  text-align: left;
+.login-points li {
+  position: relative;
+  padding-left: 16px;
 }
 
-.login-gate-perks li {
-  display: grid;
-  gap: 2px;
-  padding: 14px 18px;
-  background: var(--c-bg);
+.login-points li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-text-3);
 }
 
-.login-gate-perks strong {
-  font-size: 15px;
-  font-weight: 600;
+.login-error {
+  flex: none;
+  text-align: center;
 }
 
-.login-gate-perks span {
-  font-size: 14px;
+.login-foot {
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
   color: var(--c-text-3);
+}
+
+.login-foot a {
+  color: var(--c-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* 구글 로그인 버튼: 구글 브랜드 가이드의 밝은 버튼 */
@@ -158,6 +170,12 @@
   min-height: 44px;
 }
 
+/* 페이지가 다크 모드일 때 구글 iframe 뒤에 흰 사각형이 생기지 않도록
+   (iframe 안 문서와 color-scheme 이 다르면 브라우저가 불투명 배경을 칠한다) */
+.google-btn-slot iframe {
+  color-scheme: normal;
+}
+
 .google-btn-placeholder {
   position: absolute;
   inset: 0;
@@ -185,27 +203,6 @@
   color: var(--c-text-2);
 }
 
-.login-gate-card .rm-error {
-  flex: none;
-}
-
-.login-gate-privacy {
-  margin-top: -6px;
-  font-size: 13px;
-  color: var(--c-text-3);
-}
-
-.login-gate-privacy a {
-  color: var(--c-text-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.login-gate-demo {
-  font-size: 13px;
-  color: var(--c-text-3);
-}
-
 .rm-count {
   font-size: 15px;
   color: var(--c-text-3);
@@ -224,155 +221,10 @@
   top: calc(var(--header-h) + 24px);
   display: grid;
   gap: 24px;
-  max-height: calc(100vh - var(--header-h) - 48px);
-  margin-right: -12px;
-  padding-right: 12px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
 }
 
 .rm-filter-reset {
   justify-self: start;
-}
-
-/* ── 체크리스트 필터 ── */
-.cl-filter {
-  display: grid;
-  gap: 8px;
-}
-
-.cl-filter-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.cl-filter-head h2 {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--c-text-2);
-}
-
-.cl-filter-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--c-text);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--c-bg);
-}
-
-.cl-filter-clear {
-  padding: 2px 4px;
-  border: 0;
-  background: none;
-  font-size: 13px;
-  color: var(--c-text-3);
-  cursor: pointer;
-}
-
-.cl-filter-clear:hover {
-  color: var(--c-text);
-  text-decoration: underline;
-}
-
-.cl-filter-hint {
-  margin-bottom: 4px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--c-text-3);
-}
-
-.cl-filter-section {
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  background: var(--c-surface);
-}
-
-.cl-filter-section summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.cl-filter-section summary::-webkit-details-marker {
-  display: none;
-}
-
-.cl-filter-section summary:hover {
-  color: var(--c-text);
-}
-
-.cl-filter-chevron {
-  margin-left: auto;
-  color: var(--c-text-3);
-  transition: transform 0.2s;
-}
-
-.cl-filter-section[open] .cl-filter-chevron {
-  transform: rotate(180deg);
-}
-
-.cl-filter-items {
-  display: grid;
-  gap: 4px;
-  padding: 0 8px 10px;
-}
-
-.cl-filter-item {
-  display: grid;
-  gap: 8px;
-  padding: 10px 8px;
-  border-top: 1px solid var(--c-border);
-}
-
-.cl-filter-item:first-child {
-  border-top: 0;
-}
-
-.cl-filter-label {
-  display: flex;
-  gap: 6px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--c-text-2);
-}
-
-.cl-filter-label > span {
-  flex-shrink: 0;
-  min-width: 16px;
-  font-weight: 700;
-  color: var(--c-text-3);
-}
-
-.cl-filter-item.is-active .cl-filter-label {
-  color: var(--c-text);
-}
-
-.cl-filter-item.is-active .cl-filter-label > span {
-  color: var(--c-primary-text);
-}
-
-.rm-result-count {
-  font-size: 14px;
-  color: var(--c-text-3);
 }
 
 .rm-filter h2 {
@@ -408,19 +260,6 @@
   height: 32px;
   padding: 0 12px;
   font-size: 13px;
-}
-
-.choice-xs {
-  gap: 4px;
-}
-
-.choice-xs .choice {
-  height: auto;
-  min-height: 28px;
-  padding: 4px 10px;
-  font-size: 12px;
-  line-height: 1.35;
-  text-align: left;
 }
 
 .choice:hover:not(:disabled) {
@@ -793,15 +632,6 @@
   font-weight: 700;
 }
 
-.choice-xs.choice-ox .choice {
-  width: 32px;
-  height: 32px;
-  min-height: 0;
-  padding: 0;
-  font-size: 14px;
-  text-align: center;
-}
-
 /* ── 체크리스트 보기 ── */
 .cl-view {
   display: grid;
@@ -1030,22 +860,10 @@
   .rm-filters {
     position: static;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    max-height: none;
-    margin-right: 0;
-    overflow: visible;
     padding: 20px;
     border: 1px solid var(--c-border);
     border-radius: var(--radius-lg);
     background: var(--c-surface);
-  }
-
-  .rm-filters .cl-filter,
-  .rm-filter-reset {
-    grid-column: 1 / -1;
-  }
-
-  .rm-filters .cl-filter-section {
-    background: var(--c-bg);
   }
 }
 
@@ -1065,8 +883,33 @@
     padding-inline: 18px;
   }
 
-  .login-gate-card {
-    padding: 36px 20px 28px;
+  .rm-toolbar {
+    margin-bottom: 20px;
   }
 
+  .rm-header-actions {
+    width: 100%;
+  }
+
+  .rm-header-actions .btn {
+    flex: 1;
+  }
+
+  .rm-toolbar-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .rm-count {
+    font-size: 14px;
+  }
+
+  .rm-login,
+  .rm-account {
+    height: 38px;
+  }
+
+  .rm-account-signout {
+    height: 28px;
+  }
 }
