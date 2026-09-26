@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용

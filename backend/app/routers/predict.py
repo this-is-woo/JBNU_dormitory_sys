@@ -14,14 +14,14 @@ SPECIAL_CAMPUS_NOTICE = "{college} 학생은 특성화캠퍼스(익산) 생활�
 
 @router.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest, request: Request, background: BackgroundTasks) -> PredictResponse:
-    """단과대학·학점·주소지·상벌점으로 환산점수를 계산하고 호실 유형별 합격 확률을 예측한다."""
+    """단과대학·성별·학점·주소지·상벌점으로 환산점수를 계산하고 호실 유형별 합격 확률을 예측한다."""
     distance = get_distance(body.sigungu_code)
     if distance is None:
         raise HTTPException(status_code=422, detail="거리점수 데이터가 없는 시/군/구입니다.")
 
     college = COLLEGES_BY_CODE[body.college_code]
     scores = compute_scores(body.gpa, body.merit, body.demerit, distance.score)
-    rooms = eligible_rooms(college.code)
+    rooms = eligible_rooms(college.code, body.gender)
     predictor = request.app.state.predictor
 
     probabilities = {}
@@ -29,6 +29,8 @@ def predict(body: PredictRequest, request: Request, background: BackgroundTasks)
         probabilities = predictor.predict(
             {
                 "college": college.code,
+                "gender": body.gender,
+                "is_female": {"여": 1.0, "남": 0.0}.get(body.gender, 0.5),
                 "gpa": float(body.gpa),
                 "merit": body.merit,
                 "demerit": body.demerit,

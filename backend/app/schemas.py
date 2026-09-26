@@ -19,6 +19,7 @@ class PredictRequest(CamelModel):
         json_schema_extra={
             "example": {
                 "collegeCode": "engineering",
+                "gender": "남",
                 "gpa": 3.85,
                 "merit": 2,
                 "demerit": 0,
@@ -29,6 +30,8 @@ class PredictRequest(CamelModel):
     )
 
     college_code: str = Field(description="단과대학 code (app/colleges.py)")
+    # 성별마다 지원할 수 있는 호관과 합격선이 다르다. 예전 화면과의 호환을 위해 빠져도 허용한다.
+    gender: Literal["남", "여"] | None = Field(default=None, description="성별 (남 / 여)")
     gpa: Decimal = Field(ge=Decimal("1.0"), le=Decimal("4.5"), decimal_places=2, description="직전 학기 평점(4.5 만점)")
     merit: int = Field(default=0, ge=0, le=99, description="상점")
     demerit: int = Field(default=0, ge=0, le=99, description="벌점")

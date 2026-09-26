@@ -59,7 +59,7 @@ json.dump(meta, open("model_meta.json", "w"), ensure_ascii=False, indent=2)
 | 필드 | 설명 |
 | --- | --- |
 | `version` | 화면에 표시되는 모델 버전 |
-| `features` | 모델 입력 순서. 숫자 특성: `gpa`, `merit`, `demerit`, `distance_km`, `distance_score`, `grade_score`, `converted_score`<br>단과대학 원-핫: `college:<code>` (해당 단과대학이면 1, 아니면 0. code 는 `app/colleges.py`) |
+| `features` | 모델 입력 순서. 숫자 특성: `gpa`, `merit`, `demerit`, `distance_km`, `distance_score`, `grade_score`, `converted_score`, `is_female`(여학생 1, 남학생 0)<br>단과대학 원-핫: `college:<code>` (해당 단과대학이면 1, 아니면 0. code 는 `app/colleges.py`) |
 | `scaler` | (선택) `(x - mean) / scale` 로 정규화. 학습 때와 같은 값을 넣어야 합니다 |
 | `outputs` | 모델 출력 순서에 대응하는 **호실 유형** code (`app/dormitories.py` 의 `DORM_ROOMS`, 예: `changui_1` = 창의관 1인실) |
 | `output_activation` | 출력이 logit 이면 `"sigmoid"`, 이미 0~1 확률이면 `"none"` |

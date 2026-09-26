@@ -29,6 +29,7 @@ def log_prediction(req: PredictRequest, res: PredictResponse) -> None:
         client.table("prediction_logs").insert(
             {
                 "college_code": req.college_code,
+                "gender": req.gender,
                 "gpa": float(req.gpa),
                 "merit": req.merit,
                 "demerit": req.demerit,

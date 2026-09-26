@@ -28,6 +28,7 @@ FEATURE_NAMES = (
     "distance_score",  # 거리점수 (5 ~ 10)
     "grade_score",  # 성적점수 (90점 만점 환산)
     "converted_score",  # 환산점수
+    "is_female",  # 여학생 1, 남학생 0 (성별을 보내지 않은 옛 요청은 0.5)
 )
 COLLEGE_PREFIX = "college:"  # 예: "college:engineering" → 공과대학이면 1, 아니면 0
 
@@ -43,12 +44,15 @@ class Predictor(Protocol):
     version: str
 
     def predict(self, features: dict) -> dict[str, float]:
-        """특성 dict(숫자 특성 + "college") → {호실 유형 code: 합격 확률(0~1)}"""
+        """특성 dict(숫자 특성 + "college" + "gender") → {호실 유형 code: 합격 확률(0~1)}"""
         ...
 
 
 class BaselinePredictor:
-    """모델 연결 전 임시 예측: 환산점수와 호실 유형별 가상 기준점의 차이를 로지스틱 함수로 변환."""
+    """모델 연결 전 임시 예측: 환산점수와 호실 유형·성별 가상 기준점의 차이를 로지스틱 함수로 변환.
+
+    성별을 모르면(옛 요청) 그 호실에 지원할 수 있는 성별의 기준점 평균을 쓴다.
+    """
 
     mode = "baseline"
     version = "baseline-v0"
@@ -56,7 +60,15 @@ class BaselinePredictor:
 
     def predict(self, features: dict) -> dict[str, float]:
         score = features["converted_score"]
-        return {r.code: 1 / (1 + math.exp(-(score - r.baseline_cutoff) / self.scale)) for r in DORM_ROOMS}
+        gender = features.get("gender")
+        result = {}
+        for r in DORM_ROOMS:
+            cutoffs = r.baseline_cutoffs
+            if gender is not None and gender not in cutoffs:
+                continue
+            cutoff = cutoffs[gender] if gender is not None else sum(cutoffs.values()) / len(cutoffs)
+            result[r.code] = 1 / (1 + math.exp(-(score - cutoff) / self.scale))
+        return result
 
 
 class OnnxPredictor:

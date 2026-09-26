@@ -88,3 +88,17 @@ def test_baseline_covers_all_dorms():
     probs = BaselinePredictor().predict(SAMPLE)
     assert set(probs) == DORM_ROOM_CODES
     assert all(0 < p < 1 for p in probs.values())
+
+
+def test_baseline_by_gender():
+    male = BaselinePredictor().predict({**SAMPLE, "gender": "남"})
+    female = BaselinePredictor().predict({**SAMPLE, "gender": "여"})
+    assert "saebit_2" not in male and "hanbit_2" not in female
+    assert female["changui_1"] < male["changui_1"]
+    # 창의관 1인실은 95 ~ 97점대라 다른 호실보다 훨씬 어렵다
+    assert male["changui_1"] == min(male.values())
+
+
+def test_baseline_changui_1_cutoff():
+    probs = BaselinePredictor().predict({**SAMPLE, "gender": "남", "converted_score": 95.5})
+    assert abs(probs["changui_1"] - 0.5) < 1e-9

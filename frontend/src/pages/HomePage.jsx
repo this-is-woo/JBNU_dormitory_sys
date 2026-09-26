@@ -17,6 +17,7 @@ import './HomePage.css'
 
 const INITIAL_FORM = {
   collegeCode: '',
+  gender: '',
   gpa: '',
   merit: '',
   demerit: '',
@@ -171,10 +172,12 @@ export default function HomePage() {
     return () => clearTimeout(timer)
   }, [recordKey])
 
+  // 환산점수에는 성별이 필요 없지만, 합격률은 성별마다 지원 가능한 호관과 합격선이 달라 성별까지 있어야 예측한다
   const payload =
-    breakdown && college
+    breakdown && college && form.gender
       ? {
           collegeCode: college.code,
+          gender: form.gender,
           gpa,
           merit,
           demerit,
@@ -217,7 +220,7 @@ export default function HomePage() {
       <title>JBNU Dormi | 생활관 합격 예측</title>
       <PageHeader
         title="내 점수로 보는 생활관 합격 가능성"
-        lead="단과대학, 직전 학기 학점, JUMP에 등록된 주소지, 상·벌점을 입력하면 환산점수가 바로 계산되고 호관별 예상 합격률을 확인할 수 있어요."
+        lead="단과대학, 성별, 직전 학기 학점, JUMP에 등록된 주소지, 상·벌점을 입력하면 환산점수가 바로 계산되고 호관별 예상 합격률을 확인할 수 있어요."
       />
 
       <div className="container home-blocks">
@@ -287,7 +290,7 @@ export default function HomePage() {
                 ? '위 AI 예측 안내를 확인하면 합격률을 예측할 수 있어요.'
                 : payload
                   ? '입력한 점수로 호관별 합격률을 계산해요.'
-                  : '환산점수 계산의 항목을 모두 입력해 주세요.'}
+                  : '환산점수 계산의 항목(성별 포함)을 모두 입력해 주세요.'}
             </p>
             <button
               type="button"
@@ -340,7 +343,7 @@ export default function HomePage() {
           open={reportOpen}
           onClose={() => setReportOpen(false)}
           userId={user.id}
-          defaults={{ collegeCode: college?.code, score: breakdown?.convertedScore }}
+          defaults={{ collegeCode: college?.code, gender: form.gender, score: breakdown?.convertedScore }}
         />
       )}
     </>

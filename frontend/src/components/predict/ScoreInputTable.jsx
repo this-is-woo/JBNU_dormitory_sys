@@ -6,8 +6,8 @@ import RegionSelect from './RegionSelect.jsx'
 import './ScoreInputTable.css'
 
 /**
- * 단과대학 · 학점 · 주소지 · 상점 · 벌점 입력 + 환산점수 결과 열
- * @param {object} props.form       { collegeCode, gpa, merit, demerit, sidoCode, sigunguCode } (문자열)
+ * 단과대학 · 성별 · 학점 · 주소지 · 상점 · 벌점 입력 + 환산점수 결과 열
+ * @param {object} props.form       { collegeCode, gender, gpa, merit, demerit, sidoCode, sigunguCode } (문자열)
  * @param {object|null} props.college    선택된 단과대학
  * @param {object|null} props.sigungu    선택된 시/군/구 (거리점수 포함)
  * @param {object|null} props.breakdown  { gradeScore, distanceScore, convertedScore }
@@ -19,6 +19,7 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
         <caption className="sr-only">생활관 선발 점수 입력표</caption>
         <colgroup>
           <col className="col-college" />
+          <col className="col-gender" />
           <col className="col-gpa" />
           <col className="col-region" />
           <col className="col-point" />
@@ -29,6 +30,9 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
           <tr>
             <th scope="col">
               단과대학
+            </th>
+            <th scope="col">
+              성별
             </th>
             <th scope="col">
               학점
@@ -67,11 +71,25 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
               </select>
               {college?.specialCampus && <p className="cell-note is-warning">특성화캠퍼스(익산) 생활관 대상</p>}
             </td>
+            <td data-label="성별">
+              <select
+                className={`select${form.gender ? '' : ' is-empty'}`}
+                aria-label="성별"
+                value={form.gender}
+                onChange={(e) => onChange({ gender: e.target.value })}
+              >
+                <option value="" hidden>
+                  성별
+                </option>
+                <option value="남">남자</option>
+                <option value="여">여자</option>
+              </select>
+            </td>
             <td data-label="학점">
               <NumericInput
                 id="gpa"
                 inputMode="decimal"
-                placeholder="3.85"
+                placeholder="1.0 ~ 4.5"
                 aria-label="직전 학기 학점"
                 value={form.gpa}
                 onChange={(gpa) => onChange({ gpa })}

@@ -82,7 +82,7 @@ export default function PredictionResult({ result, stale, onRetry }) {
       {status === 'idle' && (
         <div className="result-empty">
           <IconSparkles width={28} height={28} />
-          <p>단과대학·학점·주소지를 입력하고 ‘합격률 예측하기’를 눌러 주세요.</p>
+          <p>단과대학·성별·학점·주소지를 입력하고 ‘합격률 예측하기’를 눌러 주세요.</p>
         </div>
       )}
 

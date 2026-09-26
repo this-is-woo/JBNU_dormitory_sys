@@ -21,7 +21,7 @@ const SEMESTERS = semesterOptions()
 const SCORE_PATTERN = /^\d{0,3}(\.\d{0,2})?$/
 
 const emptyForm = (defaults) => ({
-  gender: '',
+  gender: defaults.gender ?? '',
   grade: '',
   collegeCode: defaults.collegeCode ?? '',
   score: defaults.score != null ? formatScore(defaults.score) : '',
@@ -74,7 +74,7 @@ function Field({ label, hint, children }) {
 
 /**
  * 합격 결과 제보 창. 계정당 학기별 1건이며, 이미 제보한 학기는 수정한다.
- * @param {{ collegeCode?: string, score?: number }} defaults  홈 계산기에서 가져온 값
+ * @param {{ collegeCode?: string, gender?: string, score?: number }} defaults  홈 계산기에서 가져온 값
  */
 export default function ReportModal({ open, onClose, userId, defaults }) {
   const [reports, setReports] = useState({ status: 'loading', items: [] })

@@ -5,6 +5,7 @@ from app.main import app
 
 VALID = {
     "collegeCode": "engineering",
+    "gender": "남",
     "gpa": 3.85,
     "merit": 2,
     "demerit": 0,
@@ -36,16 +37,43 @@ def test_predict(client):
         "regionName": "서울특별시 종로구",
     }
     codes = [p["code"] for p in body["predictions"]]
-    assert codes == ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_4", "daedong_2", "chambit_2"]
+    # 남학생: 여학생 전용인 새빛관은 빠진다
+    assert codes == ["changui_1", "changui_2", "hanbit_2", "hanbit_4", "daedong_2", "chambit_2"]
     assert all(0 <= p["probability"] <= 1 for p in body["predictions"])
     assert body["collegeName"] == "공과대학"
     assert body["notice"] is None
     assert body["model"]["mode"] in ("model", "baseline")
 
 
-def room_codes(client, college):
-    res = client.post("/api/v1/predict", json={**VALID, "collegeCode": college})
+def room_codes(client, college, **patch):
+    res = client.post("/api/v1/predict", json={**VALID, "collegeCode": college, **patch})
     return {p["code"] for p in res.json()["predictions"]}
+
+
+def probabilities(client, **patch):
+    res = client.post("/api/v1/predict", json={**VALID, **patch})
+    return {p["code"]: p["probability"] for p in res.json()["predictions"]}
+
+
+def test_female_rooms(client):
+    # 여학생: 남학생 전용인 한빛관·대동관이 빠지고 새빛관이 들어온다
+    assert room_codes(client, "engineering", gender="여") == {"changui_1", "changui_2", "saebit_2", "chambit_2"}
+
+
+def test_gender_changes_baseline(client):
+    if client.app.state.predictor.mode != "baseline":
+        pytest.skip("임시 예측기일 때만 확인")
+    # 같은 점수라도 여학생 기준점이 더 높다
+    assert probabilities(client, gender="여")["changui_2"] < probabilities(client, gender="남")["changui_2"]
+
+
+def test_gender_optional_for_old_clients(client):
+    # 성별을 보내지 않는 예전 화면: 성별 구분 없이 모든 호실
+    body = {k: v for k, v in VALID.items() if k != "gender"}
+    res = client.post("/api/v1/predict", json=body)
+    assert res.status_code == 200
+    assert "saebit_2" in {p["code"] for p in res.json()["predictions"]}
+    assert "hanbit_2" in {p["code"] for p in res.json()["predictions"]}
 
 
 def test_medical_colleges_include_hyemin(client):
@@ -75,6 +103,7 @@ def test_predict_special_campus_college(client):
         {"sidoCode": "26"},  # 시/도와 맞지 않는 시/군/구
         {"sigunguCode": "11999"},  # 거리표에 없는 시/군/구
         {"collegeCode": "unknown"},
+        {"gender": "male"},
     ],
 )
 def test_predict_rejects_invalid_input(client, patch):

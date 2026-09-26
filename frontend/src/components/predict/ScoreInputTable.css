@@ -13,7 +13,11 @@
 }
 
 .score-table .col-college {
-  width: 16%;
+  width: 15%;
+}
+
+.score-table .col-gender {
+  width: 10%;
 }
 
 .score-table .col-gpa {
