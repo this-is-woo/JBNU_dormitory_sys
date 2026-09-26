@@ -1,0 +1,200 @@
+.table-card {
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.score-table .col-college {
+  width: 16%;
+}
+
+.score-table .col-gpa {
+  width: 11%;
+}
+
+.score-table .col-point {
+  width: 9%;
+}
+
+.score-table .col-score {
+  width: 14%;
+}
+
+.score-table thead th {
+  padding: 16px 16px 14px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.score-table thead th:first-child {
+  border-top-left-radius: calc(var(--radius-lg) - 1px);
+}
+
+.score-table thead th:last-child {
+  border-top-right-radius: calc(var(--radius-lg) - 1px);
+}
+
+.score-table tbody td {
+  padding: 20px 16px;
+  vertical-align: top;
+}
+
+.score-table .is-result {
+  text-align: center;
+  border-left: 1px solid var(--c-border);
+}
+
+.score-table thead .is-result {
+  vertical-align: middle;
+  color: var(--c-primary-text);
+}
+
+.score-table tbody .is-result {
+  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-bg));
+}
+
+.score-output {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+  color: var(--c-primary-text);
+}
+
+.score-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--radius-lg) - 1px);
+}
+
+.field-warning {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 5;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--c-text);
+  color: var(--c-bg);
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.field-warning.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.region-select {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cell-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.cell-note svg {
+  color: var(--c-primary-text);
+}
+
+.cell-note strong {
+  font-weight: 600;
+  color: var(--c-primary-text);
+}
+
+.cell-note.is-warning {
+  color: var(--c-warning);
+}
+
+/* 태블릿 이하: 표를 세로 카드 형태로 */
+@media (max-width: 960px) {
+  .score-table,
+  .score-table tbody,
+  .score-table tr,
+  .score-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .score-table colgroup {
+    display: none;
+  }
+
+  .score-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .score-table tbody td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .score-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--c-text-2);
+  }
+
+  .score-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .score-table tbody td:first-child {
+    border-top-left-radius: calc(var(--radius-lg) - 1px);
+    border-top-right-radius: calc(var(--radius-lg) - 1px);
+  }
+
+  .score-table tbody .is-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+    border-left: 0;
+    text-align: left;
+  }
+
+  .score-table tbody .is-result::before {
+    width: 100%;
+    color: var(--c-primary-text);
+  }
+}
+
+@media (max-width: 560px) {
+  .region-select {
+    grid-template-columns: 1fr;
+  }
+}

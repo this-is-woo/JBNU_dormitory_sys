@@ -1,0 +1,25 @@
+# 환경변수 (비밀 키)
+.env
+.env.*
+!.env.example
+
+# Node / Vite
+node_modules/
+dist/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 원본 법정동코드 자료 (scripts/build_regions.py 입력, 결과 JSON 만 커밋)
+data/raw/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

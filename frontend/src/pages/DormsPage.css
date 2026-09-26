@@ -1,0 +1,83 @@
+.dorms-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.dorms-content {
+  display: grid;
+  gap: 24px;
+}
+
+.dorm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.dorm-card {
+  padding: 28px;
+  transition: border-color 0.15s;
+}
+
+.dorm-card:hover {
+  border-color: var(--c-border-strong);
+}
+
+.dorm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dorm-card-head h2 {
+  font-size: 26px;
+}
+
+.dorm-type-summary {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.dorm-rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.dorm-room {
+  padding: 6px 12px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dorm-info {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--c-border);
+}
+
+.dorm-info div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.dorm-info dt {
+  color: var(--c-text-3);
+}
+
+.dorm-info dd {
+  margin: 0;
+}

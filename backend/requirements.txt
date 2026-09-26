@@ -1,0 +1,9 @@
+# 서버 실행용 (Render 에서 설치)
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
+supabase==2.31.0
+# 모델 추론 (models/model.onnx 가 있을 때만 사용)
+numpy==2.5.3
+onnxruntime==1.30.0

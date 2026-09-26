@@ -1,0 +1,16 @@
+{
+  "version": "2026-1",
+  "features": [
+    "gpa", "merit", "demerit", "distance_score", "converted_score",
+    "college:medicine", "college:nursing", "college:law"
+  ],
+  "scaler": {
+    "mean": [3.52, 1.4, 0.6, 7.1, 78.3, 0, 0, 0],
+    "scale": [0.48, 2.9, 1.8, 1.2, 9.6, 1, 1, 1]
+  },
+  "outputs": [
+    "changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_6",
+    "daedong_2", "chambit_2", "hyemin_1", "hyemin_2"
+  ],
+  "output_activation": "sigmoid"
+}

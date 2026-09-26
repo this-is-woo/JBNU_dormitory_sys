@@ -1,0 +1,83 @@
+from decimal import Decimal
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic.alias_generators import to_camel
+
+from app.colleges import COLLEGES_BY_CODE
+
+
+class CamelModel(BaseModel):
+    """JSON 은 camelCase(프론트엔드), 파이썬 코드는 snake_case 로 다룬다."""
+
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+
+class PredictRequest(CamelModel):
+    # CamelModel 설정(alias_generator 등)과 합쳐진다
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "collegeCode": "engineering",
+                "gpa": 3.85,
+                "merit": 2,
+                "demerit": 0,
+                "sidoCode": "11",
+                "sigunguCode": "11110",
+                "emdCode": "1111010100",
+            }
+        }
+    )
+
+    college_code: str = Field(description="단과대학 code (app/colleges.py)")
+    gpa: Decimal = Field(ge=Decimal("1.0"), le=Decimal("4.5"), decimal_places=2, description="직전 학기 평점(4.5 만점)")
+    merit: int = Field(default=0, ge=0, le=99, description="상점")
+    demerit: int = Field(default=0, ge=0, le=99, description="벌점")
+    sido_code: str = Field(pattern=r"^\d{2}$", description="시/도 코드 (법정동코드 앞 2자리)")
+    sigungu_code: str = Field(pattern=r"^\d{5}$", description="시/군/구 코드 (법정동코드 앞 5자리)")
+    emd_code: str = Field(pattern=r"^\d{10}$", description="읍/면/동 법정동코드 10자리")
+
+    @field_validator("college_code")
+    @classmethod
+    def check_college(cls, value: str) -> str:
+        if value not in COLLEGES_BY_CODE:
+            raise ValueError("알 수 없는 단과대학입니다.")
+        return value
+
+    @model_validator(mode="after")
+    def check_region_hierarchy(self) -> "PredictRequest":
+        if not (self.sigungu_code.startswith(self.sido_code) and self.emd_code.startswith(self.sigungu_code)):
+            raise ValueError("주소지의 시/도 · 시/군/구 · 읍/면/동 선택이 서로 맞지 않습니다.")
+        return self
+
+
+class ScoreBreakdown(CamelModel):
+    grade_score: float = Field(description="성적점수 (상·벌점 반영, 90점 만점 환산)")
+    distance_score: float = Field(description="거리점수 (5 ~ 10점)")
+    converted_score: float = Field(description="환산점수 = 성적점수 + 거리점수")
+    distance_km: float
+    region_name: str
+
+
+class RoomPrediction(CamelModel):
+    code: str  # 예: changui_1
+    name: str  # 예: 창의관 1인실
+    dormitory: str
+    room_type: str
+    type: str  # 선발 타입 A~D
+    genders: list[str]
+    probability: float = Field(ge=0, le=1)
+
+
+class ModelInfo(CamelModel):
+    mode: Literal["model", "baseline"]
+    version: str
+
+
+class PredictResponse(CamelModel):
+    college_name: str
+    score: ScoreBreakdown
+    # 지원 가능한 호실 유형만 담긴다. 특성화캠퍼스 대상 단과대학이면 비어 있고 notice 가 채워진다.
+    predictions: list[RoomPrediction]
+    notice: str | None = None
+    model: ModelInfo

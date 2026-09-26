@@ -1,0 +1,5 @@
+# 로컬 개발/테스트용: pip install -r requirements-dev.txt
+-r requirements.txt
+pytest==9.1.1
+httpx2==2.13.1
+onnx==1.23.0
