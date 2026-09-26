@@ -10,7 +10,7 @@ onnx = pytest.importorskip("onnx")
 from onnx import TensorProto, helper  # noqa: E402
 
 FEATURES = ["gpa", "merit", "demerit", "distance_score", "converted_score", "college:engineering"]
-OUTPUTS = ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_6", "daedong_2", "chambit_2"]
+OUTPUTS = ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_4", "daedong_2", "chambit_2"]
 SAMPLE = {
     "college": "engineering",
     "gpa": 3.85,

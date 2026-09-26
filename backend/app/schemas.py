@@ -24,7 +24,6 @@ class PredictRequest(CamelModel):
                 "demerit": 0,
                 "sidoCode": "11",
                 "sigunguCode": "11110",
-                "emdCode": "1111010100",
             }
         }
     )
@@ -33,9 +32,10 @@ class PredictRequest(CamelModel):
     gpa: Decimal = Field(ge=Decimal("1.0"), le=Decimal("4.5"), decimal_places=2, description="직전 학기 평점(4.5 만점)")
     merit: int = Field(default=0, ge=0, le=99, description="상점")
     demerit: int = Field(default=0, ge=0, le=99, description="벌점")
-    sido_code: str = Field(pattern=r"^\d{2}$", description="시/도 코드 (법정동코드 앞 2자리)")
-    sigungu_code: str = Field(pattern=r"^\d{5}$", description="시/군/구 코드 (법정동코드 앞 5자리)")
-    emd_code: str = Field(pattern=r"^\d{10}$", description="읍/면/동 법정동코드 10자리")
+    sido_code: str = Field(pattern=r"^\d{2}$", description="시/도 코드 (data/jbnu_distance_2026.csv)")
+    sigungu_code: str = Field(pattern=r"^\d{5}$", description="시/군/구 코드 (data/jbnu_distance_2026.csv)")
+    # 거리점수는 시/군/구청 기준이라 읍/면/동은 받지 않는다. 예전 화면과의 호환을 위해 보내도 허용한다.
+    emd_code: str | None = Field(default=None, pattern=r"^\d{10}$", description="(사용 안 함) 읍/면/동 코드")
 
     @field_validator("college_code")
     @classmethod
@@ -46,8 +46,10 @@ class PredictRequest(CamelModel):
 
     @model_validator(mode="after")
     def check_region_hierarchy(self) -> "PredictRequest":
-        if not (self.sigungu_code.startswith(self.sido_code) and self.emd_code.startswith(self.sigungu_code)):
-            raise ValueError("주소지의 시/도 · 시/군/구 · 읍/면/동 선택이 서로 맞지 않습니다.")
+        if not self.sigungu_code.startswith(self.sido_code) or (
+            self.emd_code is not None and not self.emd_code.startswith(self.sigungu_code)
+        ):
+            raise ValueError("주소지의 시/도 · 시/군/구 선택이 서로 맞지 않습니다.")
         return self
 
 

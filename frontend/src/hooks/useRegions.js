@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 
-// regions.json(약 160KB)은 예측 페이지에서만 필요하므로 별도 청크로 지연 로딩한다.
+// regions.json 은 홈의 주소지 드롭다운에서만 필요하므로 별도 청크로 지연 로딩한다.
 // 파일은 scripts/build_regions.py 로 생성된다.
 let cache = null
 
 /**
- * 시/도 → 시/군/구 → 읍/면/동 데이터
- * sido[]: { code, name, sigungu[]: { code, name, km, distanceScore, note?, emd: [code, name][] } }
+ * 시/도 → 시/군/구 데이터
+ * sido[]: { code, name, sigungu[]: { code, name, km, distanceScore } } — 2026학년도 선발기준 거리 데이터
  */
 export function useRegions() {
   const [regions, setRegions] = useState(cache)

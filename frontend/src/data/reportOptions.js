@@ -25,7 +25,7 @@ export const APPLY_ROOMS = [
       { code: 'daedong', label: '대동관', genders: ['남'] },
     ],
   },
-  { code: 'hanbit_6', label: '한빛관 6인실', genders: ['남'], colleges: 'general' },
+  { code: 'hanbit_4', label: '한빛관 4인실', genders: ['남'], colleges: 'general' },
   { code: 'chambit_2', label: '참빛관 2인실', genders: ['남', '여'], colleges: 'general' },
   { code: 'hyemin_1', label: '혜민관 1인실', genders: ['남', '여'], colleges: 'medical' },
   { code: 'hyemin_2', label: '혜민관 2인실', genders: ['남', '여'], colleges: 'medical' },
@@ -61,10 +61,7 @@ export const GRADES = [
   { value: 'graduate', label: '대학원생' },
 ]
 
-export const semesterLabel = (value) => {
-  const [year, term] = value.split('-')
-  return `${year}년 ${term}학기`
-}
+export { semesterLabel } from '../lib/semester.js'
 
 /**
  * 제보할 수 있는 학기: 지난 2년 + 이번 학기 (최신순).

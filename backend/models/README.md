@@ -47,7 +47,7 @@ meta = {
     "features": ["gpa", "merit", "demerit", "distance_score", "converted_score",
                  "college:medicine", "college:nursing", "college:law"],
     "scaler": {"mean": scaler.mean_.tolist(), "scale": scaler.scale_.tolist()},
-    "outputs": ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_6",
+    "outputs": ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_4",
                 "daedong_2", "chambit_2", "hyemin_1", "hyemin_2"],
     "output_activation": "sigmoid",
 }

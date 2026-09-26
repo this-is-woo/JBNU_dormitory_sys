@@ -7,7 +7,7 @@ import './ScoreInputTable.css'
 
 /**
  * 단과대학 · 학점 · 주소지 · 상점 · 벌점 입력 + 환산점수 결과 열
- * @param {object} props.form       { collegeCode, gpa, merit, demerit, sidoCode, sigunguCode, emdCode } (문자열)
+ * @param {object} props.form       { collegeCode, gpa, merit, demerit, sidoCode, sigunguCode } (문자열)
  * @param {object|null} props.college    선택된 단과대학
  * @param {object|null} props.sigungu    선택된 시/군/구 (거리점수 포함)
  * @param {object|null} props.breakdown  { gradeScore, distanceScore, convertedScore }
@@ -86,7 +86,6 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
                   <IconMapPin width={14} height={14} />
                   거리점수 <strong className="tabular">{formatScore(sigungu.distanceScore)}</strong>점
                   <span className="tabular">· 약 {sigungu.km}km</span>
-                  {sigungu.note && <span>· {sigungu.note}</span>}
                 </p>
               )}
             </td>

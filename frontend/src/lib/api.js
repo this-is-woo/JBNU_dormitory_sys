@@ -47,6 +47,6 @@ export const checkHealth = () => request('/health')
 
 /**
  * 호실 유형별 합격률 예측
- * @param {{collegeCode:string, gpa:number, merit:number, demerit:number, sidoCode:string, sigunguCode:string, emdCode:string}} payload
+ * @param {{collegeCode:string, gpa:number, merit:number, demerit:number, sidoCode:string, sigunguCode:string}} payload
  */
 export const predictAdmission = (payload) => request('/api/v1/predict', { method: 'POST', body: payload })

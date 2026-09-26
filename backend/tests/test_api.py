@@ -10,7 +10,6 @@ VALID = {
     "demerit": 0,
     "sidoCode": "11",
     "sigunguCode": "11110",
-    "emdCode": "1111010100",
 }
 
 
@@ -33,11 +32,11 @@ def test_predict(client):
         "gradeScore": 77.36,
         "distanceScore": 7.5,
         "convertedScore": 84.86,
-        "distanceKm": 208.0,
+        "distanceKm": 208.1,
         "regionName": "서울특별시 종로구",
     }
     codes = [p["code"] for p in body["predictions"]]
-    assert codes == ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_6", "daedong_2", "chambit_2"]
+    assert codes == ["changui_1", "changui_2", "hanbit_2", "saebit_2", "hanbit_4", "daedong_2", "chambit_2"]
     assert all(0 <= p["probability"] <= 1 for p in body["predictions"])
     assert body["collegeName"] == "공과대학"
     assert body["notice"] is None
@@ -73,7 +72,8 @@ def test_predict_special_campus_college(client):
         {"gpa": 3.855},
         {"merit": 100},
         {"demerit": -1},
-        {"emdCode": "1168010100"},  # 다른 시/군/구의 동
+        {"sidoCode": "26"},  # 시/도와 맞지 않는 시/군/구
+        {"sigunguCode": "11999"},  # 거리표에 없는 시/군/구
         {"collegeCode": "unknown"},
     ],
 )

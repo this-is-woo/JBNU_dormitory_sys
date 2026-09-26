@@ -59,12 +59,10 @@ JBNU_dormitory_sys/
 
 - 학점: 1.0 ~ 4.5, 소수 둘째 자리까지 · 상점/벌점: 0 ~ 99 정수 (범위를 벗어난 입력은 막고 안내 문구 표시)
 - 최종 점수는 소수점 셋째 자리에서 반올림
-- **거리점수**: 생활관 관리동 → 주소지 **시·군·구청** 자동차 최단거리 기준, 20km마다 0.25점
-  (전북대 생활관 「2025학년도 선발기준 거리 데이터」 251개 시·군·구 표를 그대로 사용 — [data/README.md](data/README.md))
-- 주소지는 **시/도 → 시/군/구 → 읍/면/동** 3단 드롭다운입니다. 거리점수가 시·군·구 단위로 정해지고,
-  같은 이름의 동이 여러 시·군·구에 있기 때문에 중간 단계(시/군/구)가 필요합니다.
-  상위 단계를 고르기 전에는 하위 드롭다운이 비활성화됩니다.
-- 행정구역은 행정표준코드관리시스템 법정동코드(2026-09-17 자료, 16개 시/도 · 256개 시/군/구 · 5,067개 읍/면/동) 기준입니다.
+- **거리점수**: [2026.1.1. 기준] PC 카카오맵 → 길찾기 → 거리우선(실시간 정보 미포함),
+  출발지 전북대학교 생활관 관리동 → 도착지 학생 주소의 **시·군·구청**, 20km마다 0.25점 (5 ~ 10점)
+  (전북대 생활관 「2026학년도 선발기준 거리 데이터」 251개 시·군·구 표를 그대로 사용 — [data/README.md](data/README.md))
+- 주소지는 **시/도 → 시/군/구** 2단 드롭다운이고, 이 표에 있는 지역만 나옵니다. 시/도를 고르기 전에는 시/군/구가 비활성화됩니다.
 
 계산 로직은 프론트엔드(`frontend/src/lib/score.js`, 입력 즉시 표시)와 백엔드(`backend/app/services/scoring.py`, 예측에 사용) 두 곳에 있습니다. 규칙이 바뀌면 둘 다 수정하세요.
 
@@ -115,7 +113,7 @@ npm run dev
 
 ```jsonc
 // POST /api/v1/predict
-{ "collegeCode": "engineering", "gpa": 3.85, "merit": 2, "demerit": 0, "sidoCode": "11", "sigunguCode": "11110", "emdCode": "1111010100" }
+{ "collegeCode": "engineering", "gpa": 3.85, "merit": 2, "demerit": 0, "sidoCode": "11", "sigunguCode": "11110" }
 
 // 200 OK
 {
@@ -133,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -147,9 +145,11 @@ npm run dev
 | `room_eligibility` | 호실 유형별 지원 가능 단과대학 | 누구나 읽기 |
 | `admission_cutoffs` | 과거 합격선 (모델 학습·검증용) | 누구나 읽기 |
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
+| `roommate_requests` | 룸메 신청 (신청자 → 글쓴이, 한마디 선택) | 직접 접근 불가, `send/cancel/list` 신청 함수로만. 글쓴이만 신청자 정보를 봄 |
 | `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
 | `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
-| `roommate_posts` | 룸메이트 찾기 게시글 | 누구나 읽기, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
+| `roommate_profiles` | 내 체크리스트 (기본 정보 + 체크리스트) | 본인만 |
+| `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
 
 ### ② Render — 백엔드
 
@@ -187,16 +187,26 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 
 ## 룸메이트 찾기
 
-`/roommates` 페이지. 게시글은 누구나 볼 수 있고, **글쓰기·내 글 관리는 구글 로그인**이 필요합니다. (글쓰기를 누르면 로그인 창이 뜨고, 로그인하면 바로 글쓰기가 이어짐)
+`/roommates` 페이지. **구글 로그인 + 내 체크리스트 등록**을 마친 사용자만 게시글을 볼 수 있습니다.
+그 전에는 게시판이 흐리게(예시 글) 보이고 안내 카드가 뜹니다. DB 정책도 같아서 화면을 우회해도 글을 받을 수 없습니다.
 
-글쓰기는 3단계 창입니다.
+1. **내 체크리스트** (`roommate_profiles`, 계정당 1개, 한 번만 등록)
+   - 기본 정보: 성별, 호관, 나이, 단과대학, MBTI
+   - 룸메이트 체크리스트: 「전북대 룸메이트 체크리스트 ver.4」 18개 항목 (`frontend/src/data/roommateChecklist.js`)
+   - 수정하면 내가 쓴 글에도 자동으로 반영됩니다 (DB 트리거).
+2. **글쓰기**: 소개(선택)만 적습니다. 기본 정보·체크리스트는 내 체크리스트 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.
+- **학기**: 글마다 학기(예: 2026년 2학기)가 있고, 글쓰기에서는 이번 학기와 **다음 학기 한 학기 미리**만 고를 수 있습니다. 사이드바에서 학기별로 볼 수 있습니다. (1학기 3~8월, 2학기 9~2월)
+3. **룸메 신청**: 남의 글에서 [룸메 신청]을 누르면 확인 창이 뜨고, 한마디(선택, 200자)를 남겨 보낼 수 있습니다.
+   보낸 글은 카드에 [신청함 ✓]으로 표시되고, 다시 누르면 취소할 수 있습니다. 모집완료 글에는 신청할 수 없습니다.
+4. **받은 신청**: 툴바의 [받은 신청](새 신청 수 배지) 또는 내 글 카드의 [받은 신청 N]에서 신청자의 기본 정보와 18개 답을 봅니다.
+   나와의 일치도를 도넛(%)·섹션별 막대·항목별 비교표로 보여 주고, 잘 맞는 순/최신순으로 정렬할 수 있습니다.
+   실시간 알림이나 주기적 확인은 없고, 게시판을 열 때와 탭으로 돌아올 때만 새 신청 수를 확인합니다 (서버 요청 절약).
 
-1. **기본 정보**: 성별, 호관, 나이, 단과대학, MBTI
-2. **룸메이트 체크리스트**: 「전북대 룸메이트 체크리스트 ver.4」 18개 항목 (`frontend/src/data/roommateChecklist.js`)
-3. **소개 · 연락**: 자유 자기소개(선택), 연락 방법(오픈채팅 링크 권장)
-
+- 체크리스트를 등록하면 각 카드에 **"나와 N/18 일치"** (같은 답의 수)가 보입니다.
+- `20261002000000_roommate_profiles.sql` 을 실행하면 이미 글을 쓴 사용자는 가장 최근 글의 정보로 체크리스트가 자동으로 만들어집니다.
 - 체크리스트 답변은 `roommate_posts.checklist`(jsonb)에 저장됩니다. 항목을 바꾸려면 `roommateChecklist.js` 만 수정하면 됩니다.
 - **필터**: 호관·성별
+- 신청은 글 하나에 한 번이고, 글을 지우면 그 글에 온 신청도 함께 지워집니다. 부적절한 신청은 Table Editor 에서 `roommate_requests` 행을 지웁니다.
 - 목록은 한 페이지에 12개씩 DB 에서 나눠 받아옵니다 (Supabase 전송량 절약). 모집 중인 글이 먼저, 그다음 최신순.
 - **내가 쓴 글**: 글마다 `user_id`(= `auth.uid()`)가 저장되고, RLS 정책으로 글쓴이만 수정·삭제·모집완료를 바꿀 수 있습니다.
   모집완료 글은 흐리게 표시되고 목록 뒤로 밀립니다.
@@ -226,7 +236,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 | 항목 | 비고 |
 | --- | --- |
 | 학기 | 지난 2년 + 이번 학기 |
-| 지원한 호실 유형 | `changui_1` `changui_2` `b_2`(B타입 2인실) `hanbit_6` `chambit_2` `hyemin_1` `hyemin_2` — 성별·단과대학으로 지원할 수 없는 호실은 선택 불가 |
+| 지원한 호실 유형 | `changui_1` `changui_2` `b_2`(B타입 2인실) `hanbit_4` `chambit_2` `hyemin_1` `hyemin_2` — 성별·단과대학으로 지원할 수 없는 호실은 선택 불가 |
 | 결과 | 합격 / 추가 합격 / 불합격, **B타입 2인실 합격이면 배정된 호관**(한빛·새빛·대동) |
 | 환산점수 | 홈 계산기 값이 자동으로 채워짐 (수정 가능) |
 | 성별 · 단과대학 · 학년 | 학년: 신입생 / 1~4학년 이상 / 대학원생 |
@@ -239,7 +249,8 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 
 ## 데이터 갱신
 
-- **새 학년도 거리표**가 나오면 `data/jbnu_distance_2025.csv` 를 교체하고 `python scripts/build_regions.py --download`
+- **새 학년도 거리표**가 나오면 `data/jbnu_distance_2026.csv` 를 새 표로 교체하고 `python scripts/build_regions.py`
+- **생활관비·식당 시간**은 `frontend/src/data/dormFees.js` 를 수정합니다. (출처: 생활관 홈페이지 「생활관비 안내」)
 - **생활관 정보**는 Supabase `dormitories`·`dormitory_rooms` 테이블을 수정하면 생활관 안내 페이지에 바로 반영됩니다. (기본값: `frontend/src/data/dormitories.js`)
 - 호실 유형이나 지원 자격을 바꾸면 `backend/app/dormitories.py` 와 모델 `outputs` 도 맞춰 주세요.
 - 단과대학이 바뀌면 `backend/app/colleges.py`, `frontend/src/data/colleges.js`, Supabase `colleges` 를 함께 수정하세요.

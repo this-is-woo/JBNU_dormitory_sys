@@ -1,4 +1,6 @@
 import { isSupabaseConfigured } from '../config.js'
+import { localRequestCount } from './roommateRequests.js'
+import { currentSemester } from './semester.js'
 
 // 룸메이트 찾기는 구글 로그인한 사용자만 이용한다.
 // 글쓰기·수정·삭제 권한은 roommate_posts.user_id = auth.uid() 인 행에만 주는 RLS 정책으로 지킨다.
@@ -6,16 +8,17 @@ import { isSupabaseConfigured } from '../config.js'
 const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
 
 const COLUMNS =
-  'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, contact, is_closed'
+  'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, semester, is_closed, request_count'
 
 const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString()
 
-// 화면 확인용 예시 글 (Supabase 미연결 상태에서만 보이며 "예시" 표시가 붙는다)
+// 화면 확인용 예시 글 (Supabase 미연결 상태에서 "예시" 표시와 함께 보이고, 잠긴 게시판의 흐린 미리보기로도 쓴다)
 // prettier-ignore
-const SAMPLE_POSTS = [
+export const SAMPLE_POSTS = [
   {
     id: 'sample-1',
     createdAt: hoursAgo(0.7),
+    semester: currentSemester(),
     dormitory: 'saebit',
     gender: '남',
     age: 22,
@@ -28,12 +31,12 @@ const SAMPLE_POSTS = [
       relationship: '중간', phoneCalls: '짧은 전화만', sharing: '허락 맡고 가능', friendsOver: false, seat: '상관 없음',
     },
     content: '평일엔 7시에 일어나서 12시 전에 자요. 방은 깔끔하게 쓰는 편이고 통화는 밖에서 합니다. 서로 생활 패턴만 존중하면 좋겠어요!',
-    contact: 'https://open.kakao.com/o/example',
     isSample: true,
   },
   {
     id: 'sample-2',
     createdAt: hoursAgo(5),
+    semester: currentSemester(),
     dormitory: 'changui',
     gender: '여',
     age: 24,
@@ -46,12 +49,12 @@ const SAMPLE_POSTS = [
       relationship: '베스트 프렌드', phoneCalls: '상관 없음', sharing: '상관 없음', friendsOver: true, seat: '상관 없음',
     },
     content: '과제 때문에 새벽까지 깨어 있는 날이 많아요. 스탠드만 켜고 조용히 작업합니다. 같이 야식 먹을 룸메이트 환영해요 :)',
-    contact: '카카오톡 오픈채팅 "창의관 여자 룸메"',
     isSample: true,
   },
   {
     id: 'sample-3',
     createdAt: hoursAgo(26),
+    semester: currentSemester(),
     dormitory: 'hanbit',
     gender: '남',
     age: 20,
@@ -64,7 +67,6 @@ const SAMPLE_POSTS = [
       relationship: '비즈니스 관계', phoneCalls: '무조건 밖에서', sharing: '절대 안 돼', friendsOver: false, seat: '문과 마주보지 않는, 에어컨 직방 자리',
     },
     content: '아침 운동하고 수업 가요. 코골이가 조금 있어서 귀마개 쓰시는 분이면 좋겠습니다.',
-    contact: 'https://open.kakao.com/o/example2',
     isClosed: true,
     isSample: true,
   },
@@ -82,8 +84,9 @@ const fromRow = (row) => ({
   mbti: row.mbti,
   checklist: row.checklist ?? {},
   content: row.content,
-  contact: row.contact,
+  semester: row.semester,
   isClosed: row.is_closed,
+  requestCount: row.request_count ?? 0,
 })
 
 const toRow = (post) => ({
@@ -94,7 +97,7 @@ const toRow = (post) => ({
   mbti: post.mbti,
   checklist: post.checklist,
   content: post.content,
-  contact: post.contact,
+  semester: post.semester,
 })
 
 function readJson(key, fallback) {
@@ -142,19 +145,25 @@ const byOpenThenNewest = (a, b) =>
 
 /**
  * 게시글 한 페이지. 필터와 페이지 나누기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
- * @param {{ page?: number, dormitory?: string|null, gender?: string|null }} options  page 는 1부터
+ * @param {{ page?: number, semester?: string|null, dormitory?: string|null, gender?: string|null }} options  page 는 1부터
  * @returns {Promise<{ items: object[], total: number }>}
  */
-export async function fetchRoommatePage({ page = 1, dormitory = null, gender = null } = {}) {
+export async function fetchRoommatePage({ page = 1, semester = null, dormitory = null, gender = null } = {}) {
   const from = (page - 1) * PAGE_SIZE
   if (!isSupabaseConfigured) {
     const all = [...readLocal(), ...SAMPLE_POSTS]
-      .filter((p) => (!dormitory || p.dormitory === dormitory) && (!gender || p.gender === gender))
+      .map((p) => ({ ...p, semester: p.semester ?? currentSemester() }))
+      .filter(
+        (p) =>
+          (!semester || p.semester === semester) && (!dormitory || p.dormitory === dormitory) && (!gender || p.gender === gender),
+      )
+      .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
       .sort(byOpenThenNewest)
     return { items: all.slice(from, from + PAGE_SIZE), total: all.length }
   }
   const supabase = await client()
   let query = supabase.from('roommate_posts').select(COLUMNS, { count: 'exact' })
+  if (semester) query = query.eq('semester', semester)
   if (dormitory) query = query.eq('dormitory_code', dormitory)
   if (gender) query = query.eq('gender', gender)
   const { data, count, error } = await query
@@ -169,7 +178,11 @@ export async function fetchRoommatePage({ page = 1, dormitory = null, gender = n
 
 /** 로그인한 계정으로 쓴 글 */
 export async function fetchMyPosts(userId) {
-  if (!isSupabaseConfigured) return readLocal().filter((p) => p.authorId === userId)
+  if (!isSupabaseConfigured) {
+    return readLocal()
+      .filter((p) => p.authorId === userId)
+      .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
+  }
   const supabase = await client()
   const { data, error } = await supabase
     .from('roommate_posts')

@@ -5,15 +5,15 @@ from app.colleges import COLLEGES_BY_CODE
 
 @dataclass(frozen=True)
 class DormRoom:
-    """예측 단위: 같은 생활관이라도 호실 유형(1인실/2인실/6인실)별로 합격선이 다르다."""
+    """예측 단위: 같은 생활관이라도 호실 유형(1인실/2인실/4인실)별로 합격선이 다르다."""
 
     code: str  # 예: changui_1
     dormitory: str  # 생활관 이름
-    room_type: str  # 1인실 / 2인실 / 6인실
+    room_type: str  # 1인실 / 2인실 / 4인실
     type: str  # 선발 타입 A~D
     genders: tuple[str, ...]
     # 모델 연결 전 임시 예측에만 쓰는 가상의 기준점(환산점수). 실제 합격선이 아니다.
-    # 인기 순서: 창의관 1인실 > 창의관 2인실 = 한빛관 2인실 > 새빛관 2인실 > 한빛관 6인실 > 대동관 2인실 > 참빛관 2인실
+    # 인기 순서: 창의관 1인실 > 창의관 2인실 = 한빛관 2인실 > 새빛관 2인실 > 한빛관 4인실 > 대동관 2인실 > 참빛관 2인실
     baseline_cutoff: float
     # 지원 가능한 단과대학 code. None 이면 모든 단과대학 (특성화캠퍼스 대상은 eligible_rooms 에서 제외)
     colleges: frozenset[str] | None = None
@@ -42,7 +42,7 @@ DORM_ROOMS: tuple[DormRoom, ...] = (
     DormRoom("changui_2", "창의관", "2인실", "D", ("남", "여"), 85.0),
     DormRoom("hanbit_2", "한빛관", "2인실", "B", ("남",), 85.0, _GENERAL),
     DormRoom("saebit_2", "새빛관", "2인실", "B", ("남", "여"), 83.0, _GENERAL),
-    DormRoom("hanbit_6", "한빛관", "6인실", "B", ("남",), 80.0, _GENERAL),
+    DormRoom("hanbit_4", "한빛관", "4인실", "B", ("남",), 80.0, _GENERAL),
     DormRoom("daedong_2", "대동관", "2인실", "B", ("남",), 78.0, _GENERAL),
     DormRoom("chambit_2", "참빛관", "2인실", "A", ("남", "여"), 76.0, _GENERAL),
     DormRoom("hyemin_1", "혜민관", "1인실", "C", ("남", "여"), 84.0, _MEDICAL),

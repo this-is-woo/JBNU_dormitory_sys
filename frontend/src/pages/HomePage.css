@@ -165,6 +165,33 @@
   color: var(--c-text-2);
 }
 
+.rule-lines {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--c-text-2);
+}
+
+.rule-lines li {
+  position: relative;
+  padding-left: 12px;
+}
+
+.rule-lines li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--c-text-3);
+}
+
 @media (max-width: 960px) {
   .report-cta {
     grid-template-columns: 1fr;

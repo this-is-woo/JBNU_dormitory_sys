@@ -8,8 +8,262 @@
 
 .dorms-content {
   display: grid;
-  gap: 24px;
 }
+
+/* 목차 */
+.dorms-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.dorms-nav-link {
+  padding: 7px 14px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dorms-nav-link:hover {
+  border-color: var(--c-text-3);
+  color: var(--c-text);
+}
+
+/* 섹션 */
+.dorm-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  padding: 48px 0;
+  border-top: 1px solid var(--c-border);
+  scroll-margin-top: calc(var(--header-h) + 8px);
+}
+
+.dorm-section:first-child {
+  padding-top: 8px;
+  border-top: 0;
+}
+
+.dorm-section-head h2 {
+  font-size: clamp(22px, 2.6vw, 28px);
+  line-height: 1.25;
+}
+
+.dorm-section-head p {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--c-text-3);
+}
+
+.fee-pay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fee-pay li {
+  padding: 6px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-size: 13px;
+  color: var(--c-text-2);
+}
+
+/* 요금표 · 식사 시간표: 좁은 화면에서는 가로로 스크롤 (첫 열 고정) */
+.fee-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-bg);
+}
+
+.fee-scroll:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.fee-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.meal-table {
+  min-width: 720px;
+}
+
+.fee-table th,
+.fee-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--c-border);
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.fee-table thead th {
+  background: var(--c-surface);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--c-text-2);
+}
+
+.fee-table thead small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.fee-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.fee-table tbody tr.is-group-start:not(:first-child) > * {
+  border-top: 1px solid var(--c-border-strong);
+}
+
+.fee-table td {
+  color: var(--c-text-2);
+}
+
+.fee-dorm-col,
+.fee-dorm {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.fee-dorm-col {
+  background: var(--c-surface);
+}
+
+.fee-table .fee-dorm {
+  min-width: 108px;
+  border-right: 1px solid var(--c-border);
+  background: var(--c-bg);
+  text-align: left;
+  vertical-align: top;
+}
+
+.fee-dorm strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.fee-dorm span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.fee-table .fee-room {
+  font-weight: 500;
+  text-align: left;
+  color: var(--c-text);
+}
+
+.fee-table .fee-total {
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.fee-table td.fee-total {
+  background: color-mix(in srgb, var(--c-primary) 7%, transparent);
+  color: var(--c-primary-text);
+}
+
+.fee-table .fee-note {
+  min-width: 150px;
+  white-space: normal;
+  text-align: left;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.meal-table td {
+  text-align: center;
+}
+
+.meal-places {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.meal-places div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+
+.meal-places dt {
+  min-width: 120px;
+  font-weight: 600;
+}
+
+.meal-places dd {
+  margin: 0;
+  color: var(--c-text-2);
+}
+
+.fee-notes {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+.fee-notes li::before {
+  content: '※ ';
+}
+
+.fee-source {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.fee-source a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--c-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .dorm-section {
+    padding: 36px 0;
+  }
+
+  .fee-table th,
+  .fee-table td {
+    padding: 10px 12px;
+  }
+}
+
 
 .dorm-grid {
   display: grid;
@@ -35,7 +289,7 @@
   gap: 12px;
 }
 
-.dorm-card-head h2 {
+.dorm-card-head h3 {
   font-size: 26px;
 }
 

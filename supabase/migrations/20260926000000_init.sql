@@ -43,7 +43,7 @@ create table if not exists public.dormitories (
 create table if not exists public.dormitory_rooms (
   code            text primary key,  -- 예: changui_1 (모델 출력 outputs 와 같음)
   dormitory_code  text not null references public.dormitories (code) on update cascade on delete cascade,
-  room_type       text not null,     -- 1인실 / 2인실 / 6인실
+  room_type       text not null,     -- 1인실 / 2인실 / 4인실
   capacity        int,               -- 모집 정원 (학기마다 갱신)
   sort_order      int not null default 0,  -- 인기(합격선) 높은 순
   unique (dormitory_code, room_type)
@@ -142,23 +142,23 @@ on conflict (code) do update set
   name = excluded.name, special_campus = excluded.special_campus, sort_order = excluded.sort_order;
 
 insert into public.dormitories (code, name, selection_type, genders, meal_plan, sort_order) values
-  ('changui', '창의관', 'D', array['남', '여'], '식당 없음 · 공용 조리실', 1),
-  ('hanbit',  '한빛관', 'B', array['남'],       '의무식 / 미식사 선택',    2),
-  ('saebit',  '새빛관', 'B', array['남', '여'], '의무식 / 미식사 선택',    3),
-  ('daedong', '대동관', 'B', array['남'],       '의무식 / 미식사 선택',    4),
-  ('chambit', '참빛관', 'A', array['남', '여'], '의무식',                  5),
-  ('hyemin',  '혜민관', 'C', array['남', '여'], '식당 없음',               6)
+  ('changui', '창의관', 'D', array['남', '여'], '급식 없음',              1),
+  ('hanbit',  '한빛관', 'B', array['남'],       '직영급식 (미선택 가능)', 2),
+  ('saebit',  '새빛관', 'B', array['남', '여'], '직영급식 (미선택 가능)', 3),
+  ('daedong', '대동관', 'B', array['남'],       '직영급식 (미선택 가능)', 4),
+  ('chambit', '참빛관', 'A', array['남', '여'], '참빛관 식당',            5),
+  ('hyemin',  '혜민관', 'C', array['남', '여'], '급식 없음',              6)
 on conflict (code) do update set
   name = excluded.name, selection_type = excluded.selection_type, genders = excluded.genders,
   meal_plan = excluded.meal_plan, sort_order = excluded.sort_order, updated_at = now();
 
--- 인기 순서: 창의관 1인실 > 창의관 2인실 = 한빛관 2인실 > 새빛관 2인실 > 한빛관 6인실 > 대동관 2인실 > 참빛관 2인실
+-- 인기 순서: 창의관 1인실 > 창의관 2인실 = 한빛관 2인실 > 새빛관 2인실 > 한빛관 4인실 > 대동관 2인실 > 참빛관 2인실
 insert into public.dormitory_rooms (code, dormitory_code, room_type, sort_order) values
   ('changui_1', 'changui', '1인실', 1),
   ('changui_2', 'changui', '2인실', 2),
   ('hanbit_2',  'hanbit',  '2인실', 3),
   ('saebit_2',  'saebit',  '2인실', 4),
-  ('hanbit_6',  'hanbit',  '6인실', 5),
+  ('hanbit_4',  'hanbit',  '4인실', 5),
   ('daedong_2', 'daedong', '2인실', 6),
   ('chambit_2', 'chambit', '2인실', 7),
   ('hyemin_1',  'hyemin',  '1인실', 8),

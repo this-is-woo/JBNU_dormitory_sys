@@ -1,4 +1,4 @@
-// 「2024학년도 생활관생 모집안내(전주캠퍼스)」 기준 + 평화관 폐관 반영. 매 학기 모집요강을 확인해 갱신하세요.
+// 「2026학년도 2학기 생활관비 안내」 기준 (참빛관 1인실(장애인실)·3인실, 창의관 기혼자숙소는 일반 선발이 아니라 제외). 매 학기 확인해 갱신하세요.
 // Supabase 를 연결하면 `dormitories` · `dormitory_rooms` 테이블 값이 우선 사용됩니다. (supabase/migrations 참고)
 // 호실 유형 code(예: changui_1)는 backend/app/dormitories.py 와 같아야 합니다.
 
@@ -21,7 +21,7 @@ export const DORMITORIES = [
     type: 'D',
     genders: ['남', '여'],
     rooms: ['1인실', '2인실'],
-    meal: '식당 없음 · 공용 조리실',
+    meal: '급식 없음',
     eligibility: '모든 단과대학 (치과대학·약학대학·법학전문대학원 포함)',
   },
   {
@@ -30,8 +30,8 @@ export const DORMITORIES = [
     name: '한빛관',
     type: 'B',
     genders: ['남'],
-    rooms: ['2인실', '6인실'],
-    meal: '의무식 / 미식사 선택',
+    rooms: ['2인실', '4인실'],
+    meal: '직영급식 (미선택 가능)',
     eligibility: '학부 · 일반대학원',
   },
   {
@@ -41,7 +41,7 @@ export const DORMITORIES = [
     type: 'B',
     genders: ['남', '여'],
     rooms: ['2인실'],
-    meal: '의무식 / 미식사 선택',
+    meal: '직영급식 (미선택 가능)',
     eligibility: '학부 · 일반대학원',
   },
   {
@@ -51,7 +51,7 @@ export const DORMITORIES = [
     type: 'B',
     genders: ['남'],
     rooms: ['2인실'],
-    meal: '의무식 / 미식사 선택',
+    meal: '직영급식 (미선택 가능)',
     eligibility: '학부 · 일반대학원',
   },
   {
@@ -61,7 +61,7 @@ export const DORMITORIES = [
     type: 'A',
     genders: ['남', '여'],
     rooms: ['2인실'],
-    meal: '의무식',
+    meal: '참빛관 식당',
     eligibility: '학부 · 일반대학원',
   },
   {
@@ -71,7 +71,7 @@ export const DORMITORIES = [
     type: 'C',
     genders: ['남', '여'],
     rooms: ['1인실', '2인실'],
-    meal: '식당 없음',
+    meal: '급식 없음',
     eligibility: '의과대학 · 간호대학',
   },
 ]

@@ -1,10 +1,11 @@
-import { IconExternal } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
 import ChecklistView from './ChecklistView.jsx'
-import { collegeName, dormName, genderLabel, isLink, timeAgo } from './postFormat.js'
+import { requestButton } from './RoommateCard.jsx'
+import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
 
-/** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개 + 연락 방법 */
-export default function PostDetailModal({ post, mine = false, onClose, onEdit }) {
+/** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개. 연락은 룸메 신청으로 */
+export default function PostDetailModal({ post, mine = false, sent = false, onClose, onEdit, onRequest }) {
+  const action = post && requestButton(post, mine, sent)
   return (
     <Modal
       open={Boolean(post)}
@@ -16,18 +17,25 @@ export default function PostDetailModal({ post, mine = false, onClose, onEdit })
         post && (
           <>
             <p className="rm-contact">
-              <span>연락 방법</span>
-              {post.contact}
+              {mine
+                ? '신청한 사람들의 체크리스트를 나와 비교해 볼 수 있어요.'
+                : sent
+                  ? '신청을 보냈어요. 글쓴이가 확인하면 연락이 올 거예요.'
+                  : '마음에 들면 룸메 신청을 보내 보세요.'}
             </p>
+            <button
+              type="button"
+              className={`btn rm-request-btn ${action.tone}`}
+              disabled={action.disabled}
+              onClick={() => onRequest(post)}
+            >
+              {action.label}
+              {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
+            </button>
             {mine && (
               <button type="button" className="btn btn-secondary" onClick={() => onEdit(post)}>
                 수정
               </button>
-            )}
-            {isLink(post.contact) && !post.isClosed && !mine && (
-              <a href={post.contact} target="_blank" rel="noreferrer nofollow" className="btn btn-primary">
-                연락하기 <IconExternal width={14} height={14} />
-              </a>
             )}
           </>
         )

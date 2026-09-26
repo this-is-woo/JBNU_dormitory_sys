@@ -22,7 +22,6 @@ const INITIAL_FORM = {
   demerit: '',
   sidoCode: '',
   sigunguCode: '',
-  emdCode: '',
 }
 const SLOW_RESPONSE_MS = 4000
 // 입력을 멈추고 이만큼 지나면 환산점수를 기록한다 (타이핑 중간값은 기록하지 않음)
@@ -55,7 +54,7 @@ const SCORE_RULES = [
     icon: IconMapPin,
     title: '거리점수',
     range: '5 ~ 10점',
-    body: '생활관 관리동에서 주소지 시·군·구청까지 자동차 최단거리 20km마다 0.25점이 더해집니다.',
+    body: ['거리(km) 기준: PC 카카오맵 → 길찾기', '출발지: 전북대학교 생활관 관리동', '도착지: 학생 주소의 시·군·구청'],
   },
 ]
 
@@ -173,7 +172,7 @@ export default function HomePage() {
   }, [recordKey])
 
   const payload =
-    breakdown && college && form.emdCode
+    breakdown && college
       ? {
           collegeCode: college.code,
           gpa,
@@ -181,7 +180,6 @@ export default function HomePage() {
           demerit,
           sidoCode: form.sidoCode,
           sigunguCode: form.sigunguCode,
-          emdCode: form.emdCode,
         }
       : null
   const payloadKey = payload ? JSON.stringify(payload) : null
@@ -260,14 +258,22 @@ export default function HomePage() {
                 </span>
                 <h3>{title}</h3>
                 <p className="rule-range">{range}</p>
-                <p>{body}</p>
+                {Array.isArray(body) ? (
+                  <ul className="rule-lines">
+                    {body.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{body}</p>
+                )}
               </article>
             ))}
           </div>
         </section>
 
         <section ref={resultRef} className="home-block predict-result" aria-labelledby="block-result">
-          <BlockHead id="block-result" title="호관별 예상 합격률" desc="같은 관이라도 1인실·2인실·6인실은 따로 선발되어 합격선이 달라요." />
+          <BlockHead id="block-result" title="호관별 예상 합격률" desc="같은 관이라도 1인실·2인실·4인실은 따로 선발되어 합격선이 달라요." />
           <AiGate unlocked={acknowledged} onUnlock={acknowledge}>
             <PredictionResult
               result={result}
