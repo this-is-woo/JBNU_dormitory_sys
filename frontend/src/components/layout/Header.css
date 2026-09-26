@@ -58,6 +58,10 @@
     gap: 24px;
   }
 
+  .nav-admin {
+    margin-left: -14px;
+  }
+
   .site-nav ul {
     gap: 2px;
   }
@@ -99,13 +103,51 @@
   box-sizing: content-box;
 }
 
+/* 관리자에게만 보이는 [관리] (메뉴 오른쪽) */
+.nav-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-left: -32px; /* 헤더 칸 사이 48px 중 메뉴와는 16px 만 */
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.nav-admin:hover,
+.nav-admin.active {
+  border-color: var(--c-text-3);
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+/* 좁은 화면에서는 아이콘만 */
+@media (max-width: 1100px) {
+  .nav-admin {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .nav-admin span {
+    display: none;
+  }
+}
+
 /* 모바일: 헤더 메뉴 대신 서랍(MobileDrawer) */
 @media (max-width: 760px) {
   .nav-toggle {
     display: inline-flex;
   }
 
-  .site-nav {
+  .site-nav,
+  .nav-admin {
     display: none;
   }
 }

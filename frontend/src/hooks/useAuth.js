@@ -5,7 +5,7 @@ import { GOOGLE_CLIENT_ID, isSupabaseConfigured } from '../config.js'
 const DEMO_USER_KEY = 'jbnu-dorm:demo-user'
 // 데모 계정의 로그인·로그아웃을 같은 화면의 다른 컴포넌트(헤더 메뉴 ↔ 룸메이트 페이지)에 알린다
 const DEMO_AUTH_EVENT = 'jbnu-dorm:demo-auth'
-const DEMO_USER = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@jbnu.ac.kr', name: '데모 사용자' }
+export const DEMO_USER = { id: '00000000-0000-4000-8000-000000000001', email: 'demo@jbnu.ac.kr', name: '데모 사용자' }
 
 // demo: Supabase 미연결 / google-button: 구글 공식 버튼(GIS) / google-redirect: Supabase 로그인 페이지로 이동
 export const authMode = !isSupabaseConfigured ? 'demo' : GOOGLE_CLIENT_ID ? 'google-button' : 'google-redirect'

@@ -1819,3 +1819,16 @@
     height: 28px;
   }
 }
+
+/* 관리자에게만 보이는 카드의 [관리] 링크 */
+.rm-admin-link {
+  border: 1px solid var(--c-border-strong);
+  background: transparent;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.rm-admin-link:hover {
+  border-color: var(--c-text-3);
+  color: var(--c-text);
+}

@@ -69,6 +69,11 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
               <strong>{collegeName(post.collegeCode)}</strong>
             </div>
           </div>
+          {mine && post.isOpen === false && (
+            <p className="post-detail-closed">
+              운영자가 이 글을 숨겼어요. 다른 사람에게 보이지 않고 신청을 받을 수 없어요. 궁금한 점은 운영자에게 문의해 주세요.
+            </p>
+          )}
           {post.isClosed && (
             <p className="post-detail-closed">글쓴이가 룸메이트를 구해 모집을 마감했어요.</p>
           )}

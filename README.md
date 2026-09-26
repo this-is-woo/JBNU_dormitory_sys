@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -147,12 +147,14 @@ npm run dev
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
 | `roommate_requests` | 룸메 신청 (신청자 → 글쓴이, 한마디 선택) + 글쓴이의 답장 | 직접 접근 불가, 신청·답장 함수로만. 글쓴이만 신청자 정보를, 신청자만 답장을 봄 |
 | `roommate_blocks` | 차단 (차단한 사이는 서로의 글이 안 보이고 신청 불가) | 직접 접근 불가, `block/list/unblock` 함수로만 |
-| `roommate_reports` | 신고 내역 (사유·내용·신고 당시 글 snapshot·처리 상태) | 운영자만 (Dashboard). 신고는 `report_roommate_post/request` 함수로만 |
-| `roommate_moderation` | 신고받은 사용자 (이메일·신고 수) + **이용 정지** 여부 | 운영자만 (Dashboard) |
+| `roommate_reports` | 신고 내역 (사유·내용·신고 당시 글 snapshot·처리 상태) | 운영자만 (관리자 페이지·Dashboard). 신고는 `report_roommate_post/request` 함수로만 |
+| `roommate_moderation` | 신고받은 사용자 (이메일·신고 수) + **이용 정지** 여부 | 운영자만 (관리자 페이지·Dashboard) |
+| `admins` | 관리자 계정 (계정 id) | 직접 접근 불가. `is_admin()` 으로 확인만 |
+| `admin_logs` | 관리 기록 (숨김·삭제·정지 등 누가 언제 무엇을) | 관리자 페이지 [기록] 탭 |
 | `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
 | `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
 | `roommate_profiles` | 내 체크리스트 (기본 정보 + 체크리스트) | 본인만 |
-| `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
+| `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
 
 ### ② Render — 백엔드
 
@@ -211,6 +213,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
    같은 글·신청은 한 번만 신고할 수 있고, 신고한 순간의 내용이 `snapshot` 으로 남습니다.
 
 ### 신고 처리 · 이용 정지 (운영자)
+**관리자 페이지(`/admin`)** 에서 합니다 (아래 [관리자 페이지](#관리자-페이지-admin)). Dashboard 로 직접 할 때는:
 1. Supabase Dashboard → **Table Editor → `roommate_reports_admin`** (보기): 최신 신고, 신고받은 사람의 이메일·누적 신고 수·정지 여부, 신고 당시 내용.
 2. 처리한 신고는 **`roommate_reports`** 에서 `status` 를 `reviewed`(조치함) / `dismissed`(문제없음)로 바꾸고 `admin_note` 에 메모합니다.
 3. 정지하려면 **`roommate_moderation`** 에서 그 사용자 행의 **`is_suspended` 를 체크**합니다.
@@ -244,6 +247,27 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 5. `supabase/migrations/20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` 순서로 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
 
 전북대 계정(`@jbnu.ac.kr`)만 허용하려면 RLS 정책에 `(auth.jwt() ->> 'email') like '%@jbnu.ac.kr'` 조건을 더하면 됩니다.
+
+## 관리자 페이지 (`/admin`)
+
+운영자 구글 계정(`thisiswoo04@gmail.com`)으로 로그인하면 헤더에 **[관리]**, 모바일 메뉴에 **관리자** 칸이 생깁니다.
+다른 사용자가 `/admin` 에 들어가면 없는 페이지처럼 보입니다.
+
+**권한은 서버가 정합니다.** 관리자는 `admins` 테이블에 등록된 계정(id)뿐이고, 모든 관리 기능은 `admin_*` 함수(RPC)로만 하며
+함수마다 관리자인지 다시 확인합니다. 화면의 이메일 비교(`frontend/src/config.js` 의 `ADMIN_EMAIL`)는 메뉴를 보여 줄지만 정합니다.
+
+- **처음 한 번**: 운영자 계정으로 사이트에 로그인해 본 뒤 `20261010000000_admin.sql` 을 실행합니다. 맨 아래 insert 문이 그 계정을 관리자로 등록합니다.
+  (실행 전에 로그인한 적이 없다면 로그인한 뒤 그 insert 문만 다시 실행. 관리자를 더 두려면 이메일만 바꿔 실행)
+- **개요**: 처리 대기 신고, 모집 중인 글, 사용자·정지 수, 오늘의 점수 계산·예측 요청, 최근 14일 추이(한국 시간), 최근 관리 기록
+- **게시글**: 숨긴 글·정지된 사용자의 글까지 **모든 카드**. 상태(모집 중/모집완료/숨김/신고 대기/정지된 사용자)·학기·호관·성별·검색(내용·이메일·글 id)
+  - 카드마다 체크리스트 보기, 모집완료/다시 모집, **숨기기**(글쓴이에게만 보임, 신청·신고 불가)/다시 보이기, 작성자 정지, 삭제(확인 창)
+  - 룸메이트 찾기 카드의 **[관리]** 를 누르면 그 글이 관리자 페이지에서 열립니다.
+- **신고**: 처리 대기/완료/기각. 신고한 사람·신고받은 사람(누적 신고 수·정지 상태), 신고 당시 내용, 운영자 메모, 글 숨기기, 신고받은 사람 정지
+- **사용자**: 구글 로그인한 모든 계정의 이메일·가입일·최근 로그인·쓴 글·보낸 신청·받은/한 신고 수, 이용 정지(3일/7일/30일/무기한/날짜) · 해제 · 메모
+- **합격 제보**: 제보자 이메일과 함께 보고, 이상한 값은 **학습에서 제외**(`is_excluded`)로 표시해 학습용 보기에서 뺍니다.
+- **기록**: 관리 기록, 점수 계산 기록, 예측 요청 기록 (최신순, 한국 시간)
+- 룸메 신청의 한마디·답장 내용은 관리 화면에도 보이지 않습니다 (신고된 신청은 신고 당시 내용만).
+- 데모 모드(Supabase 미연결)에서는 개발 서버(`npm run dev`)에서 데모 계정으로 로그인하면 관리자 페이지를 볼 수 있고, 이 브라우저의 데이터로 동작합니다.
 
 ## 합격 결과 제보 (모델 학습 데이터)
 

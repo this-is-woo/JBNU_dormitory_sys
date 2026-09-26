@@ -12,6 +12,7 @@ import {
   IconLogout,
   IconOnigiri,
   IconPencil,
+  IconShield,
   IconUsers,
 } from '../common/Icons.jsx'
 import './MobileDrawer.css'
@@ -92,6 +93,7 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth }) {
                     <strong>
                       {user.name}
                       {authMode === 'demo' && <span className="chip">데모</span>}
+                      {auth.isAdmin && <span className="chip chip-primary">관리자</span>}
                     </strong>
                     <span title={user.email}>{user.email}</span>
                   </div>
@@ -158,6 +160,24 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth }) {
                 ))}
               </ul>
             </section>
+          )}
+
+          {/* 관리자 */}
+          {auth.isAdmin && (
+            <nav className="drawer-section" aria-label="관리자">
+              <h2>관리자</h2>
+              <ul className="drawer-list">
+                <li style={{ '--i': items.length + (signedIn ? ROOMMATE_ACTIONS.length : 0) }}>
+                  <NavLink to="/admin" onClick={onClose} className="drawer-item">
+                    <span className="drawer-item-icon">
+                      <IconShield width={18} height={18} />
+                    </span>
+                    <span className="drawer-item-label">관리자 페이지</span>
+                    <IconChevronRight className="drawer-item-arrow" width={16} height={16} />
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
           )}
 
           {/* 후원 */}

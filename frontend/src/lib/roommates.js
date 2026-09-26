@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '../config.js'
+import { isLocallySuspended } from './localModeration.js'
 import { isLocallyBlocked, localRequestCount } from './roommateRequests.js'
 import { currentSemester } from './semester.js'
 
@@ -8,7 +9,7 @@ import { currentSemester } from './semester.js'
 const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
 
 const COLUMNS =
-  'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, semester, is_closed, request_count'
+  'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, semester, is_closed, is_open, request_count'
 
 const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString()
 
@@ -89,6 +90,7 @@ const fromRow = (row) => ({
   content: row.content,
   semester: row.semester,
   isClosed: row.is_closed,
+  isOpen: row.is_open !== false, // false 면 운영자가 숨긴 글 (글쓴이에게만 보인다)
   requestCount: row.request_count ?? 0,
 })
 
@@ -162,7 +164,9 @@ export async function fetchRoommatePage({ page = 1, semester = null, dormitory =
           (!semester || p.semester === semester) &&
           (!dormitory || p.dormitory === dormitory) &&
           (!gender || p.gender === gender) &&
-          !isLocallyBlocked(userId, p.authorId),
+          !isLocallyBlocked(userId, p.authorId) &&
+          // 운영자가 숨긴 글 · 정지된 사용자의 글은 글쓴이 본인에게만 (DB 정책과 같게)
+          (p.authorId === userId || (p.isOpen !== false && !isLocallySuspended(p.authorId))),
       )
       .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
       .sort(byOpenThenNewest)

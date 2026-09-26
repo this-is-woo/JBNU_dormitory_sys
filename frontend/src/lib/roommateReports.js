@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '../config.js'
+import { readModeration } from './localModeration.js'
 
 // 신고 · 이용 정지 (supabase/migrations/20261008000000_roommate_reports.sql)
 // 신고는 운영자만 Supabase Dashboard 에서 본다 (roommate_reports_admin).
@@ -102,9 +103,13 @@ export async function reportRequest(request, reason, detail, userId) {
   await rpc('report_roommate_request', { p_request_id: request.id, p_reason: reason, p_detail: text || null })
 }
 
-/** 내 이용 정지 상태 { suspended, until } */
-export async function fetchMyStatus() {
-  if (!isSupabaseConfigured) return { suspended: false, until: null }
+/** 내 이용 정지 상태 { suspended, until }. userId 는 데모에서만 쓴다 */
+export async function fetchMyStatus(userId) {
+  if (!isSupabaseConfigured) {
+    const m = readModeration()[userId]
+    const suspended = Boolean(m?.isSuspended && (!m.suspendedUntil || new Date(m.suspendedUntil) > new Date()))
+    return { suspended, until: suspended ? (m.suspendedUntil ?? null) : null }
+  }
   const { supabase } = await import('./supabase.js')
   const { data, error } = await supabase.rpc('my_roommate_status')
   if (error || !data?.length) return { suspended: false, until: null }

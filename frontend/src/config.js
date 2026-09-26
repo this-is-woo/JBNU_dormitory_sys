@@ -15,5 +15,9 @@ export const JBNU_URL = 'https://www.jbnu.ac.kr'
 // 개인정보처리방침·약관에 표시하는 운영자 문의처
 export const CONTACT_EMAIL = 'thisiswoo04@gmail.com'
 
+// 관리자 메뉴를 보여 줄 구글 계정. 화면 표시용일 뿐이고, 실제 권한은 DB 의 admins 테이블이 정한다
+// (supabase/migrations/20261010000000_admin.sql). 이 값을 바꿔도 관리 기능을 쓸 수는 없다.
+export const ADMIN_EMAIL = 'thisiswoo04@gmail.com'
+
 // 후원 (개발자 삼각김밥 사주기, /support): 카카오페이 송금 링크. QR 이미지는 src/assets/kakaopay-qr.png
 export const KAKAOPAY_DONATE_URL = 'https://qr.kakaopay.com/FNeRX2nr6'

@@ -19,7 +19,8 @@ import RoommateCard from '../components/roommates/RoommateCard.jsx'
 import RoommateForm from '../components/roommates/RoommateForm.jsx'
 import { DORMITORIES } from '../data/dormitories.js'
 import { GENDERS } from '../data/roommateOptions.js'
-import { authMode, useAuth } from '../hooks/useAuth.js'
+import { useAdmin } from '../hooks/useAdmin.js'
+import { authMode } from '../hooks/useAuth.js'
 import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import { blockAuthor, cancelRequest, fetchInboxCounts, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
@@ -100,7 +101,7 @@ function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) 
 }
 
 export default function RoommatesPage() {
-  const { status: authStatus, user, signIn, signInWithIdToken, signOut } = useAuth()
+  const { status: authStatus, user, signIn, signInWithIdToken, signOut, isAdmin } = useAdmin()
   // 내 체크리스트(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready'
   const [profile, setProfile] = useState({ status: 'idle', data: null })
   // 지금 페이지의 글만 들고 있는다. status: 'loading'(처음) | 'ready' | 'error', loading: 페이지 넘기는 중
@@ -232,7 +233,7 @@ export default function RoommatesPage() {
   // 이용 정지 여부 (게시판을 열 때 한 번)
   useEffect(() => {
     if (!unlocked) return setSuspension({ suspended: false, until: null })
-    fetchMyStatus().then(setSuspension)
+    fetchMyStatus(user?.id).then(setSuspension)
   }, [unlocked, user?.id])
 
   useEffect(() => {
@@ -524,6 +525,7 @@ export default function RoommatesPage() {
                         onRequest={handleRequest}
                         onEdit={openEditor}
                         onDelete={setDeletingPost}
+                        adminLink={isAdmin}
                         onReport={setReportTarget}
                       />
                     ))}
@@ -674,13 +676,13 @@ export default function RoommatesPage() {
             onCanceled={handleCanceled}
           />
           <DeletePostModal
-            key={deletingPost?.id ?? 'none'}
+            key={`delete-${deletingPost?.id ?? 'none'}`}
             post={deletingPost}
             onClose={() => setDeletingPost(null)}
             onConfirm={confirmDeletePost}
           />
           <BlockConfirmModal
-            key={blockPost?.id ?? 'none'}
+            key={`block-${blockPost?.id ?? 'none'}`}
             target={
               blockPost && {
                 title: '이 글쓴이를 차단할까요?',

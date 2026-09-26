@@ -145,3 +145,9 @@ export const IconOnigiri = (p) => (
     <path d="M10.3 4.2a2 2 0 0 1 3.4 0l7.1 12.3A2.3 2.3 0 0 1 18.8 20H5.2a2.3 2.3 0 0 1-2-3.5zM9 14h6v6H9z" />
   </svg>
 )
+
+export const IconShield = (p) => (
+  <svg {...base} {...p}>
+    <path d="M12 3 5 6v6c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6zM9 12l2 2 4-4" />
+  </svg>
+)

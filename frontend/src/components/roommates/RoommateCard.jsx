@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
 import { semesterLabel } from '../../lib/semester.js'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
@@ -57,8 +58,9 @@ function PostContent({ text }) {
  * sent: 내가 이 글에 룸메 신청을 보냈는지, myGender: 내 체크리스트의 성별
  * onRequest: 남의 글이면 신청 보내기/취소, 내 글이면 받은 신청 보기
  * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
+ * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
  */
-export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit, onReport, onDelete }) {
+export default function RoommateCard({ post, mine, sent = false, myGender = null, match = null, onOpen, onRequest, onEdit, onReport, onDelete, adminLink = false }) {
   const action = requestButton(post, mine, sent, myGender)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
@@ -81,7 +83,17 @@ export default function RoommateCard({ post, mine, sent = false, myGender = null
         )}
         <div className="rm-when">
           {post.isClosed && <span className="rm-closed-badge">모집완료</span>}
+          {mine && post.isOpen === false && (
+            <span className="chip chip-danger" title="운영자가 숨긴 글이에요. 다른 사람에게 보이지 않아요.">
+              숨겨짐
+            </span>
+          )}
           {mine && <span className="chip chip-primary">내 글</span>}
+          {adminLink && !post.isSample && (
+            <Link to={`/admin?tab=posts&q=${post.id}`} className="chip rm-admin-link" title="관리자 페이지에서 이 글 관리">
+              관리
+            </Link>
+          )}
           {post.isSample && <span className="chip">예시</span>}
           <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
         </div>

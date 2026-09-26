@@ -76,6 +76,11 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
                 <div className="my-post-title">
                   <strong>{dormName(post.dormitory)}</strong>
                   {post.isClosed && <span className="rm-closed-badge">모집완료</span>}
+                  {post.isOpen === false && (
+                    <span className="chip chip-danger" title="다른 사람에게 보이지 않고 신청을 받을 수 없어요.">
+                      운영자가 숨김
+                    </span>
+                  )}
                   {post.requestCount > 0 && (
                     <button type="button" className="my-post-requests" onClick={() => onRequests(post)}>
                       받은 신청 {post.requestCount}

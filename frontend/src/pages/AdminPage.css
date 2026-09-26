@@ -1,0 +1,891 @@
+/* 관리자 페이지 (/admin) */
+
+/* 차트 색: 한 지표 = 한 색(파랑). 밝은·어두운 화면의 카드 배경에서 대비·색각 검사를 통과한 단계 */
+:root {
+  --viz-series: #2a78d6;
+  --viz-series-active: #1c5cab;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --viz-series: #3987e5;
+    --viz-series-active: #6da7ec;
+  }
+}
+
+.adm-gate {
+  padding-bottom: 96px;
+}
+
+.adm-page {
+  display: grid;
+  gap: 28px;
+  padding-bottom: 96px;
+}
+
+.adm-empty {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--c-text-3);
+}
+
+.adm-muted {
+  color: var(--c-text-3);
+}
+
+.adm-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--c-primary-text);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.adm-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.adm-danger-text {
+  color: var(--c-text-3);
+}
+
+.adm-danger-text:hover:not(:disabled) {
+  color: var(--c-danger);
+}
+
+/* ── 탭 ── */
+.adm-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--c-border);
+  scroll-margin-top: calc(var(--header-h) + 12px);
+  scrollbar-width: none;
+}
+
+.adm-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.adm-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-bottom: -1px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.adm-tab:hover {
+  color: var(--c-text);
+}
+
+.adm-tab.is-active {
+  border-bottom-color: var(--c-text);
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.adm-tab-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--c-danger);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+/* ── 패널 공통 ── */
+.adm-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.adm-panel-head h2 {
+  font-size: 22px;
+}
+
+.adm-panel-head p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.adm-filters {
+  display: grid;
+  gap: 10px;
+}
+
+.adm-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adm-filter-row .select {
+  width: auto;
+  min-width: 132px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.adm-search {
+  display: flex;
+  flex: 1 1 280px;
+  gap: 8px;
+}
+
+.adm-search .input {
+  height: 40px;
+  font-size: 14px;
+}
+
+.adm-search .btn {
+  flex: none;
+  height: 40px;
+}
+
+.adm-result-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+
+.adm-result-bar strong {
+  font-size: 16px;
+  color: var(--c-text);
+}
+
+/* 다시 불러오는 동안 이전 목록을 흐리게 두고 자리를 지킨다 */
+.adm-grid,
+.adm-table-wrap,
+.adm-overview {
+  transition: opacity 0.15s;
+}
+
+.adm-grid.is-loading,
+.adm-table-wrap.is-loading,
+.adm-overview.is-loading {
+  opacity: 0.55;
+}
+
+/* ── 카드 ── */
+.adm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 14px;
+}
+
+.adm-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+}
+
+.adm-card.is-hidden {
+  border-style: dashed;
+  border-color: var(--c-border-strong);
+  background: var(--c-bg);
+}
+
+.adm-card[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+.adm-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.adm-card-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.adm-card-title strong {
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.adm-card-title strong span {
+  font-weight: 500;
+  color: var(--c-text-2);
+}
+
+.adm-card-title > span {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.adm-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.adm-author {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.adm-content {
+  font-size: 15px;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.adm-content.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.adm-content.is-empty {
+  color: var(--c-text-3);
+}
+
+.adm-more {
+  margin-top: 2px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.adm-more:hover {
+  color: var(--c-text);
+}
+
+.adm-meta,
+.adm-stats,
+.adm-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.adm-meta div,
+.adm-stats div {
+  display: flex;
+  gap: 6px;
+}
+
+.adm-meta dt,
+.adm-stats dt,
+.adm-people dt {
+  color: var(--c-text-3);
+}
+
+.adm-meta dd,
+.adm-stats dd,
+.adm-people dd {
+  margin: 0;
+  color: var(--c-text);
+}
+
+.adm-stats dd {
+  font-weight: 600;
+}
+
+.adm-stats small {
+  font-weight: 500;
+  color: var(--c-warning);
+}
+
+.adm-people {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.adm-people div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.adm-people dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.adm-email {
+  overflow-wrap: anywhere;
+}
+
+.adm-quote {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--c-warning);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--c-warning-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.adm-quote span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-warning);
+}
+
+.adm-snapshot {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.adm-snapshot-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+.adm-snapshot-facts {
+  font-size: 13px;
+  color: var(--c-text-2);
+}
+
+.adm-snapshot b {
+  margin-right: 6px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.adm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+}
+
+/* ── 운영자 메모 ── */
+.adm-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 14px;
+}
+
+.adm-note-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+.adm-note p {
+  flex: 1 1 160px;
+  min-width: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.adm-note p.is-empty {
+  color: var(--c-text-3);
+}
+
+.adm-note .btn-sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.adm-note.is-editing {
+  display: grid;
+  gap: 8px;
+}
+
+.adm-note.is-editing label {
+  display: grid;
+  gap: 6px;
+}
+
+.adm-note.is-editing .adm-note-label {
+  display: flex;
+  justify-content: space-between;
+}
+
+.adm-note-error {
+  font-size: 13px;
+  color: var(--c-danger);
+}
+
+.adm-note-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* ── 창 ── */
+.adm-confirm,
+.adm-suspend {
+  display: grid;
+  gap: 16px;
+}
+
+.adm-suspend-now {
+  font-size: 15px;
+  color: var(--c-text-2);
+}
+
+.adm-suspend-now strong {
+  color: var(--c-danger);
+}
+
+.adm-date {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.adm-date .input {
+  max-width: 220px;
+}
+
+/* ── 표 ── */
+.adm-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.adm-table th,
+.adm-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.adm-table thead th {
+  background: var(--c-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.adm-table tbody th {
+  font-weight: 500;
+}
+
+.adm-table tr:last-child > * {
+  border-bottom: 0;
+}
+
+.adm-table .is-num {
+  text-align: right;
+}
+
+.adm-table .adm-cell-wrap {
+  min-width: 160px;
+  max-width: 360px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.adm-table-toggle summary {
+  display: inline-block;
+  padding: 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+
+.adm-table-toggle[open] summary {
+  margin-bottom: 8px;
+}
+
+/* ── 개요 ── */
+.adm-overview {
+  display: grid;
+  gap: 36px;
+}
+
+.adm-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+}
+
+.adm-stat {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--c-text);
+}
+
+.adm-stat.is-link {
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.adm-stat.is-link:hover {
+  border-color: var(--c-border-strong);
+}
+
+.adm-stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-2);
+}
+
+/* 큰 숫자는 산세리프 + 기본(비례) 숫자 폭 */
+.adm-stat-value {
+  font-family: var(--font-sans);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: normal;
+}
+
+.adm-stat-sub {
+  font-size: 12px;
+  color: var(--c-text-3);
+  overflow-wrap: anywhere;
+}
+
+.adm-stat-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-warning-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-warning);
+}
+
+.adm-stat-arrow {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  color: var(--c-text-3);
+}
+
+.adm-section {
+  display: grid;
+  gap: 14px;
+}
+
+.adm-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.adm-section-head h2 {
+  font-size: 20px;
+}
+
+.adm-section-head p {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.adm-trends {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* 차트 4개: 넓으면 한 줄, 중간은 2×2, 휴대폰은 한 줄에 하나 (3+1 로 남지 않게) */
+@media (max-width: 1080px) {
+  .adm-trends {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-trends {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.adm-trend {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 18px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+}
+
+.adm-trend figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.adm-trend-total {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text-3);
+}
+
+.adm-trend-plot {
+  position: relative;
+  min-height: 138px;
+}
+
+.adm-trend-plot svg {
+  display: block;
+  overflow: visible;
+  border-radius: 4px;
+}
+
+.adm-trend-plot svg:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 4px;
+}
+
+.adm-trend-grid {
+  stroke: var(--c-border);
+  stroke-width: 1;
+}
+
+.adm-trend-base {
+  stroke: var(--c-border-strong);
+  stroke-width: 1;
+}
+
+.adm-trend-tick {
+  font-size: 11px;
+  fill: var(--c-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-trend-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--c-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-trend-bar {
+  fill: var(--viz-series);
+  transition: fill 0.1s;
+}
+
+.adm-trend-bar.is-active {
+  fill: var(--viz-series-active);
+}
+
+.adm-trend-tip {
+  position: absolute;
+  top: -6px;
+  display: grid;
+  gap: 1px;
+  padding: 6px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-bg);
+  box-shadow: var(--shadow-lg);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--c-text-2);
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+.adm-trend-tip.is-visible {
+  opacity: 1;
+}
+
+.adm-trend-tip strong {
+  font-size: 14px;
+  color: var(--c-text);
+}
+
+.adm-log-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  list-style: none;
+}
+
+.adm-log-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+}
+
+.adm-log-list li:last-child {
+  border-bottom: 0;
+}
+
+.adm-log-list li > span:first-child {
+  min-width: 128px;
+  color: var(--c-text-3);
+}
+
+.adm-log-list .adm-muted {
+  overflow-wrap: anywhere;
+}
+
+/* ── 알림 (작업 결과) ── */
+.adm-toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.adm-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--c-text);
+  box-shadow: var(--shadow-lg);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-bg);
+  animation: adm-toast-in 0.2s ease;
+}
+
+.adm-toast.is-error {
+  background: var(--c-danger);
+  color: #fff;
+}
+
+@keyframes adm-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-toast {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-page {
+    gap: 20px;
+  }
+
+  .adm-card {
+    padding: 16px;
+  }
+
+  .adm-filter-row .select {
+    flex: 1 1 130px;
+  }
+
+  .adm-people div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .adm-stat-value {
+    font-size: 26px;
+  }
+
+  .adm-toast {
+    border-radius: 14px;
+  }
+}

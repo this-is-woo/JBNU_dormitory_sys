@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { NavLink } from 'react-router'
-import { useAuth } from '../../hooks/useAuth.js'
-import { IconMenu } from '../common/Icons.jsx'
+import { useAdmin } from '../../hooks/useAdmin.js'
+import { IconMenu, IconShield } from '../common/Icons.jsx'
 import Logo from '../common/Logo.jsx'
 import MobileDrawer from './MobileDrawer.jsx'
 import './Header.css'
@@ -16,7 +16,7 @@ export const NAV_ITEMS = [
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = useCallback(() => setMenuOpen(false), [])
-  const auth = useAuth()
+  const auth = useAdmin()
 
   return (
     <header className="site-header">
@@ -35,6 +35,13 @@ export default function Header() {
             ))}
           </ul>
         </nav>
+
+        {auth.isAdmin && (
+          <NavLink to="/admin" className="nav-admin" aria-label="관리자 페이지" title="관리자 페이지">
+            <IconShield width={18} height={18} />
+            <span>관리</span>
+          </NavLink>
+        )}
 
         {/* 모바일: 오른쪽에서 밀려 나오는 메뉴 (프로필 · 페이지 이동 · 로그아웃) */}
         <button

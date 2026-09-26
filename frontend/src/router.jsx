@@ -17,6 +17,9 @@ export const router = createBrowserRouter([
       { path: '/roommates', element: <RoommatesPage /> },
       { path: '/dorms', element: <DormsPage /> },
       { path: '/support', element: <SupportPage /> },
+      // 관리자만 (권한은 DB 가 확인하고, 다른 사용자에게는 없는 페이지로 보인다).
+      // 일반 사용자는 쓰지 않으므로 이 페이지를 열 때만 코드를 받는다.
+      { path: '/admin', lazy: () => import('./pages/AdminPage.jsx').then((m) => ({ Component: m.default })) },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/terms', element: <TermsPage /> },
       { path: '*', element: <NotFoundPage /> },
