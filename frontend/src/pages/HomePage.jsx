@@ -9,6 +9,7 @@ import { findCollege } from '../data/colleges.js'
 import { useRegions } from '../hooks/useRegions.js'
 import { predictAdmission } from '../lib/api.js'
 import { calcScoreBreakdown, parseGpa, parsePoint } from '../lib/score.js'
+import { recordScore } from '../lib/scoreLog.js'
 import './HomePage.css'
 
 const INITIAL_FORM = {
@@ -21,6 +22,8 @@ const INITIAL_FORM = {
   emdCode: '',
 }
 const SLOW_RESPONSE_MS = 4000
+// 입력을 멈추고 이만큼 지나면 환산점수를 기록한다 (타이핑 중간값은 기록하지 않음)
+const RECORD_DELAY_MS = 1500
 const GATE_KEY = 'jbnu-dorm:ai-notice-acknowledged'
 
 // 안내 확인 여부는 탭을 닫기 전까지만 기억한다 (저장소를 못 쓰는 환경이면 매번 안내)
@@ -96,6 +99,24 @@ export default function HomePage() {
   const breakdown =
     gpa !== null && sigungu ? calcScoreBreakdown({ gpa, merit, demerit, distanceScore: sigungu.distanceScore }) : null
 
+  // 단과대학·학점·주소지(시/군/구)가 모두 정해져 점수가 나오면 잠시 뒤 익명으로 기록
+  const recordKey = college && breakdown ? [college.code, gpa, breakdown.distanceScore, breakdown.convertedScore].join('|') : null
+  useEffect(() => {
+    if (!recordKey) return
+    const [collegeCode, g, distanceScore, convertedScore] = recordKey.split('|')
+    const timer = setTimeout(
+      () =>
+        recordScore({
+          collegeCode,
+          gpa: Number(g),
+          distanceScore: Number(distanceScore),
+          convertedScore: Number(convertedScore),
+        }),
+      RECORD_DELAY_MS,
+    )
+    return () => clearTimeout(timer)
+  }, [recordKey])
+
   const payload =
     breakdown && college && form.emdCode
       ? {
@@ -140,7 +161,7 @@ export default function HomePage() {
 
   return (
     <>
-      <title>JBNU 생활관 합격 예측</title>
+      <title>JBNU Dormi | 생활관 합격 예측</title>
       <PageHeader
         title="내 점수로 보는 생활관 합격 가능성"
         lead="단과대학, 직전 학기 학점, JUMP에 등록된 주소지, 상·벌점을 입력하면 환산점수가 바로 계산되고 호관별 예상 합격률을 확인할 수 있어요."

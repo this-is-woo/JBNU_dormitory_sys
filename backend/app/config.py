@@ -16,7 +16,7 @@ class Settings(BaseSettings):
         protected_namespaces=(),
     )
 
-    app_name: str = "JBNU Dormitory Predictor API"
+    app_name: str = "JBNU Dormi API"
 
     # 쉼표로 구분한 허용 Origin (예: https://jbnu-dorm.vercel.app,http://localhost:5173)
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"

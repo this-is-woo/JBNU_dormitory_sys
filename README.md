@@ -1,4 +1,4 @@
-# JBNU 생활관 합격 예측
+# JBNU Dormi — 전북대 생활관 합격 예측
 
 전북대학교 생활관 선발 기준으로 **환산점수**를 계산하고, Colab 에서 학습한 딥러닝 모델로 **호실 유형별 합격률**(예: 창의관 1인실)을 예측하는 웹 서비스입니다.
 
@@ -133,7 +133,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -147,6 +147,7 @@ npm run dev
 | `room_eligibility` | 호실 유형별 지원 가능 단과대학 | 누구나 읽기 |
 | `admission_cutoffs` | 과거 합격선 (모델 학습·검증용) | 누구나 읽기 |
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
+| `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
 | `roommate_posts` | 룸메이트 찾기 게시글 | 누구나 읽기, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
 
 ### ② Render — 백엔드

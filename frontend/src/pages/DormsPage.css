@@ -18,6 +18,8 @@
 }
 
 .dorm-card {
+  display: flex;
+  flex-direction: column;
   padding: 28px;
   transition: border-color 0.15s;
 }
@@ -35,12 +37,6 @@
 
 .dorm-card-head h2 {
   font-size: 26px;
-}
-
-.dorm-type-summary {
-  margin-top: 6px;
-  font-size: 14px;
-  color: var(--c-text-3);
 }
 
 .dorm-rooms {
@@ -61,6 +57,8 @@
 
 .dorm-info {
   display: grid;
+  align-content: start;
+  flex: 1;
   gap: 10px;
   margin: 20px 0 0;
   padding-top: 18px;
@@ -80,4 +78,10 @@
 
 .dorm-info dd {
   margin: 0;
+}
+
+/* 카드 높이가 달라도 버튼은 카드 맨 아래에 맞춘다 */
+.dorm-link {
+  align-self: flex-start;
+  margin-top: 22px;
 }

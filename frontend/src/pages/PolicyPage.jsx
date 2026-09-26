@@ -12,11 +12,11 @@ function Contact() {
 export function PrivacyPage() {
   return (
     <>
-      <title>개인정보처리방침 | JBNU 생활관</title>
+      <title>개인정보처리방침 | JBNU Dormi</title>
       <PageHeader title="개인정보처리방침" lead={`시행일 ${EFFECTIVE_DATE}`} />
       <article className="container policy">
         <p>
-          JBNU 생활관(이하 “서비스”)은 이용자의 개인정보를 꼭 필요한 만큼만 처리하며, 「개인정보 보호법」을
+          JBNU Dormi(이하 “서비스”)은 이용자의 개인정보를 꼭 필요한 만큼만 처리하며, 「개인정보 보호법」을
           지킵니다. 서비스는 전북대학교 공식 서비스가 아닌 개인이 운영하는 비영리 서비스입니다.
         </p>
 
@@ -39,6 +39,11 @@ export function PrivacyPage() {
               <td>룸메이트 게시글</td>
               <td>성별, 나이, 호관, 단과대학, MBTI(선택), 생활 습관 체크리스트 답변, 자기소개(선택), 연락 방법</td>
               <td>글을 쓸 때 이용자가 직접 입력</td>
+            </tr>
+            <tr>
+              <td>환산점수 계산</td>
+              <td>단과대학, 학점, 거리점수, 환산점수</td>
+              <td>홈에서 환산점수가 계산될 때 (주소·상벌점·로그인 정보는 저장하지 않음)</td>
             </tr>
             <tr>
               <td>합격률 예측</td>
@@ -77,7 +82,10 @@ export function PrivacyPage() {
           <li>
             로그인 정보: 계정 삭제를 요청하면 지체 없이 파기하며, 그 계정으로 쓴 게시글도 함께 삭제됩니다.
           </li>
-          <li>합격률 예측 기록: 누구의 요청인지 알 수 없는 형태로 저장되며, 모델 개선이 끝나면 파기합니다.</li>
+          <li>
+            환산점수 계산·합격률 예측 기록: 누구의 입력인지 알 수 없는 형태로 저장되며, 모델 개선이 끝나면
+            파기합니다.
+          </li>
         </ul>
 
         <h2>5. 제3자 제공</h2>
@@ -144,12 +152,12 @@ export function PrivacyPage() {
 export function TermsPage() {
   return (
     <>
-      <title>서비스 약관 | JBNU 생활관</title>
+      <title>서비스 약관 | JBNU Dormi</title>
       <PageHeader title="서비스 약관" lead={`시행일 ${EFFECTIVE_DATE}`} />
       <article className="container policy">
         <h2>1. 서비스 소개</h2>
         <p>
-          JBNU 생활관(이하 “서비스”)은 전북대학교 생활관 환산점수 계산, 호관별 합격률 예측, 룸메이트 찾기 게시판을
+          JBNU Dormi(이하 “서비스”)은 전북대학교 생활관 환산점수 계산, 호관별 합격률 예측, 룸메이트 찾기 게시판을
           제공하는 개인 운영 비영리 서비스입니다. <strong>전북대학교 공식 서비스가 아닙니다.</strong>
         </p>
 

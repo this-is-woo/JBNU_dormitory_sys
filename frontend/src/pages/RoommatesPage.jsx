@@ -154,7 +154,7 @@ export default function RoommatesPage() {
 
   return (
     <>
-      <title>룸메이트 찾기 | JBNU 생활관</title>
+      <title>룸메이트 찾기 | JBNU Dormi</title>
       <PageHeader
         title="나와 잘 맞는 룸메이트 찾기"
         lead="전북대 룸메이트 체크리스트로 생활 습관을 남기고, 마음에 드는 글에 연락해 보세요. 비슷한 생활 패턴의 룸메이트를 만나면 기숙사 생활이 훨씬 편해져요."

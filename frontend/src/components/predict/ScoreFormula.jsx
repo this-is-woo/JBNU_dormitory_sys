@@ -10,8 +10,10 @@ const Op = ({ children }) => (
 export function FormulaDisplay() {
   return (
     <div className="formula-display" role="math" aria-label="환산점수 = (학점 + 상점 곱하기 0.009 빼기 벌점 곱하기 0.009) 나누기 4.5 곱하기 90 더하기 거리점수">
-      <span className="fd-result">환산점수</span>
-      <Op>=</Op>
+      <span className="fd-lhs">
+        <span className="fd-result">환산점수</span>
+        <Op>=</Op>
+      </span>
       <span className="fd-group">
         <span className="fd-fraction">
           <span className="fd-num">
@@ -22,8 +24,10 @@ export function FormulaDisplay() {
         <Op>×</Op>
         <span>90</span>
       </span>
-      <Op>+</Op>
-      <span className="fd-accent">거리점수</span>
+      <span className="fd-tail">
+        <Op>+</Op>
+        <span className="fd-accent">거리점수</span>
+      </span>
     </div>
   )
 }

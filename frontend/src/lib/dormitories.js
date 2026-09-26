@@ -12,6 +12,7 @@ const fromRow = (row) => ({
   meal: row.meal_plan ?? '',
   // 지원 자격 설명 문구는 화면용이라 기본 데이터에서 가져온다
   eligibility: staticByCode[row.code]?.eligibility ?? '',
+  infoUrl: staticByCode[row.code]?.infoUrl ?? null,
 })
 
 /**

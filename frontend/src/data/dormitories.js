@@ -9,10 +9,14 @@ export const SELECTION_TYPES = {
   D: { label: 'D타입', summary: '1인실이 있는 창의관 — 모든 단과대학 지원 가능' },
 }
 
+// 생활관 공식 홈페이지의 호관별 소개 페이지
+const infoUrl = (menu) => `https://likehome.jbnu.ac.kr/home/main/inner.php?sMenu=${menu}`
+
 // 호실 유형은 인기(합격선) 높은 순
 export const DORMITORIES = [
   {
     code: 'changui',
+    infoUrl: infoUrl('C9000'),
     name: '창의관',
     type: 'D',
     genders: ['남', '여'],
@@ -22,6 +26,7 @@ export const DORMITORIES = [
   },
   {
     code: 'hanbit',
+    infoUrl: infoUrl('C6000'),
     name: '한빛관',
     type: 'B',
     genders: ['남'],
@@ -31,6 +36,7 @@ export const DORMITORIES = [
   },
   {
     code: 'saebit',
+    infoUrl: infoUrl('C5000'),
     name: '새빛관',
     type: 'B',
     genders: ['남', '여'],
@@ -40,6 +46,7 @@ export const DORMITORIES = [
   },
   {
     code: 'daedong',
+    infoUrl: infoUrl('C2000'),
     name: '대동관',
     type: 'B',
     genders: ['남'],
@@ -49,6 +56,7 @@ export const DORMITORIES = [
   },
   {
     code: 'chambit',
+    infoUrl: infoUrl('C3000'),
     name: '참빛관',
     type: 'A',
     genders: ['남', '여'],
@@ -58,6 +66,7 @@ export const DORMITORIES = [
   },
   {
     code: 'hyemin',
+    infoUrl: infoUrl('C4000'),
     name: '혜민관',
     type: 'C',
     genders: ['남', '여'],

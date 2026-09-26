@@ -14,6 +14,14 @@
   font-weight: 500;
 }
 
+.fd-lhs,
+.fd-tail {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
 .fd-result {
   font-weight: 700;
 }
@@ -49,15 +57,25 @@
   font-weight: 700;
 }
 
-/* 모바일: 분수가 카드 밖으로 나가지 않게 글자와 간격을 줄인다 */
+/* 모바일: 한 줄에 다 들어가지 않으므로 수식처럼 세 줄로 정렬한다
+     환산점수 =
+     (학점 + 상점×0.009 − 벌점×0.009) / 4.5 × 90
+     + 거리점수                                    */
 @media (max-width: 560px) {
   .formula-display {
-    gap: 8px 8px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 14px;
     font-size: 15px;
   }
 
+  .fd-lhs,
+  .fd-tail {
+    gap: 8px;
+  }
+
   .fd-group {
-    gap: 6px;
+    gap: 8px;
   }
 
   .fd-num {

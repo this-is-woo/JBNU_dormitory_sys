@@ -19,7 +19,7 @@ export default function DormsPage() {
 
   return (
     <>
-      <title>생활관 안내 | JBNU 생활관</title>
+      <title>생활관 안내 | JBNU Dormi</title>
       <PageHeader
         title="전주캠퍼스 생활관 한눈에 보기"
         lead="생활관은 지원 타입(A~D)별로, 같은 관이라도 호실 유형(1인실·2인실·6인실)별로 환산점수 고득점순 선발됩니다."
@@ -40,7 +40,6 @@ export default function DormsPage() {
                 <h2>{d.name}</h2>
                 <span className="chip chip-primary">{SELECTION_TYPES[d.type]?.label ?? d.type}</span>
               </div>
-              <p className="dorm-type-summary">{SELECTION_TYPES[d.type]?.summary}</p>
               <div className="dorm-rooms">
                 {d.rooms.map((room) => (
                   <span key={room} className="dorm-room">
@@ -62,6 +61,11 @@ export default function DormsPage() {
                   <dd>{d.eligibility}</dd>
                 </div>
               </dl>
+              {d.infoUrl && (
+                <a href={d.infoUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm dorm-link">
+                  생활관 소개 <IconExternal width={14} height={14} />
+                </a>
+              )}
             </article>
           ))}
         </div>

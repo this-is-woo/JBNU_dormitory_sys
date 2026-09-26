@@ -68,7 +68,7 @@ export default function Footer() {
         <p className="footer-legal">
           <Link to="/privacy">개인정보처리방침</Link>
           <Link to="/terms">서비스 약관</Link>
-          <span>© {new Date().getFullYear()} JBNU Dormitory Predictor</span>
+          <span>© {new Date().getFullYear()} JBNU Dormi</span>
         </p>
       </div>
     </footer>

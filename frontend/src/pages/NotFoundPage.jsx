@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 export default function NotFoundPage() {
   return (
     <>
-      <title>페이지를 찾을 수 없어요 | JBNU 생활관</title>
+      <title>페이지를 찾을 수 없어요 | JBNU Dormi</title>
       <section className="container" style={{ padding: '120px 0 40px', textAlign: 'center' }}>
         <h1 style={{ fontSize: 40 }}>페이지를 찾을 수 없어요</h1>
         <p style={{ marginTop: 14, fontSize: 17, color: 'var(--c-text-2)' }}>
