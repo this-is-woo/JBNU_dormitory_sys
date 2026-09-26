@@ -133,7 +133,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -147,6 +147,7 @@ npm run dev
 | `room_eligibility` | 호실 유형별 지원 가능 단과대학 | 누구나 읽기 |
 | `admission_cutoffs` | 과거 합격선 (모델 학습·검증용) | 누구나 읽기 |
 | `prediction_logs` | 예측 요청 기록 | 서버(secret 키)만 |
+| `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
 | `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
 | `roommate_posts` | 룸메이트 찾기 게시글 | 누구나 읽기, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 대시보드에서 `is_open=false`) |
 
@@ -214,6 +215,24 @@ npm run dev
 5. `supabase/migrations/20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` 순서로 실행 (이전 버전을 실행했다면 파일 맨 위 안내대로 테이블을 지우고 다시 실행)
 
 전북대 계정(`@jbnu.ac.kr`)만 허용하려면 RLS 정책에 `(auth.jwt() ->> 'email') like '%@jbnu.ac.kr'` 조건을 더하면 됩니다.
+
+## 합격 결과 제보 (모델 학습 데이터)
+
+홈 맨 아래 **합격 결과 제보**에서 구글 로그인 후 입력합니다. (`admission_reports` 테이블)
+
+| 항목 | 비고 |
+| --- | --- |
+| 학기 | 지난 2년 + 이번 학기 |
+| 지원한 호실 유형 | `changui_1` `changui_2` `b_2`(B타입 2인실) `hanbit_6` `chambit_2` `hyemin_1` `hyemin_2` — 성별·단과대학으로 지원할 수 없는 호실은 선택 불가 |
+| 결과 | 합격 / 추가 합격 / 불합격, **B타입 2인실 합격이면 배정된 호관**(한빛·새빛·대동) |
+| 환산점수 | 홈 계산기 값이 자동으로 채워짐 (수정 가능) |
+| 성별 · 단과대학 · 학년 | 학년: 신입생 / 1~4학년 이상 / 대학원생 |
+
+- 계정당 학기별 1건(`unique (user_id, semester)`), 본인 제보만 보고 고치고 지울 수 있습니다.
+- 이상한 값은 지우지 말고 Table Editor 에서 `is_excluded = true` 로 표시합니다. (`admin_note` 에 이유 메모)
+- 학습용 데이터는 **`admission_reports_training` 뷰**를 CSV 로 내보내 씁니다. 계정 정보가 없고, 제외 표시한 행이 빠지고,
+  B타입 합격은 배정 호관의 호실 code(예: `saebit_2`)로 바뀌어 `room_code` 열에 들어 있습니다.
+  신입생(`grade = 'freshman'`)은 환산점수 기준이 다를 수 있으니 따로 다루는 것을 권합니다.
 
 ## 데이터 갱신
 

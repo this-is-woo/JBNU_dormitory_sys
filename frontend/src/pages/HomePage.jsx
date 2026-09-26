@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import LoginModal from '../components/auth/LoginModal.jsx'
 import { IconAlert, IconArrowRight, IconGraduation, IconMapPin, IconStar } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
 import { FormulaDisplay } from '../components/predict/ScoreFormula.jsx'
 import ScoreInputTable from '../components/predict/ScoreInputTable.jsx'
+import ReportModal from '../components/report/ReportModal.jsx'
 import { findCollege } from '../data/colleges.js'
+import { useAuth } from '../hooks/useAuth.js'
 import { useRegions } from '../hooks/useRegions.js'
 import { predictAdmission } from '../lib/api.js'
 import { calcScoreBreakdown, parseGpa, parsePoint } from '../lib/score.js'
@@ -56,6 +59,36 @@ const SCORE_RULES = [
   },
 ]
 
+// 구글 로그인 페이지로 이동했다 돌아오면 제보 창을 이어서 연다
+const AFTER_LOGIN_KEY = 'jbnu-dorm:after-login-report'
+const REPORT_LOGIN_POINTS = [
+  '구글 계정으로 한 번에 로그인해요. 따로 가입할 필요가 없어요.',
+  '계정당 학기별로 한 번만 제보할 수 있어 중복·장난 제보를 막아요.',
+  '이메일·이름은 학습 데이터에 포함되지 않아요.',
+]
+const REPORT_POINTS = [
+  ['학기 · 지원 호실 · 결과', 'B타입 2인실은 배정된 호관까지'],
+  ['환산점수 · 성별 · 단과대학 · 학년', '환산점수는 위 계산기 값으로 채워져요'],
+  ['불합격도 똑같이 중요해요', '합격선은 붙은 점수와 떨어진 점수 사이에 있어요'],
+]
+
+function readAfterLogin() {
+  try {
+    return sessionStorage.getItem(AFTER_LOGIN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function writeAfterLogin(on) {
+  try {
+    if (on) sessionStorage.setItem(AFTER_LOGIN_KEY, '1')
+    else sessionStorage.removeItem(AFTER_LOGIN_KEY)
+  } catch {
+    // 저장하지 못하면 로그인 뒤 창을 한 번 더 눌러야 한다
+  }
+}
+
 function BlockHead({ id, title, desc }) {
   return (
     <header className="block-head">
@@ -71,10 +104,32 @@ export default function HomePage() {
   const [result, setResult] = useState({ status: 'idle' })
   const [submittedKey, setSubmittedKey] = useState(null)
   const [acknowledged, setAcknowledged] = useState(readAcknowledged)
+  const { status: authStatus, user, signIn, signInWithIdToken } = useAuth()
+  const [reportOpen, setReportOpen] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
   const resultRef = useRef(null)
   const slowTimer = useRef(null)
 
   useEffect(() => () => clearTimeout(slowTimer.current), [])
+
+  // 제보하려고 로그인했다면, 로그인이 끝나는 대로 제보 창을 연다
+  useEffect(() => {
+    if (authStatus !== 'signedIn' || !(loginOpen || readAfterLogin())) return
+    writeAfterLogin(false)
+    setLoginOpen(false)
+    setReportOpen(true)
+  }, [authStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function openReport() {
+    if (authStatus === 'signedIn') return setReportOpen(true)
+    writeAfterLogin(true)
+    setLoginOpen(true)
+  }
+
+  function closeLogin() {
+    writeAfterLogin(false)
+    setLoginOpen(false)
+  }
 
   const updateForm = (patch) => setForm((prev) => ({ ...prev, ...patch }))
 
@@ -240,7 +295,48 @@ export default function HomePage() {
             </button>
           </div>
         </section>
+
+        <section className="home-block" aria-labelledby="block-report">
+          <BlockHead
+            id="block-report"
+            title="합격 결과 제보"
+            desc="실제 선발 결과를 알려 주시면 호관별 합격선을 더 정확하게 예측할 수 있어요."
+          />
+          <div className="report-cta">
+            <ul className="report-points">
+              {REPORT_POINTS.map(([title, body]) => (
+                <li key={title}>
+                  <strong>{title}</strong>
+                  <span>{body}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="report-cta-action">
+              <button type="button" className="btn btn-primary btn-lg" onClick={openReport}>
+                결과 제보하기
+              </button>
+              <p>구글 로그인 · 1분이면 끝나요</p>
+            </div>
+          </div>
+        </section>
       </div>
+
+      <LoginModal
+        open={loginOpen}
+        reason="결과를 제보하려면 로그인이 필요해요."
+        points={REPORT_LOGIN_POINTS}
+        onClose={closeLogin}
+        onSignIn={signIn}
+        onIdToken={signInWithIdToken}
+      />
+      {user && (
+        <ReportModal
+          open={reportOpen}
+          onClose={() => setReportOpen(false)}
+          userId={user.id}
+          defaults={{ collegeCode: college?.code, score: breakdown?.convertedScore }}
+        />
+      )}
     </>
   )
 }

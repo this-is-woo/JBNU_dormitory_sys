@@ -83,126 +83,6 @@
   color: var(--c-text);
 }
 
-/* ── 로그인 창 ── */
-.login-box {
-  display: grid;
-  gap: 20px;
-}
-
-.login-points {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 16px 18px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  background: var(--c-surface);
-  list-style: none;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--c-text-2);
-}
-
-.login-points li {
-  position: relative;
-  padding-left: 16px;
-}
-
-.login-points li::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 0.62em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--c-text-3);
-}
-
-.login-error {
-  flex: none;
-  text-align: center;
-}
-
-.login-foot {
-  font-size: 13px;
-  line-height: 1.6;
-  text-align: center;
-  color: var(--c-text-3);
-}
-
-.login-foot a {
-  color: var(--c-text-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* 구글 로그인 버튼: 구글 브랜드 가이드의 밝은 버튼 */
-.btn-google {
-  width: 100%;
-  border: 1px solid #dadce0;
-  background: #fff;
-  color: #1f1f1f;
-  font-family: var(--font-sans);
-  font-weight: 600;
-}
-
-.btn-google:hover:not(:disabled) {
-  background: #f2f4f7;
-}
-
-.btn-google .spinner {
-  color: #1f1f1f;
-}
-
-/* 구글 공식 버튼(GIS): 구글이 iframe 으로 그리므로 크기·위치만 맞춘다 */
-.google-btn {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  min-height: 44px;
-}
-
-.google-btn-slot {
-  display: flex;
-  justify-content: center;
-  min-height: 44px;
-}
-
-/* 페이지가 다크 모드일 때 구글 iframe 뒤에 흰 사각형이 생기지 않도록
-   (iframe 안 문서와 color-scheme 이 다르면 브라우저가 불투명 배경을 칠한다) */
-.google-btn-slot iframe {
-  color-scheme: normal;
-}
-
-.google-btn-placeholder {
-  position: absolute;
-  inset: 0;
-  max-width: 400px;
-  margin: 0 auto;
-  border: 1px solid var(--c-border-strong);
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--c-surface) 25%, var(--c-surface-2) 50%, var(--c-surface) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s linear infinite;
-}
-
-.google-btn.is-pending .google-btn-slot {
-  visibility: hidden;
-}
-
-.google-btn-pending {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--c-text-2);
-}
-
 .rm-count {
   font-size: 15px;
   color: var(--c-text-3);
@@ -234,48 +114,6 @@
   font-weight: 600;
   letter-spacing: 0;
   color: var(--c-text-2);
-}
-
-/* ── 선택 칩 ── */
-.choice-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.choice {
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: 999px;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.choice-sm .choice {
-  height: 32px;
-  padding: 0 12px;
-  font-size: 13px;
-}
-
-.choice:hover:not(:disabled) {
-  border-color: var(--c-text-3);
-  color: var(--c-text);
-}
-
-.choice.is-selected {
-  border-color: var(--c-text);
-  background: var(--c-text);
-  color: var(--c-bg);
-}
-
-.choice:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 /* ── 게시글 ── */
@@ -619,17 +457,6 @@
 
 .cl-question.is-answered .cl-no {
   color: var(--c-success);
-}
-
-/* O / X 동그라미 */
-.choice-ox .choice {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border-radius: 50%;
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: 700;
 }
 
 /* ── 체크리스트 보기 ── */

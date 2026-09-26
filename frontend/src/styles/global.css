@@ -434,6 +434,22 @@ svg {
   color: var(--c-text-2);
 }
 
+/* 모바일: 헤더 바로 아래 여백을 줄여 제목이 화면 위쪽에 자연스럽게 붙도록 */
+@media (max-width: 640px) {
+  .page-header {
+    padding: 36px 0 28px;
+  }
+
+  .page-header h1 {
+    font-size: 30px;
+  }
+
+  .page-header .lead {
+    margin-top: 12px;
+    font-size: 16px;
+  }
+}
+
 .section {
   padding: 80px 0;
 }

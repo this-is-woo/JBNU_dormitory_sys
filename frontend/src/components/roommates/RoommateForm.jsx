@@ -4,7 +4,7 @@ import { DORMITORIES } from '../../data/dormitories.js'
 import { CHECKLIST_ITEMS, CHECKLIST_SECTIONS, isAnswered, itemNumber } from '../../data/roommateChecklist.js'
 import { AGE_MAX, AGE_MIN, CONTENT_MAX, GENDERS, MBTI_AXES } from '../../data/roommateOptions.js'
 import Modal from '../common/Modal.jsx'
-import ChoiceGroup from './ChoiceGroup.jsx'
+import ChoiceGroup from '../common/ChoiceGroup.jsx'
 
 const STEPS = ['기본 정보', '룸메이트 체크리스트', '소개 · 연락']
 const OX = [

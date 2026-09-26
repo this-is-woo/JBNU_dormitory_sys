@@ -1,0 +1,221 @@
+/* 합격 결과 제보 창 */
+.rp {
+  display: grid;
+  gap: 24px;
+}
+
+.rp-section {
+  display: grid;
+  gap: 18px;
+  padding-top: 22px;
+  border-top: 1px solid var(--c-border);
+}
+
+.rp-section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.rp-mine + .rp-section {
+  padding-top: 22px;
+  border-top: 1px solid var(--c-border);
+}
+
+.rp-section h3,
+.rp-mine h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rp-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-bg);
+}
+
+.rp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.rp-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rp-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.rp-label small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.rp-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 200px;
+}
+
+.rp-score span {
+  color: var(--c-text-3);
+}
+
+.rp-semester {
+  max-width: 260px;
+}
+
+.rp-existing {
+  margin-top: -6px;
+}
+
+.rp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--c-primary-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rp-note {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+
+/* 내 제보 목록 */
+.rp-mine {
+  display: grid;
+  gap: 12px;
+}
+
+.rp-mine ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.rp-mine li {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto 64px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  font-size: 14px;
+}
+
+.rp-mine li + li {
+  border-top: 1px solid var(--c-border);
+}
+
+.rp-mine li.is-editing {
+  background: var(--c-surface);
+}
+
+.rp-mine-sem {
+  font-weight: 600;
+}
+
+.rp-mine-room {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-text-2);
+}
+
+.rp-mine-result {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rp-mine-score {
+  text-align: right;
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+
+.rp-error {
+  flex: 1;
+  font-size: 14px;
+  color: var(--c-danger);
+}
+
+.rp-done {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-success);
+}
+
+@media (max-width: 560px) {
+  .rp-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rp-mine li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'sem room btn'
+      'result score btn';
+    gap: 6px 10px;
+  }
+
+  .rp-mine-sem {
+    grid-area: sem;
+  }
+
+  .rp-mine-room {
+    grid-area: room;
+  }
+
+  .rp-mine-result {
+    grid-area: result;
+    justify-self: start;
+  }
+
+  .rp-mine-score {
+    grid-area: score;
+    text-align: left;
+  }
+
+  .rp-mine li .btn {
+    grid-area: btn;
+  }
+}

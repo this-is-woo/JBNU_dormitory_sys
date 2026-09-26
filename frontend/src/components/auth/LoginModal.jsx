@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
 import Modal from '../common/Modal.jsx'
 import GoogleSignInButton from './GoogleSignInButton.jsx'
+import './Auth.css'
 
 function GoogleMark() {
   return (
@@ -15,11 +16,18 @@ function GoogleMark() {
   )
 }
 
+const DEFAULT_POINTS = [
+  '구글 계정으로 한 번에 로그인해요. 따로 가입할 필요가 없어요.',
+  '이메일과 이름은 본인 확인에만 쓰고, 게시글에는 표시하지 않아요.',
+  '로그인하면 내가 쓴 글을 수정·삭제하고 모집완료로 바꿀 수 있어요.',
+]
+
 /**
- * 글쓰기·내 글 관리 등 로그인이 필요한 순간에만 여는 구글 로그인 창.
- * @param {string} reason  창 위쪽 안내 (예: "글을 쓰려면 로그인이 필요해요.")
+ * 글쓰기·결과 제보 등 로그인이 필요한 순간에만 여는 구글 로그인 창.
+ * @param {string} reason     창 위쪽 안내 (예: "글을 쓰려면 로그인이 필요해요.")
+ * @param {string[]} points   로그인하면 무엇이 되는지 짧은 안내
  */
-export default function LoginModal({ open, reason, onClose, onSignIn, onIdToken }) {
+export default function LoginModal({ open, reason, points = DEFAULT_POINTS, onClose, onSignIn, onIdToken }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
 
@@ -40,9 +48,9 @@ export default function LoginModal({ open, reason, onClose, onSignIn, onIdToken 
     <Modal open={open} onClose={onClose} title="로그인" subtitle={reason}>
       <div className="login-box">
         <ul className="login-points">
-          <li>구글 계정으로 한 번에 로그인해요. 따로 가입할 필요가 없어요.</li>
-          <li>이메일과 이름은 본인 확인에만 쓰고, 게시글에는 표시하지 않아요.</li>
-          <li>로그인하면 내가 쓴 글을 수정·삭제하고 모집완료로 바꿀 수 있어요.</li>
+          {points.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
         </ul>
 
         {authMode === 'google-button' ? (
@@ -61,7 +69,7 @@ export default function LoginModal({ open, reason, onClose, onSignIn, onIdToken 
         )}
 
         {error && (
-          <p className="rm-error login-error" role="alert">
+          <p className="login-error" role="alert">
             {error}
           </p>
         )}

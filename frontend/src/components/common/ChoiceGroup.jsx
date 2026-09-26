@@ -1,3 +1,5 @@
+import './ChoiceGroup.css'
+
 /**
  * 칩 모양 선택 버튼 묶음.
  * - 단일 선택: value 는 값 하나

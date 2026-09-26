@@ -25,7 +25,6 @@ export default function DormsPage() {
         lead="생활관은 지원 타입(A~D)별로, 같은 관이라도 호실 유형(1인실·2인실·6인실)별로 환산점수 고득점순 선발됩니다."
       >
         <div className="dorms-meta">
-          <span className="chip">{dorms.source === 'supabase' ? 'Supabase 데이터' : '2024학년도 모집안내 기준'}</span>
           <a href={OFFICIAL_DORM_URL} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">
             생활관 공식 홈페이지 <IconExternal width={14} height={14} />
           </a>

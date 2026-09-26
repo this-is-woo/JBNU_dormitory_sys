@@ -3,12 +3,6 @@ import { formatScore } from '../../lib/score.js'
 import { IconAlert, IconInfo, IconRefresh, IconSparkles } from '../common/Icons.jsx'
 import './PredictionResult.css'
 
-function levelOf(probability) {
-  if (probability >= 0.7) return { label: '안정', tone: 'success' }
-  if (probability >= 0.4) return { label: '적정', tone: 'warning' }
-  return { label: '도전', tone: 'danger' }
-}
-
 function ResultSkeleton({ slow }) {
   return (
     <div className="result-body" aria-busy="true">
@@ -27,14 +21,18 @@ function ResultSkeleton({ slow }) {
   )
 }
 
-function RoomRow({ room }) {
-  const level = levelOf(room.probability)
+/** 호실 유형 한 줄: 이름 · 막대 · 퍼센트 (등급 표시 없이 숫자만) */
+function RoomRow({ room, rank }) {
   const percent = Math.round(room.probability * 100)
   return (
     <li className="prob-item">
+      <span className="prob-rank tabular" aria-hidden="true">
+        {rank}
+      </span>
       <div className="prob-name">
-        <strong>{room.dormitory}</strong>
-        <span className="prob-room">{room.roomType}</span>
+        <strong>
+          {room.dormitory} <span className="prob-room">{room.roomType}</span>
+        </strong>
         <span className="prob-meta">
           {SELECTION_TYPES[room.type]?.label ?? room.type} · {room.genders.join('·')}
         </span>
@@ -47,12 +45,12 @@ function RoomRow({ room }) {
         aria-valuemax={100}
         aria-valuenow={percent}
       >
-        <span className={`prob-fill tone-${level.tone}`} style={{ width: `${percent}%` }} />
+        <span className="prob-fill" style={{ width: `${Math.max(percent, 1)}%` }} />
       </div>
-      <div className="prob-value">
-        <strong className="tabular">{percent}%</strong>
-        <span className={`chip chip-${level.tone}`}>{level.label}</span>
-      </div>
+      <strong className="prob-value tabular">
+        {percent}
+        <small>%</small>
+      </strong>
     </li>
   )
 }
@@ -75,7 +73,7 @@ export default function PredictionResult({ result, stale, onRetry }) {
             {data.model.mode === 'model' ? (
               <span className="chip chip-primary">AI 모델 {data.model.version}</span>
             ) : (
-              <span className="chip chip-warning">임시 예측</span>
+              <span className="chip">임시 기준점</span>
             )}
           </div>
         </div>
@@ -118,29 +116,19 @@ export default function PredictionResult({ result, stale, onRetry }) {
               <p>{data.notice}</p>
             </div>
           )}
-          {data.model.mode !== 'model' && data.predictions.length > 0 && (
-            <div className="notice">
-              <IconInfo width={18} height={18} />
-              <p>
-                아직 학습된 모델이 연결되지 않아 임시 기준점으로 계산한 값입니다. 실제 합격 가능성과 다를 수
-                있어요.
-              </p>
-            </div>
-          )}
-
           {data.predictions.length > 0 && (
             <ul className="prob-list">
               {[...data.predictions]
                 .sort((a, b) => b.probability - a.probability)
-                .map((room) => (
-                  <RoomRow key={room.code} room={room} />
+                .map((room, i) => (
+                  <RoomRow key={room.code} room={room} rank={i + 1} />
                 ))}
             </ul>
           )}
 
           <p className="result-footnote">
-            같은 생활관이라도 1인실·2인실·6인실은 따로 선발되어 합격선이 다릅니다. 실제 선발은 성별·학년·단과대학별
-            모집 인원과 지원자 분포에 따라 달라지므로 참고용으로만 활용하세요.
+            {data.model.mode !== 'model' && '호실 유형별 임시 기준점과 내 환산점수의 차이로 추정한 값이에요. '}
+            실제 선발은 성별·학년·단과대학별 모집 인원과 지원자 분포에 따라 달라지므로 참고용으로만 활용하세요.
           </p>
         </div>
       )}
