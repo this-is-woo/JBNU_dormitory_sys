@@ -24,12 +24,9 @@ export default function ChecklistView({ checklist: raw, compare = null }) {
                     {item.label}
                   </dt>
                   <dd className={ox ? `cl-ox ${value ? 'is-o' : 'is-x'}` : ''}>
-                    {same && (
-                      <span className="cl-match-mark" aria-label="나와 맞음">
-                        ✓
-                      </span>
-                    )}
                     {answerLabel(item, value)}
+                    {/* 색으로만 표시하므로 화면 낭독기에는 글자로 알린다 */}
+                    {same && <span className="sr-only"> (나와 맞음)</span>}
                   </dd>
                 </div>
               )

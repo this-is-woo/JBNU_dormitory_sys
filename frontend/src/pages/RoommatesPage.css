@@ -634,7 +634,7 @@
   color: var(--c-danger);
 }
 
-/* 나와 같은 답: 연한 초록 바탕 + 초록 글자 + ✓ (색만으로 구분하지 않게 표시를 함께) */
+/* 나와 맞는 항목: 연한 초록 바탕 + 초록 글자 */
 .cl-view-row.is-match {
   margin-inline: -10px;
   padding-inline: 10px;
@@ -657,11 +657,6 @@
 
 .cl-view-row.is-match dd {
   color: var(--c-success);
-}
-
-.cl-match-mark {
-  margin-right: 6px;
-  font-weight: 800;
 }
 
 .post-detail-match {

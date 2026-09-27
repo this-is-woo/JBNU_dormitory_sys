@@ -377,13 +377,6 @@ export default function RoommatesPage() {
       .join(' · ') || `${semesterLabel(recruit)} 전체 글`
   const filterCount = unlocked && status === 'ready' ? ` · ${total}개` : ''
   const isMine = (post) => Boolean(user) && post.authorId === user.id
-  // 지금 룸메 신청을 보낼 수 있는 글: 남의 글 · 모집 학기 · 모집 중 · 같은 성별 · 아직 안 보냄
-  const canRequest = (post) =>
-    !isMine(post) &&
-    !archived &&
-    !post.isClosed &&
-    !sentIds.has(post.id) &&
-    post.gender === profile.data?.gender
 
   const replacePost = (post) =>
     setBoard((b) => ({ ...b, items: b.items.map((p) => (p.id === post.id ? post : p)) }))
@@ -591,7 +584,7 @@ export default function RoommatesPage() {
           // 잠긴 동안에는 실제 글 대신 예시 글을 흐리게 보여 준다
           <div className="rm-grid">
             {SAMPLE_POSTS.map((post) => (
-              <RoommateCard key={post.id} post={post} mine={false} requestable={!post.isClosed} onOpen={() => {}} onEdit={() => {}} />
+              <RoommateCard key={post.id} post={post} mine={false} onOpen={() => {}} onEdit={() => {}} />
             ))}
           </div>
         ) : (
@@ -622,8 +615,10 @@ export default function RoommatesPage() {
                         mine={isMine(post)}
                         sent={sentIds.has(post.id)}
                         match={isMine(post) ? null : matchCount(profile.data.checklist, post.checklist)}
-                        requestable={canRequest(post)}
+                        myGender={profile.data.gender}
+                        archived={Boolean(archived)}
                         onOpen={setDetail}
+                        onRequest={handleRequest}
                         onEdit={openEditor}
                         onDelete={setDeletingPost}
                         adminLink={isAdmin}
