@@ -1,13 +1,13 @@
 .ai-gate {
   position: relative;
-}
-
-/* 안내 카드가 들어갈 만큼만 높이를 확보하고, 확인한 뒤에는 내용 높이에 맞춘다 */
-.ai-gate:not(.is-unlocked) {
-  min-height: 380px;
+  display: grid;
+  /* 안내 카드가 들어갈 높이. 확인 전(흐림)과 확인 후의 크기가 같도록 두 상태 모두 같은 최소 높이를 쓰고,
+     안의 내용(예측 결과 카드)이 이 높이를 꽉 채운다 */
+  min-height: 360px;
 }
 
 .ai-gate-content {
+  display: grid;
   transition: filter 0.4s ease, opacity 0.4s ease;
 }
 
@@ -65,5 +65,16 @@
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+}
+
+/* 좁은 화면: 안내 카드가 줄바꿈으로 길어져도 위 최소 높이 안에 들어가게 여백을 줄인다 */
+@media (max-width: 560px) {
+  .ai-gate-overlay {
+    padding: 16px;
+  }
+
+  .ai-gate-card {
+    padding: 24px 20px;
   }
 }

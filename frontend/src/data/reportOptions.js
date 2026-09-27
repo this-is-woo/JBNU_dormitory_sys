@@ -52,8 +52,10 @@ export const RESULTS = [
   { value: 'rejected', label: '불합격' },
 ]
 
+// 1학년(신입생 포함)은 학점 없이 거리점수로만 선발하므로, 제보에서도 환산점수 대신 거리점수를 받는다
+// (supabase/migrations/20261017000000_admission_distance_score.sql)
+export const DISTANCE_ONLY_GRADE = '1'
 export const GRADES = [
-  { value: 'freshman', label: '신입생', hint: '입학 전·첫 학기에 지원' },
   { value: '1', label: '1학년' },
   { value: '2', label: '2학년' },
   { value: '3', label: '3학년' },

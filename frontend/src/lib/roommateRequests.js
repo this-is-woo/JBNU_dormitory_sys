@@ -1,6 +1,7 @@
 import { isSupabaseConfigured } from '../config.js'
 import { dormName } from '../components/roommates/postFormat.js'
 import { semesterLabel } from './semester.js'
+import { roommateSemester } from './siteSettings.js'
 import { uid } from './uid.js'
 
 // 룸메 신청 · 답장 · 차단
@@ -19,6 +20,7 @@ const PROFILES_KEY = 'jbnu-dorm:roommate-profiles' // lib/roommateProfile.js
 
 const ERRORS = {
   closed: '모집이 끝난 글이라 신청할 수 없어요.',
+  archived: '지난 학기 글이라 신청할 수 없어요.',
   own: '내 글에는 신청할 수 없어요.',
   gender: '같은 성별의 글에만 신청할 수 있어요.',
   not_found: '글을 찾을 수 없어요. 삭제되었거나 볼 수 없는 글이에요.',
@@ -122,6 +124,7 @@ export async function sendRequest(post, message, userId, myGender) {
   if (text.length > MESSAGE_MAX) throw new Error(`한마디는 ${MESSAGE_MAX}자까지 남길 수 있어요.`)
   if (!isSupabaseConfigured) {
     if (post.authorId === userId) throw new Error(ERRORS.own)
+    if ((post.semester ?? roommateSemester()) !== roommateSemester()) throw new Error(ERRORS.archived)
     if (post.gender !== myGender) throw new Error(ERRORS.gender)
     if (post.isClosed) throw new Error(ERRORS.closed)
     if (localBlocked(userId, post.authorId)) throw new Error(ERRORS.not_found)

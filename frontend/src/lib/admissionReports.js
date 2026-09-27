@@ -1,13 +1,13 @@
 import { isSupabaseConfigured } from '../config.js'
 import { uid } from './uid.js'
 
-// 합격 결과 제보 (supabase/migrations/20260930000000_admission_reports.sql)
+// 합격 결과 제보 (supabase/migrations/20260930000000_admission_reports.sql, 1학년 거리점수는 20261017000000)
 // 로그인한 본인 제보만 읽고 쓸 수 있다 (RLS). Supabase 미연결 시에는 이 브라우저에만 저장 (데모 계정).
 const LOCAL_KEY = 'jbnu-dorm:admission-reports'
 
 // user_id 는 열 권한이 없어 조회하지 않는다. 본인 행만 보이는 것은 RLS 가 보장한다.
 const COLUMNS =
-  'id, created_at, updated_at, semester, applied_room, result, assigned_dormitory, converted_score, gender, college_code, grade'
+  'id, created_at, updated_at, semester, applied_room, result, assigned_dormitory, converted_score, distance_score, gender, college_code, grade'
 
 const fromRow = (row) => ({
   id: row.id,
@@ -17,7 +17,9 @@ const fromRow = (row) => ({
   appliedRoom: row.applied_room,
   result: row.result,
   assignedDormitory: row.assigned_dormitory,
-  convertedScore: Number(row.converted_score),
+  // 1학년 제보는 환산점수 대신 거리점수 (없는 쪽은 null)
+  convertedScore: row.converted_score == null ? null : Number(row.converted_score),
+  distanceScore: row.distance_score == null ? null : Number(row.distance_score),
   gender: row.gender,
   collegeCode: row.college_code,
   grade: row.grade,
@@ -29,6 +31,7 @@ const toRow = (r) => ({
   result: r.result,
   assigned_dormitory: r.assignedDormitory,
   converted_score: r.convertedScore,
+  distance_score: r.distanceScore,
   gender: r.gender,
   college_code: r.collegeCode,
   grade: r.grade,

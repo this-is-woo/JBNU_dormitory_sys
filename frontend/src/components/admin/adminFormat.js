@@ -1,16 +1,17 @@
 import { REPORT_REASONS } from '../../lib/roommateReports.js'
 
-// 관리 화면의 시각은 모두 한국 시간으로 보여 준다 (DB 는 UTC 로 저장)
+// 관리 화면의 시각은 모두 한국 시간으로, 연도는 두 자리로 보여 준다: "26. 10. 4. 14:05"
+// (DB 는 UTC 시각 전체를 그대로 저장한다. 표시만 줄인다)
 const KST = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
-  year: 'numeric',
+  year: '2-digit',
   month: 'numeric',
   day: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
 })
-const KST_DATE = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' })
+const KST_DATE = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: '2-digit', month: 'numeric', day: 'numeric' })
 
 // 잘못된 시각이면 Intl.DateTimeFormat 이 오류를 내므로 먼저 확인한다
 const validDate = (iso) => {
@@ -82,6 +83,7 @@ export const ACTION_LABEL = {
   note_admission: '제보 메모',
   enable_support: '후원 메뉴 켜기',
   disable_support: '후원 메뉴 끄기',
+  set_roommate_semester: '룸메이트 모집 학기 변경',
 }
 
 /** 정지 기한 안내: "2026. 10. 4. 14:00까지" / "무기한" */

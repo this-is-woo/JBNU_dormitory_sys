@@ -15,10 +15,6 @@ const 직영급식 = '직영급식 (미선택 가능)'
 export const SEMESTER_FEES = {
   title: '2026학년도 2학기 생활관비',
   columns: { managementDays: '116일', mealDays: '직영 76일 · BTL 79일' },
-  payment: [
-    '전액 또는 분할 납부 (외국인은 분할 납부 불가)',
-    '현금(가상계좌) 납부 또는 카드(전북은행 신용·체크카드만 가능) 결제',
-  ],
   groups: [
     {
       dorm: '대동관',

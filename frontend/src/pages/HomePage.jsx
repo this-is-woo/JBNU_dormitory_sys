@@ -329,7 +329,7 @@ export default function HomePage() {
           open={reportOpen}
           onClose={() => setReportOpen(false)}
           userId={user.id}
-          defaults={{ collegeCode: college?.code, gender: form.gender, score: breakdown?.convertedScore }}
+          defaults={{ collegeCode: college?.code, gender: form.gender, score: breakdown?.convertedScore, distance: sigungu?.distanceScore }}
         />
       )}
     </>

@@ -117,11 +117,6 @@ export default function DormsPage() {
           title={SEMESTER_FEES.title}
           desc="합계 = 관리비 + 급식비 + 공공요금 (단위: 원)"
         >
-          <ul className="fee-pay">
-            {SEMESTER_FEES.payment.map((p) => (
-              <li key={p}>{p}</li>
-            ))}
-          </ul>
           <FeeTable data={SEMESTER_FEES} showUtility />
           <Source />
         </Section>

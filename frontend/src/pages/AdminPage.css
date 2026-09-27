@@ -861,6 +861,81 @@
   color: var(--c-text-3);
 }
 
+/* 점수 계산 기록: 같은 IP 키 */
+.adm-client {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.adm-client-key {
+  padding: 2px 6px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  background: var(--c-surface);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+
+.adm-client-key:hover,
+.adm-client-key.is-active {
+  border-color: var(--c-text);
+  color: var(--c-text);
+}
+
+.adm-client-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+/* 같은 IP 에서 5건 이상: 반복 기록일 수 있어 눈에 띄게 */
+.adm-client-count.is-many {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--c-warning-soft, var(--c-surface-2));
+  color: var(--c-warning, var(--c-text));
+}
+
+.adm-client-filter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.adm-client-filter code {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.adm-setting-control {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  align-items: center;
+}
+
+.adm-setting-control .select {
+  width: auto;
+  min-width: 140px;
+}
+
+@media (max-width: 560px) {
+  .adm-setting:has(.adm-setting-control) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adm-setting-control .select {
+    flex: 1;
+  }
+}
+
 .adm-switch {
   position: relative;
   flex: none;

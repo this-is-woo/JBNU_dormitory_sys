@@ -3,6 +3,7 @@ import { COLLEGES_SORTED, findCollege } from '../../data/colleges.js'
 import { GENDERS } from '../../data/roommateOptions.js'
 import {
   APPLY_ROOMS,
+  DISTANCE_ONLY_GRADE,
   GRADES,
   RESULTS,
   canApply,
@@ -20,11 +21,15 @@ import './ReportModal.css'
 const SEMESTERS = semesterOptions()
 const SCORE_PATTERN = /^\d{0,3}(\.\d{0,2})?$/
 
+// 1학년은 거리점수(5 ~ 10점), 그 밖의 학년은 환산점수
+const usesDistance = (f) => f.grade === DISTANCE_ONLY_GRADE
+
 const emptyForm = (defaults) => ({
   gender: defaults.gender ?? '',
   grade: '',
   collegeCode: defaults.collegeCode ?? '',
   score: defaults.score != null ? formatScore(defaults.score) : '',
+  distance: defaults.distance != null ? formatScore(defaults.distance) : '',
   semester: SEMESTERS[0],
   appliedRoom: '',
   result: '',
@@ -33,9 +38,11 @@ const emptyForm = (defaults) => ({
 
 const fromReport = (r) => ({
   gender: r.gender,
-  grade: r.grade,
+  // 예전 "신입생" 제보는 1학년으로 (DB 는 20261017 마이그레이션이 바꾼다)
+  grade: r.grade === 'freshman' ? DISTANCE_ONLY_GRADE : r.grade,
   collegeCode: r.collegeCode,
-  score: formatScore(r.convertedScore),
+  score: r.convertedScore != null ? formatScore(r.convertedScore) : '',
+  distance: r.distanceScore != null ? formatScore(r.distanceScore) : '',
   semester: r.semester,
   appliedRoom: r.appliedRoom,
   result: r.result,
@@ -49,8 +56,13 @@ function validate(f) {
   if (!f.grade) return '지원 당시 학년을 골라 주세요.'
   if (!f.collegeCode) return '단과대학을 골라 주세요.'
   if (findCollege(f.collegeCode)?.specialCampus) return '특성화캠퍼스(익산) 생활관 결과는 아직 받지 않아요.'
-  const score = Number(f.score)
-  if (f.score === '' || Number.isNaN(score) || score <= 0 || score > 120) return '환산점수를 확인해 주세요. (0 ~ 120)'
+  if (usesDistance(f)) {
+    const distance = Number(f.distance)
+    if (f.distance === '' || Number.isNaN(distance) || distance < 5 || distance > 10) return '거리점수를 확인해 주세요. (5 ~ 10)'
+  } else {
+    const score = Number(f.score)
+    if (f.score === '' || Number.isNaN(score) || score <= 0 || score > 120) return '환산점수를 확인해 주세요. (0 ~ 120)'
+  }
   if (!f.semester) return '학기를 골라 주세요.'
   const room = findApplyRoom(f.appliedRoom)
   if (!room) return '지원한 호실 유형을 골라 주세요.'
@@ -121,7 +133,9 @@ export default function ReportModal({ open, onClose, userId, defaults }) {
   // 이미 제보한 학기를 새로 고르면 그 제보를 수정하도록 안내
   const existing = reports.items.find((r) => r.semester === form.semester && r.id !== editingId)
   const room = findApplyRoom(form.appliedRoom)
-  const autofilled = !editingId && defaults.score != null && form.score === formatScore(defaults.score)
+  const autofilled = usesDistance(form)
+    ? !editingId && defaults.distance != null && form.distance === formatScore(defaults.distance)
+    : !editingId && defaults.score != null && form.score === formatScore(defaults.score)
 
   function startEdit(report) {
     setForm(fromReport(report))
@@ -153,7 +167,8 @@ export default function ReportModal({ open, onClose, userId, defaults }) {
           appliedRoom: form.appliedRoom,
           result: form.result,
           assignedDormitory: needsHall(form) ? form.assignedDormitory : null,
-          convertedScore: Math.round(Number(form.score) * 100) / 100,
+          convertedScore: usesDistance(form) ? null : Math.round(Number(form.score) * 100) / 100,
+          distanceScore: usesDistance(form) ? Math.round(Number(form.distance) * 100) / 100 : null,
           gender: form.gender,
           collegeCode: form.collegeCode,
           grade: form.grade,
@@ -251,7 +266,9 @@ export default function ReportModal({ open, onClose, userId, defaults }) {
                   <span className="rp-mine-sem">{semesterLabel(r.semester)}</span>
                   <span className="rp-mine-room">{findApplyRoom(r.appliedRoom)?.label}</span>
                   <span className={`rp-mine-result is-${r.result}`}>{resultLabel(r)}</span>
-                  <span className="rp-mine-score tabular">{formatScore(r.convertedScore)}</span>
+                  <span className="rp-mine-score tabular">
+                    {r.distanceScore != null ? `거리 ${formatScore(r.distanceScore)}` : formatScore(r.convertedScore)}
+                  </span>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
@@ -292,22 +309,39 @@ export default function ReportModal({ open, onClose, userId, defaults }) {
               </select>
             </Field>
           </div>
-          <Field label="지원 당시 학년" hint="신입생은 입학 전·첫 학기에 지원한 경우">
+          <Field label="지원 당시 학년" hint="신입생도 1학년을 골라 주세요">
             <ChoiceGroup label="지원 당시 학년" size="sm" options={GRADES} value={form.grade} onChange={(grade) => set({ grade })} />
           </Field>
-          <Field label="환산점수" hint={autofilled ? '홈 계산기 값으로 채웠어요' : '선발 당시 환산점수'}>
-            <div className="rp-score">
-              <input
-                className="input tabular"
-                inputMode="decimal"
-                placeholder="84.50"
-                value={form.score}
-                onChange={(e) => SCORE_PATTERN.test(e.target.value) && set({ score: e.target.value })}
-                aria-label="환산점수"
-              />
-              <span>점</span>
-            </div>
-          </Field>
+          {/* 1학년은 거리점수로만 선발하므로 거리점수를, 그 밖의 학년은 환산점수를 받는다 */}
+          {usesDistance(form) ? (
+            <Field label="거리점수" hint={autofilled ? '홈 계산기 값으로 채웠어요' : '1학년은 거리점수로만 선발해요 (5 ~ 10점)'}>
+              <div className="rp-score">
+                <input
+                  className="input tabular"
+                  inputMode="decimal"
+                  placeholder="8.50"
+                  value={form.distance}
+                  onChange={(e) => SCORE_PATTERN.test(e.target.value) && set({ distance: e.target.value })}
+                  aria-label="거리점수"
+                />
+                <span>점</span>
+              </div>
+            </Field>
+          ) : (
+            <Field label="환산점수" hint={autofilled ? '홈 계산기 값으로 채웠어요' : '선발 당시 환산점수'}>
+              <div className="rp-score">
+                <input
+                  className="input tabular"
+                  inputMode="decimal"
+                  placeholder="84.50"
+                  value={form.score}
+                  onChange={(e) => SCORE_PATTERN.test(e.target.value) && set({ score: e.target.value })}
+                  aria-label="환산점수"
+                />
+                <span>점</span>
+              </div>
+            </Field>
+          )}
         </section>
 
         <section className="rp-section">

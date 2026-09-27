@@ -35,7 +35,7 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
               성별
             </th>
             <th scope="col">
-              학점
+              직전학기 학점
             </th>
             <th scope="col">
               주소지
@@ -85,12 +85,12 @@ export default function ScoreInputTable({ form, onChange, regions, college, sigu
                 <option value="여">여자</option>
               </select>
             </td>
-            <td data-label="학점">
+            <td data-label="직전학기 학점">
               <NumericInput
                 id="gpa"
                 inputMode="decimal"
                 placeholder="1.0 ~ 4.5"
-                aria-label="직전 학기 학점"
+                aria-label="직전학기 학점"
                 value={form.gpa}
                 onChange={(gpa) => onChange({ gpa })}
                 isAllowed={isGpaInputAllowed}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './Pagination.css'
 
 /** 보여 줄 쪽 번호: 처음·끝과 현재 쪽 주변만, 사이는 … 으로 */
@@ -18,8 +19,55 @@ const Chevron = ({ flip }) => (
   </svg>
 )
 
+/** [ … ] 를 누르면 쪽 번호 입력칸으로 바뀐다. Enter(또는 칸 밖을 누르면) 이동, Esc 는 취소 */
+function PageJump({ pageCount, onChange }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState('')
+
+  function close() {
+    setEditing(false)
+    setValue('')
+  }
+
+  function go() {
+    const n = Number(value)
+    if (value !== '' && Number.isInteger(n)) onChange(Math.min(Math.max(n, 1), pageCount))
+    close()
+  }
+
+  if (!editing) {
+    return (
+      <button type="button" className="page-btn page-gap" onClick={() => setEditing(true)} aria-label="쪽 번호 입력해서 이동">
+        …
+      </button>
+    )
+  }
+  return (
+    <form
+      className="page-jump"
+      onSubmit={(e) => {
+        e.preventDefault()
+        go()
+      }}
+    >
+      <input
+        className="page-jump-input tabular"
+        type="text"
+        inputMode="numeric"
+        autoFocus
+        placeholder={`1-${pageCount}`}
+        aria-label={`이동할 쪽 번호 (1 ~ ${pageCount})`}
+        value={value}
+        onChange={(e) => /^\d{0,5}$/.test(e.target.value) && setValue(e.target.value)}
+        onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), close())}
+        onBlur={go}
+      />
+    </form>
+  )
+}
+
 /**
- * 쪽 번호 이동. 한 쪽뿐이면 그리지 않는다.
+ * 쪽 번호 이동. 한 쪽뿐이면 그리지 않는다. 사이의 … 를 누르면 쪽 번호를 직접 입력할 수 있다.
  * @param {number} page       현재 쪽 (1부터)
  * @param {number} pageCount  전체 쪽 수
  */
@@ -38,9 +86,7 @@ export default function Pagination({ page, pageCount, onChange }) {
       </button>
       {pageItems(page, pageCount).map((item) =>
         typeof item === 'string' ? (
-          <span key={item} className="page-gap" aria-hidden="true">
-            …
-          </span>
+          <PageJump key={item} pageCount={pageCount} onChange={onChange} />
         ) : (
           <button
             key={item}

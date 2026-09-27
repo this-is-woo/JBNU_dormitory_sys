@@ -46,9 +46,32 @@
 }
 
 .page-gap {
-  min-width: 24px;
-  text-align: center;
+  min-width: 32px;
+  padding: 0 4px;
   color: var(--c-text-3);
+}
+
+/* … 를 누르면 나오는 쪽 번호 입력칸 */
+.page-jump {
+  display: inline-flex;
+}
+
+.page-jump-input {
+  width: 64px;
+  height: 40px;
+  padding: 0 8px;
+  border: 1px solid var(--c-text);
+  border-radius: 999px;
+  background: var(--c-bg);
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  color: var(--c-text);
+}
+
+.page-jump-input:focus {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 1px;
 }
 
 @media (max-width: 560px) {
@@ -61,5 +84,10 @@
     height: 36px;
     padding: 0 8px;
     font-size: 14px;
+  }
+
+  .page-jump-input {
+    width: 56px;
+    height: 36px;
   }
 }

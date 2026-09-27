@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
-import { IconAlert, IconInfo, IconPencil } from '../components/common/Icons.jsx'
+import { IconAlert, IconArchive, IconInfo, IconPencil } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
+import ArchiveModal from '../components/roommates/ArchiveModal.jsx'
 import BoardGate from '../components/roommates/BoardGate.jsx'
 import DeletePostModal from '../components/roommates/DeletePostModal.jsx'
 import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
@@ -31,7 +32,8 @@ import {
   fetchSentPostIds,
   sendRequest,
 } from '../lib/roommateRequests.js'
-import { browsableSemesters, semesterLabel } from '../lib/semester.js'
+import { semesterLabel } from '../lib/semester.js'
+import { useSiteSettings } from '../lib/siteSettings.js'
 import {
   PAGE_SIZE,
   SAMPLE_POSTS,
@@ -46,10 +48,12 @@ import './RoommatesPage.css'
 
 const ALL = 'all'
 const withAll = (options) => [{ value: ALL, label: '전체' }, ...options]
-const INITIAL_FILTERS = { semester: ALL, dormitory: ALL, gender: ALL }
-const SEMESTER_OPTIONS = browsableSemesters().map((s) => ({ value: s, label: semesterLabel(s) }))
+const INITIAL_FILTERS = { dormitory: ALL, gender: ALL }
+// 지난 학기 글 보기: /roommates?semester=2026-2
+const SEMESTER_PARAM = 'semester'
+const SEMESTER_RE = /^20\d{2}-[12]$/
 
-// 로그인·체크리스트 등록 뒤에 이어서 할 일 ('write' | 'myPosts' | 'unlock' | 'requests' | 'profile')
+// 로그인·체크리스트 등록 뒤에 이어서 할 일 ('write' | 'myPosts' | 'unlock' | 'requests' | 'profile' | 'archive')
 // 구글 로그인 페이지로 이동했다 돌아오는 경우를 위해 sessionStorage 에도 남긴다.
 const AFTER_LOGIN_KEY = 'jbnu-dorm:after-login'
 const LOGIN_REASONS = {
@@ -58,8 +62,9 @@ const LOGIN_REASONS = {
   requests: '신청 내역을 보려면 로그인이 필요해요.',
   profile: '내 정보를 보려면 로그인이 필요해요.',
   unlock: '로그인하고 체크리스트를 등록하면 글을 볼 수 있어요.',
+  archive: '지난 학기 글을 보려면 로그인이 필요해요.',
 }
-const NEEDS_PROFILE = ['write', 'unlock', 'requests']
+const NEEDS_PROFILE = ['write', 'unlock', 'requests', 'archive']
 
 const readAfterLogin = () => recallAfterLogin(AFTER_LOGIN_KEY)
 const writeAfterLogin = (action) => rememberAfterLogin(AFTER_LOGIN_KEY, action)
@@ -136,6 +141,13 @@ export default function RoommatesPage() {
   const [counts, setCounts] = useState({ requests: 0, replies: 0 })
   const [loginOpen, setLoginOpen] = useState(false)
   const [pending, setPending] = useState(() => readAfterLogin())
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  // 게시판에는 지금 모집 학기 글만. 주소에 다른 학기가 있으면 그 학기 글을 읽기 전용으로 (지난 학기 글 보기)
+  const { roommateSemester: recruit } = useSiteSettings()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const asked = searchParams.get(SEMESTER_PARAM)
+  const archived = SEMESTER_RE.test(asked ?? '') && asked !== recruit ? asked : null
+  const viewSemester = archived ?? recruit
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -171,7 +183,7 @@ export default function RoommatesPage() {
     sort,
     userId: user?.id,
     myChecklist: profile.data?.checklist ?? null,
-    semester: filters.semester === ALL ? null : filters.semester,
+    semester: viewSemester,
     dormitory: filters.dormitory === ALL ? null : filters.dormitory,
     gender: filters.gender === ALL ? null : filters.gender,
   })
@@ -188,7 +200,7 @@ export default function RoommatesPage() {
         setBoard({ status: 'ready', items, total, loading: false, more: false, moreError: false })
       })
       .catch(() => gen === genRef.current && setBoard((b) => ({ ...b, status: 'error', loading: false })))
-  }, [unlocked, user?.id, filters.semester, filters.dormitory, filters.gender, sort, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [unlocked, user?.id, viewSemester, filters.dormitory, filters.gender, sort, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasMore = board.status === 'ready' && board.items.length < board.total
 
@@ -252,6 +264,16 @@ export default function RoommatesPage() {
     if (action === 'write') setEditor({ post: null })
     if (action === 'myPosts') setMyPostsOpen(true)
     if (action === 'requests') setInbox({ tab: counts.replies > 0 && !counts.requests ? 'sent' : 'received' })
+    if (action === 'archive') setArchiveOpen(true)
+  }
+
+  // 지난 학기 글 보기 ↔ 이번 학기로 돌아가기 (뒤로 가기로도 돌아온다)
+  function viewArchive(semester) {
+    wantRef.current = PAGE_SIZE
+    setArchiveOpen(false)
+    setDetail(null)
+    setSearchParams(semester && semester !== recruit ? { [SEMESTER_PARAM]: semester } : {})
+    window.scrollTo({ top: 0 })
   }
 
   // 새 신청·답장 수(툴바 배지)와 내가 신청한 글. 주기적으로 확인하지 않고,
@@ -346,13 +368,13 @@ export default function RoommatesPage() {
   const activeFilters = Object.values(filters).filter((v) => v !== ALL).length
   const filterSummary =
     [
-      filters.semester !== ALL && semesterLabel(filters.semester),
+      archived && semesterLabel(archived),
       filters.dormitory !== ALL && DORMITORIES.find((d) => d.code === filters.dormitory)?.name,
       filters.gender !== ALL && GENDERS.find((g) => g.value === filters.gender)?.label,
       sort !== 'newest' && SORTS.find((o) => o.value === sort)?.label,
     ]
       .filter(Boolean)
-      .join(' · ') || '전체 글'
+      .join(' · ') || `${semesterLabel(recruit)} 전체 글`
   const filterCount = unlocked && status === 'ready' ? ` · ${total}개` : ''
   const isMine = (post) => Boolean(user) && post.authorId === user.id
 
@@ -369,9 +391,10 @@ export default function RoommatesPage() {
       setMyPostsKey((k) => k + 1)
     } else {
       await createRoommatePost(post, user.id)
-      // 새 글은 목록 맨 위에 온다
+      // 새 글은 목록 맨 위에 온다 (지난 학기 글을 보던 중이면 이번 학기 목록으로)
       wantRef.current += 1
-      reload()
+      if (archived) viewArchive(null)
+      else reload()
     }
     setEditor(null)
   }
@@ -495,16 +518,6 @@ export default function RoommatesPage() {
           <ChoiceGroup label="정렬" size="sm" options={SORTS} value={sort} onChange={changeSort} />
         </div>
         <div className="rm-filter">
-          <h2>학기</h2>
-          <ChoiceGroup
-            label="학기 필터"
-            size="sm"
-            options={withAll(SEMESTER_OPTIONS)}
-            value={filters.semester}
-            onChange={setFilter('semester')}
-          />
-        </div>
-        <div className="rm-filter">
           <h2>호관</h2>
           <ChoiceGroup
             label="호관 필터"
@@ -523,6 +536,12 @@ export default function RoommatesPage() {
             필터 초기화
           </button>
         )}
+        <div className="rm-archive-entry">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => requireAccess('archive')}>
+            <IconArchive width={16} height={16} />
+            지난 학기 글 보기
+          </button>
+        </div>
       </aside>
 
       <section ref={feedRef} className="rm-feed" aria-label="룸메이트 찾기 게시글">
@@ -536,6 +555,22 @@ export default function RoommatesPage() {
                 : ''}
               . 글쓰기·룸메 신청·답장을 할 수 없고, 내 글은 다른 사람에게 보이지 않아요.
             </p>
+          </div>
+        )}
+        {unlocked && archived && (
+          <div className="rm-archive-banner" role="status">
+            <div>
+              <strong>{semesterLabel(archived)} 글</strong>
+              <p>지난 학기 글이라 읽기만 할 수 있어요. 룸메 신청은 보낼 수 없어요.</p>
+            </div>
+            <div className="rm-archive-actions">
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setArchiveOpen(true)}>
+                다른 학기
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => viewArchive(null)}>
+                {semesterLabel(recruit)}로 돌아가기
+              </button>
+            </div>
           </div>
         )}
         {roommateStorage === 'local' && (
@@ -602,15 +637,23 @@ export default function RoommatesPage() {
                 </>
               ) : (
                 <div className="rm-empty">
-                  <p>{filtered ? '조건에 맞는 글이 없어요.' : '아직 등록된 글이 없어요.'}</p>
+                  <p>
+                    {filtered
+                      ? '조건에 맞는 글이 없어요.'
+                      : archived
+                        ? `${semesterLabel(archived)}에 올라온 글이 없어요.`
+                        : `아직 ${semesterLabel(recruit)} 글이 없어요.`}
+                  </p>
                   {filtered ? (
                     <button type="button" className="btn btn-secondary" onClick={resetFilters}>
                       필터 초기화
                     </button>
                   ) : (
-                    <button type="button" className="btn btn-secondary" onClick={openWrite}>
-                      첫 글 남기기
-                    </button>
+                    !archived && (
+                      <button type="button" className="btn btn-secondary" onClick={openWrite}>
+                        첫 글 남기기
+                      </button>
+                    )
                   )}
                 </div>
               ))}
@@ -625,7 +668,7 @@ export default function RoommatesPage() {
       <title>룸메이트 찾기 | JBNU Dormi</title>
       <PageHeader
         title="나와 잘 맞는 룸메이트 찾기"
-        lead="생활 습관이 맞는 룸메이트를 찾아 신청해 보세요. 같은 성별끼리만 신청할 수 있어요."
+        lead={`${semesterLabel(recruit)} 룸메이트를 모집하고 있어요. 생활 습관이 맞는 룸메이트를 찾아 신청해 보세요. 같은 성별끼리만 신청할 수 있어요.`}
       />
 
       <div className="container rm-toolbar">
@@ -679,12 +722,15 @@ export default function RoommatesPage() {
         </div>
       )}
 
-      {/* 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서) */}
+      {/* 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서).
+          화면 아래에 붙어 따라오다가 페이지 끝에서는 푸터 위에 멈춘다 (sticky) */}
       {signedIn && (
-        <button type="button" className="rm-fab" onClick={openWrite}>
-          <IconPencil width={16} height={16} />
-          글쓰기
-        </button>
+        <div className="rm-fab-dock">
+          <button type="button" className="rm-fab" onClick={openWrite}>
+            <IconPencil width={16} height={16} />
+            글쓰기
+          </button>
+        </div>
       )}
 
       <LoginModal
@@ -713,10 +759,19 @@ export default function RoommatesPage() {
             open={Boolean(editor)}
             initial={editor?.post ?? null}
             profile={profile.data}
+            semester={recruit}
             // 글쓰기 창은 그대로 두고 내 정보 창을 위에 띄운다: 내 정보 창을 닫거나 저장하면 글쓰기로 돌아간다
             onEditProfile={() => setProfileOpen(true)}
             onClose={() => setEditor(null)}
             onSubmit={handleSubmit}
+          />
+          <ArchiveModal
+            open={archiveOpen}
+            userId={user.id}
+            recruit={recruit}
+            current={archived}
+            onPick={viewArchive}
+            onClose={() => setArchiveOpen(false)}
           />
           <MyPostsModal
             open={myPostsOpen}
@@ -735,7 +790,9 @@ export default function RoommatesPage() {
         post={detail}
         mine={detail ? isMine(detail) : false}
         sent={detail ? sentIds.has(detail.id) : false}
+        archived={Boolean(detail?.semester) && detail.semester !== recruit}
         myGender={profile.data?.gender ?? null}
+        myChecklist={profile.data?.checklist ?? null}
         onClose={() => setDetail(null)}
         onEdit={openEditor}
         onRequest={handleRequest}

@@ -223,7 +223,8 @@ const toAdmission = (r) => ({
   appliedRoom: r.applied_room,
   result: r.result,
   assignedDormitory: r.assigned_dormitory,
-  convertedScore: Number(r.converted_score),
+  convertedScore: r.converted_score == null ? null : Number(r.converted_score),
+  distanceScore: r.distance_score == null ? null : Number(r.distance_score),
   gender: r.gender,
   collegeCode: r.college_code,
   grade: r.grade,
@@ -253,11 +254,15 @@ export async function updateAdminAdmission(id, { excluded = null, note = null })
 
 // ── 기록 ──
 
-/** kind: scores(점수 계산) | predictions(예측 요청) | admin(관리 기록) → { items, total } (items 는 DB 행 그대로) */
-export async function fetchActivity(kind, page = 1) {
+/**
+ * kind: scores(점수 계산) | predictions(예측 요청) | admin(관리 기록) → { items, total } (items 는 DB 행 그대로)
+ * client: 점수 계산 기록을 이 IP 키(client_key)의 것만 (supabase/migrations/20261018000000_score_client_key.sql)
+ */
+export async function fetchActivity(kind, page = 1, client = null) {
   const data = await call(
     'admin_list_activity',
-    { p_kind: kind, p_limit: ADMIN_PAGE_SIZE, p_offset: offsetOf(page) },
+    // p_client 는 마이그레이션 20261018 에서 생겼으므로 쓸 때만 보낸다
+    { p_kind: kind, p_limit: ADMIN_PAGE_SIZE, p_offset: offsetOf(page), ...(client ? { p_client: client } : {}) },
     '기록을 불러오지 못했어요.',
   )
   return { items: data.items ?? [], total: num(data.total) }
@@ -269,6 +274,12 @@ export async function fetchActivity(kind, page = 1) {
 export async function setSupportEnabled(enabled) {
   await call('admin_set_setting', { p_key: 'support_enabled', p_value: enabled }, '설정을 바꾸지 못했어요.')
   applySiteSettings({ supportEnabled: enabled })
+}
+
+/** 룸메이트 찾기 모집 학기 ('YYYY-1' | 'YYYY-2'). 새 글은 이 학기로 올라가고, 다른 학기 글은 지난 학기 글이 된다 */
+export async function setRoommateSemester(semester) {
+  await call('admin_set_setting', { p_key: 'roommate_semester', p_value: semester }, '모집 학기를 바꾸지 못했어요.')
+  applySiteSettings({ roommateSemester: semester })
 }
 
 // ── 학점 통계 (점수 계산 기록으로) ──
@@ -287,15 +298,24 @@ const toGpaSummary = (s) => ({
  * days: null(전체) 또는 최근 며칠 · gender: null | '남' | '여'
  * → { total, noGender, overall: 요약, colleges: [{ code, ...요약 }] } (요약 = n, mean, min, q1, median, q3, max)
  */
-export async function fetchGpaStats({ days = null, gender = null } = {}) {
-  const data = await call('admin_gpa_stats', { p_days: days, p_gender: gender }, '학점 통계를 불러오지 못했어요.')
+/** onePerClient: 같은 IP 키의 기록은 기간 안에서 가장 최근 1건만 센다 (마이그레이션 20261018) */
+export async function fetchGpaStats({ days = null, gender = null, onePerClient = false } = {}) {
+  const data = await call(
+    'admin_gpa_stats',
+    { p_days: days, p_gender: gender, ...(onePerClient ? { p_one_per_client: true } : {}) },
+    '학점 통계를 불러오지 못했어요.',
+  )
   return {
     total: num(data?.total),
     noGender: num(data?.no_gender),
+    repeatExcluded: num(data?.repeat_excluded),
     overall: toGpaSummary(data?.overall),
     colleges: (data?.colleges ?? []).map((c) => ({ code: c.college_code, ...toGpaSummary(c) })),
   }
 }
+
+// 데모: 이 브라우저의 기록은 모두 같은 IP 에서 온 것으로 보고 한 키로 묶는다
+const localScoresWithKey = () => readLocalScores().map((s) => ({ ...s, client_key: s.client_key ?? 'demo00local' }))
 
 // ─────────────────────────────────────────────────────────────
 // 데모(Supabase 미연결): 이 브라우저의 데이터로 SQL 함수와 같은 모양의 결과를 만든다.
@@ -662,10 +682,11 @@ const LOCAL = {
         applied_room: r.appliedRoom,
         result: r.result,
         assigned_dormitory: r.assignedDormitory ?? null,
-        converted_score: r.convertedScore,
+        converted_score: r.convertedScore ?? null,
+        distance_score: r.distanceScore ?? null,
         gender: r.gender,
         college_code: r.collegeCode,
-        grade: r.grade,
+        grade: r.grade === 'freshman' ? '1' : r.grade,
         is_excluded: Boolean(r.isExcluded),
         admin_note: r.adminNote ?? null,
       }))
@@ -696,32 +717,50 @@ const LOCAL = {
     localLog(action, 'admission_report', p_report_id, { excluded: p_excluded, note: p_note })
   },
 
-  admin_list_activity({ p_kind, p_limit = ADMIN_PAGE_SIZE, p_offset = 0 }) {
+  admin_list_activity({ p_kind, p_limit = ADMIN_PAGE_SIZE, p_offset = 0, p_client = null }) {
     // 예측 요청은 백엔드가 서버에만 남긴다
     if (p_kind === 'predictions') return { total: 0, items: [] }
     if (p_kind !== 'admin' && p_kind !== 'scores') fail('invalid')
-    const rows = p_kind === 'scores' ? readLocalScores() : read(KEYS.logs, [])
-    return { total: rows.length, items: rows.slice(p_offset, p_offset + p_limit) }
+    if (p_kind === 'admin') {
+      const rows = read(KEYS.logs, [])
+      return { total: rows.length, items: rows.slice(p_offset, p_offset + p_limit) }
+    }
+    const all = localScoresWithKey()
+    const rows = all.filter((s) => !p_client || s.client_key === p_client)
+    const countOf = (key) => all.filter((s) => s.client_key === key).length
+    return {
+      total: rows.length,
+      items: rows.slice(p_offset, p_offset + p_limit).map((s) => ({ ...s, client_count: countOf(s.client_key) })),
+    }
   },
 
   // 데모: 설정은 이 브라우저에 저장된 값이 곧 설정이라(lib/siteSettings.js) 기록만 남긴다
   admin_set_setting({ p_key, p_value }) {
+    if (p_key === 'roommate_semester' && /^20\d{2}-[12]$/.test(p_value)) {
+      return localLog('set_roommate_semester', 'setting', p_key, { value: p_value })
+    }
     if (p_key !== 'support_enabled' || typeof p_value !== 'boolean') fail('invalid')
     localLog(p_value ? 'enable_support' : 'disable_support', 'setting', p_key, { value: p_value })
   },
 
-  admin_gpa_stats({ p_days = null, p_gender = null }) {
+  admin_gpa_stats({ p_days = null, p_gender = null, p_one_per_client = false }) {
     if ((p_days != null && !(p_days >= 1 && p_days <= 3650)) || (p_gender != null && p_gender !== '남' && p_gender !== '여')) {
       fail('invalid')
     }
     const since = p_days == null ? -Infinity : Date.now() - p_days * 86400000
-    const period = readLocalScores().filter((s) => new Date(s.created_at).getTime() >= since)
+    const base = localScoresWithKey().filter((s) => new Date(s.created_at).getTime() >= since)
+    // 최신순이므로 키마다 처음 나온 기록이 가장 최근 것
+    const seen = new Set()
+    const period = p_one_per_client
+      ? base.filter((s) => !s.client_key || (!seen.has(s.client_key) && seen.add(s.client_key)))
+      : base
     const picked = period.filter((s) => !p_gender || s.gender === p_gender)
     const byCollege = new Map()
     picked.forEach((s) => byCollege.set(s.college_code, [...(byCollege.get(s.college_code) ?? []), Number(s.gpa)]))
     return {
       total: picked.length,
       no_gender: period.filter((s) => !s.gender).length,
+      repeat_excluded: base.length - period.length,
       overall: gpaSummary(picked.map((s) => Number(s.gpa))),
       colleges: [...byCollege]
         .sort(([a], [b]) => (a < b ? -1 : 1))

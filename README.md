@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -152,7 +152,7 @@ npm run dev
 | `admins` | 관리자 계정 (계정 id) | 직접 접근 불가. `is_admin()` 으로 확인만 |
 | `admin_logs` | 관리 기록 (숨김·삭제·정지 등 누가 언제 무엇을) | 관리자 페이지 [기록] 탭 |
 | `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
-| `score_submissions` | 환산점수 계산 기록 (단과대학·성별·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 관리자 페이지 [기록]·[학점 통계] 탭 |
+| `score_submissions` | 환산점수 계산 기록 (단과대학·성별·학점·거리점수·환산점수, 익명 + IP 를 알아볼 수 없게 바꾼 `client_key`) | 누구나 쓰기만, 조회는 관리자 페이지 [기록]·[학점 통계] 탭 |
 | `site_settings` | 사이트 설정 (`support_enabled`: 후원 메뉴 켜기/끄기) | 누구나 읽기, 바꾸기는 관리자 페이지 [설정] 탭 (`admin_set_setting`) |
 | `roommate_profiles` | 내 정보 (기본 정보 + 체크리스트) | 본인만 |
 | `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
@@ -201,7 +201,8 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
    - 룸메이트 체크리스트: 「전북대 룸메이트 체크리스트 ver.4」를 고친 15개 항목 (잠버릇은 복수 선택, 취침 시간은 24시 형태) (`frontend/src/data/roommateChecklist.js`)
    - 수정하면 내가 쓴 글에도 자동으로 반영됩니다 (DB 트리거).
 2. **글쓰기**: 소개(선택)만 적습니다. 기본 정보·체크리스트는 내 정보 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.
-- **학기**: 글마다 학기(예: 2026년 2학기)가 있고, 글쓰기에서는 이번 학기와 **다음 학기 한 학기 미리**만 고를 수 있습니다. 사이드바에서 학기별로 볼 수 있습니다. (1학기 3~8월, 2학기 9~2월)
+- **모집 학기**: 게시판에는 관리자가 정한 **모집 학기**(관리자 페이지 [설정] → 룸메이트 모집 학기, `site_settings.roommate_semester`, 기본 2027년 1학기) 글만 보입니다. 글쓰기에서 학기를 고르지 않고, 새 글은 DB 트리거가 모집 학기로 채웁니다(글을 고쳐도 학기는 그대로).
+- **지난 학기 글**: 필터 맨 아래·모바일 메뉴의 [지난 학기 글]에서 학기를 고르면 게시판이 그 학기 글을 **읽기 전용**으로 보여 줍니다(`/roommates?semester=2026-2`). 지난 학기 글에는 룸메 신청을 보낼 수 없습니다(DB 함수가 막음).
 3. **룸메 신청**: 남의 글 카드에서 [자세히 보기]를 열고 [룸메 신청]을 누르면 확인 창이 뜨고, 한마디(선택, 200자)를 남겨 보낼 수 있습니다.
    **같은 성별의 글에만** 신청할 수 있습니다 (다른 성별 글은 [같은 성별만 신청 가능]으로 잠김, DB 에서도 막음).
    보낸 글은 카드에 [신청함 ✓]으로 표시되고, 다시 누르면 취소할 수 있습니다. 모집완료 글에는 신청할 수 없습니다.
@@ -268,10 +269,11 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 - **신고**: 처리 대기/완료/기각. 신고한 사람·신고받은 사람(누적 신고 수·정지 상태), 신고 당시 내용, 운영자 메모, 글 숨기기, 신고받은 사람 정지
 - **사용자**: 구글 로그인한 모든 계정의 이메일·가입일·최근 로그인·쓴 글·보낸 신청·받은/한 신고 수, 이용 정지(3일/7일/30일/무기한/날짜) · 해제 · 메모
 - **합격 제보**: 제보자 이메일과 함께 보고, 이상한 값은 **학습에서 제외**(`is_excluded`)로 표시해 학습용 보기에서 뺍니다.
-- **학점 통계**: 점수 계산 기록으로 단과대학별 학점의 건수·평균·중앙값·가운데 50%(하위 25%~상위 25%)·최저·최고. 기간(전체/90/30/7일)·성별로 보기, 분포 차트 + 표
+- **학점 통계**: 점수 계산 기록으로 단과대학별 학점의 건수·평균·중앙값·가운데 50%(하위 25%~상위 25%)·최저·최고. 기간(전체/90/30/7일)·성별·"같은 IP 는 최근 1건만"으로 보기, 분포 차트 + 표
   (기록은 계산 단위라 같은 사람이 여러 번 계산하면 여러 건. 5건 미만인 단과대학은 흐리게 표시)
 - **설정**: 후원 메뉴(개발자 삼각김밥 사주기) 켜기/끄기. 끄면 헤더·모바일 메뉴·하단에서 사라지고 `/support` 는 없는 페이지로 보임
-- **기록**: 관리 기록, 점수 계산 기록(성별 포함), 예측 요청 기록 (최신순, 한국 시간)
+- **기록**: 관리 기록, 점수 계산 기록(성별 · IP 키와 같은 키의 기록 수, 키를 누르면 그 키만), 예측 요청 기록 (최신순, 한국 시간 · 연도 두 자리). 쪽 번호 사이의 … 를 누르면 쪽 번호를 직접 입력
+- **IP 키**: IP 주소는 저장하지 않고, DB 트리거가 요청 헤더의 IP 에 비밀 값(`private.app_secrets`, API 로 못 읽음)을 섞어 SHA-256 으로 바꾼 앞 10글자만 남깁니다. 같은 IP 면 같은 키라 반복 기록을 묶어 볼 수 있지만 키로 IP 를 되찾을 수는 없습니다.
 - 룸메 신청의 한마디·답장 내용은 관리 화면에도 보이지 않습니다 (신고된 신청은 신고 당시 내용만).
 - 데모 모드(Supabase 미연결)에서는 개발 서버(`npm run dev`)에서 데모 계정으로 로그인하면 관리자 페이지를 볼 수 있고, 이 브라우저의 데이터로 동작합니다.
 
@@ -288,6 +290,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 | 성별 · 단과대학 · 학년 | 학년: 신입생 / 1~4학년 이상 / 대학원생 |
 
 - 계정당 학기별 1건(`unique (user_id, semester)`), 본인 제보만 보고 고치고 지울 수 있습니다.
+- 학년은 1학년 ~ 4학년 이상 · 대학원생 (신입생은 1학년). **1학년은 거리점수로만 선발**하므로 환산점수 대신 거리점수(5 ~ 10점)를 받습니다 (`distance_score`).
 - 이상한 값은 지우지 말고 Table Editor 에서 `is_excluded = true` 로 표시합니다. (`admin_note` 에 이유 메모)
 - 학습용 데이터는 **`admission_reports_training` 뷰**를 CSV 로 내보내 씁니다. 계정 정보가 없고, 제외 표시한 행이 빠지고,
   B타입 합격은 배정 호관의 호실 code(예: `saebit_2`)로 바뀌어 `room_code` 열에 들어 있습니다.

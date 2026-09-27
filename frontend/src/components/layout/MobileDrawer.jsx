@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
 import {
+  IconArchive,
   IconBell,
   IconBuilding,
   IconChevronRight,
@@ -29,6 +30,7 @@ const ROOMMATE_ACTIONS = [
   { action: 'profile', label: '내 정보', Icon: IconClipboard },
   { action: 'myPosts', label: '내가 쓴 글', Icon: IconFile },
   { action: 'requests', label: '신청 내역', Icon: IconBell },
+  { action: 'archive', label: '지난 학기 글', Icon: IconArchive },
 ]
 
 /**

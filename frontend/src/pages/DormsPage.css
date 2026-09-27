@@ -28,23 +28,6 @@
   color: var(--c-text-3);
 }
 
-.fee-pay {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.fee-pay li {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--c-surface);
-  font-size: 13px;
-  color: var(--c-text-2);
-}
-
 /* 요금표 · 식사 시간표: 좁은 화면에서는 가로로 스크롤 (첫 열 고정) */
 .fee-scroll {
   overflow-x: auto;

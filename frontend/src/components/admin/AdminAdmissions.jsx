@@ -38,9 +38,10 @@ function AdmissionCard({ report, busy, onAction }) {
       </header>
 
       <dl className="adm-stats">
+        {/* 1학년은 거리점수로 제보 (예전 1학년 제보는 환산점수) */}
         <div>
-          <dt>환산점수</dt>
-          <dd className="tabular">{report.convertedScore.toFixed(2)}</dd>
+          <dt>{report.distanceScore != null ? '거리점수' : '환산점수'}</dt>
+          <dd className="tabular">{(report.distanceScore ?? report.convertedScore)?.toFixed(2) ?? '—'}</dd>
         </div>
         <div>
           <dt>성별</dt>

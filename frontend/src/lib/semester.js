@@ -25,13 +25,7 @@ export const semesterLabel = (value) => {
   return `${year}년 ${term}학기`
 }
 
-/** 룸메이트 글을 쓸 수 있는 학기: 이번 학기 + 다음 학기 한 학기 미리 */
-export function writableSemesters(now = new Date()) {
-  const current = currentSemester(now)
-  return [current, nextSemester(current)]
-}
-
-/** 룸메이트 찾기 사이드바의 학기 필터: 다음 학기 · 이번 학기 · 지난 학기 (최신순) */
+/** 관리자 게시글 목록의 학기 필터: 다음 학기 · 이번 학기 · 지난 학기 (최신순) */
 export function browsableSemesters(now = new Date()) {
   const current = currentSemester(now)
   return [nextSemester(current), current, previousSemester(current)]

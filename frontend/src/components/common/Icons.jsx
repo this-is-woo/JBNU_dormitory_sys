@@ -142,6 +142,13 @@ export const IconFile = (p) => (
   </svg>
 )
 
+// 보관함 (지난 학기 글)
+export const IconArchive = (p) => (
+  <svg {...base} {...p}>
+    <path d="M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4" />
+  </svg>
+)
+
 export const IconPencil = (p) => (
   <svg {...base} {...p}>
     <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4M13.5 6.5l4 4" />

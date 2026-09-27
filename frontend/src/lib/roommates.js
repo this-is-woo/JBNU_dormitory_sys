@@ -2,7 +2,7 @@ import { isSupabaseConfigured } from '../config.js'
 import { matchCount } from '../components/roommates/postFormat.js'
 import { isLocallySuspended } from './localModeration.js'
 import { isLocallyBlocked, localRequestCount } from './roommateRequests.js'
-import { currentSemester } from './semester.js'
+import { roommateSemester } from './siteSettings.js'
 import { uid } from './uid.js'
 
 // 룸메이트 찾기는 구글 로그인한 사용자만 이용한다.
@@ -16,12 +16,12 @@ const COLUMNS =
 const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString()
 
 // 화면 확인용 예시 글 (Supabase 미연결 상태에서 "예시" 표시와 함께 보이고, 잠긴 게시판의 흐린 미리보기로도 쓴다)
+// 학기가 없는 글(예시 · 학기 기능 전에 저장한 로컬 글)은 지금 모집 학기 글로 본다
 // prettier-ignore
 const SAMPLES = [
   {
     id: 'sample-1',
     createdAt: hoursAgo(0.7),
-    semester: currentSemester(),
     dormitory: 'daedong',
     gender: '남',
     age: 22,
@@ -39,7 +39,6 @@ const SAMPLES = [
   {
     id: 'sample-2',
     createdAt: hoursAgo(5),
-    semester: currentSemester(),
     dormitory: 'changui',
     gender: '여',
     age: 24,
@@ -57,7 +56,6 @@ const SAMPLES = [
   {
     id: 'sample-3',
     createdAt: hoursAgo(26),
-    semester: currentSemester(),
     dormitory: 'hanbit',
     gender: '남',
     age: 20,
@@ -104,7 +102,6 @@ const toRow = (post) => ({
   mbti: post.mbti,
   checklist: post.checklist,
   content: post.content,
-  semester: post.semester,
 })
 
 function readJson(key, fallback) {
@@ -129,7 +126,8 @@ function updateLocal(id, userId, patch) {
   const posts = readLocal()
   const target = posts.find((p) => p.id === id)
   if (!target || target.authorId !== userId) throw new Error('내가 쓴 글만 바꿀 수 있어요.')
-  const next = { ...target, ...patch, updatedAt: new Date().toISOString() }
+  // 학기는 글을 고쳐도 그대로 (DB 트리거와 같게)
+  const next = { ...target, ...patch, semester: target.semester, updatedAt: new Date().toISOString() }
   writeJson(
     LOCAL_POSTS_KEY,
     posts.map((p) => (p.id === id ? next : p)),
@@ -203,7 +201,7 @@ export async function fetchRoommatePosts({
   const size = Math.max(1, limit)
   if (!isSupabaseConfigured) {
     const all = [...readLocal(), ...SAMPLE_POSTS]
-      .map((p) => ({ ...p, semester: p.semester ?? currentSemester() }))
+      .map((p) => ({ ...p, semester: p.semester ?? roommateSemester() }))
       .filter(
         (p) =>
           (!semester || p.semester === semester) &&
@@ -244,6 +242,27 @@ export async function fetchRoommatePosts({
   return { items: data.map(fromRow), total: count ?? data.length }
 }
 
+/**
+ * 글이 있는 학기와 글 수 (지난 학기 글 보기의 학기 목록). 최신 학기부터 → [{ semester, count }]
+ * DB 함수 roommate_post_semesters (게시글 읽기 정책이 그대로 적용된다)
+ */
+export async function fetchPostSemesters(userId = null) {
+  if (!isSupabaseConfigured) {
+    const counts = new Map()
+    for (const p of [...readLocal(), ...SAMPLE_POSTS]) {
+      if (isLocallyBlocked(userId, p.authorId)) continue
+      if (p.authorId !== userId && (p.isOpen === false || isLocallySuspended(p.authorId))) continue
+      const semester = p.semester ?? roommateSemester()
+      counts.set(semester, (counts.get(semester) ?? 0) + 1)
+    }
+    return [...counts].map(([semester, count]) => ({ semester, count })).sort((a, b) => b.semester.localeCompare(a.semester))
+  }
+  const supabase = await client()
+  const { data, error } = await supabase.rpc('roommate_post_semesters')
+  if (error) throw new Error('학기 목록을 불러오지 못했어요.')
+  return data.map((r) => ({ semester: r.semester, count: Number(r.post_count) }))
+}
+
 /** 로그인한 계정으로 쓴 글 */
 export async function fetchMyPosts(userId) {
   if (!isSupabaseConfigured) {
@@ -263,13 +282,19 @@ export async function fetchMyPosts(userId) {
 
 export async function createRoommatePost(post, userId) {
   if (!isSupabaseConfigured) {
-    const saved = { ...post, id: uid(), createdAt: new Date().toISOString(), authorId: userId, isClosed: false }
+    // 학기는 DB 처럼 지금 모집 학기로 (고를 수 없다)
+    const saved = { ...post, semester: roommateSemester(), id: uid(), createdAt: new Date().toISOString(), authorId: userId, isClosed: false }
     writeJson(LOCAL_POSTS_KEY, [saved, ...readLocal()])
     return saved
   }
   const supabase = await client()
-  // user_id 는 DB 기본값 auth.uid() 로 채워진다
-  const { data, error } = await supabase.from('roommate_posts').insert(toRow(post)).select(COLUMNS).single()
+  // user_id 는 DB 기본값 auth.uid() 로 채워진다. 학기는 DB 트리거가 모집 학기로 채운다
+  // (마이그레이션 20261016 전에도 맞게 올라가도록 이 화면이 아는 모집 학기도 함께 보낸다)
+  const { data, error } = await supabase
+    .from('roommate_posts')
+    .insert({ ...toRow(post), semester: roommateSemester() })
+    .select(COLUMNS)
+    .single()
   if (error) throw postError(error, '글을 등록하지 못했어요. 입력값을 확인해 주세요.')
   return fromRow(data)
 }

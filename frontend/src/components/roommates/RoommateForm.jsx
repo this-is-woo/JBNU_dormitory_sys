@@ -1,20 +1,18 @@
 import { useState } from 'react'
 import { CONTENT_MAX } from '../../data/roommateOptions.js'
-import { semesterLabel, writableSemesters } from '../../lib/semester.js'
-import ChoiceGroup from '../common/ChoiceGroup.jsx'
+import { semesterLabel } from '../../lib/semester.js'
 import Modal from '../common/Modal.jsx'
 import { collegeName, dormName, genderLabel } from './postFormat.js'
 
-// 이번 학기 + 다음 학기 한 학기 미리
-const SEMESTERS = writableSemesters()
-const EMPTY = { semester: SEMESTERS[0], content: '' }
-const fromPost = (post) => ({ semester: post.semester ?? SEMESTERS[0], content: post.content ?? '' })
+const EMPTY = { content: '' }
+const fromPost = (post) => ({ content: post.content ?? '' })
 
 /**
  * 글쓰기: 기본 정보·체크리스트는 내 정보(프로필)에서 가져오고, 소개만 적는다. 연락은 룸메 신청으로 한다.
+ * 학기는 고르지 않는다: 새 글은 지금 모집 학기(semester)로 올라가고, 수정해도 학기는 그대로다.
  * initial 이 있으면 그 글을 수정한다.
  */
-export default function RoommateForm({ open, initial = null, profile, onEditProfile, onClose, onSubmit }) {
+export default function RoommateForm({ open, initial = null, profile, semester, onEditProfile, onClose, onSubmit }) {
   const isEdit = Boolean(initial)
   const [form, setForm] = useState(() => (initial ? fromPost(initial) : EMPTY))
   const [error, setError] = useState('')
@@ -37,7 +35,7 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
     if (submitting) return
     setSubmitting(true)
     try {
-      await onSubmit({ semester: form.semester, content: form.content.trim() })
+      await onSubmit({ content: form.content.trim() })
       if (!isEdit) setForm(EMPTY)
     } catch (err) {
       setError(err.message)
@@ -52,7 +50,7 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
       onClose={close}
       size="lg"
       title={isEdit ? '글 수정' : '글쓰기'}
-      subtitle="기본 정보와 체크리스트는 등록해 둔 내 정보가 그대로 들어가요. 다른 사람이 보낸 룸메 신청은 [받은 신청]에서 볼 수 있어요."
+      subtitle={`${semesterLabel(isEdit ? initial.semester ?? semester : semester)} 룸메이트 모집 글이에요. 기본 정보와 체크리스트는 등록해 둔 내 정보가 그대로 들어가요.`}
       as="form"
       wrapperProps={{ onSubmit: handleSubmit, noValidate: true }}
       footer={
@@ -85,21 +83,6 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
             </button>
           </div>
         )}
-
-        <div className="rm-field">
-          <span className="rm-label">
-            학기 <small>다음 학기 룸메이트도 미리 구할 수 있어요</small>
-          </span>
-          <ChoiceGroup
-            label="학기"
-            options={[...new Set([...SEMESTERS, form.semester])].map((s) => ({
-              value: s,
-              label: `${semesterLabel(s)}${s === SEMESTERS[0] ? ' (이번 학기)' : s === SEMESTERS[1] ? ' (다음 학기)' : ''}`,
-            }))}
-            value={form.semester}
-            onChange={(semester) => set({ semester })}
-          />
-        </div>
 
         <label className="rm-field">
           <span className="rm-label">

@@ -1,39 +1,28 @@
-import { useState } from 'react'
-import { IconChevronRight } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
 import ChecklistView from './ChecklistView.jsx'
 import { requestButton } from './RoommateCard.jsx'
-import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
+import { collegeName, dormName, genderLabel, matchCount, timeAgo } from './postFormat.js'
+import { semesterLabel } from '../../lib/semester.js'
 
-/** 체크리스트: 기본은 접어 두고 [펼치기]로 연다 (글마다 처음엔 접힌 상태) */
-function ChecklistSection({ checklist }) {
-  const [open, setOpen] = useState(false)
+/** 체크리스트: 창을 열면 바로 보인다. 내 체크리스트가 있으면 나와 같은 답을 초록색으로 표시하고 개수를 제목 옆에 */
+function ChecklistSection({ checklist, myChecklist }) {
+  const same = myChecklist ? matchCount(myChecklist, checklist) : null
   return (
     <section className="post-detail-section">
       <h3 className="post-detail-heading">
-        <button
-          type="button"
-          className="post-detail-toggle"
-          aria-expanded={open}
-          aria-controls="post-detail-checklist"
-          onClick={() => setOpen((v) => !v)}
-        >
-          생활 습관 체크리스트
-          <span className="post-detail-toggle-hint">
-            {open ? '접기' : '펼치기'}
-            <IconChevronRight width={16} height={16} />
-          </span>
-        </button>
+        생활 습관 체크리스트
+        {same !== null && <span className="post-detail-match tabular">나와 같은 답 {same}개</span>}
       </h3>
-      <div id="post-detail-checklist" hidden={!open}>
-        <ChecklistView checklist={checklist} />
-      </div>
+      <ChecklistView checklist={checklist} compare={myChecklist} />
     </section>
   )
 }
 
-/** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개. 연락은 룸메 신청으로 */
-export default function PostDetailModal({ post, mine = false, sent = false, myGender = null, onClose, onEdit, onRequest, onBlock, onReport }) {
+/**
+ * 자세히 보기: 체크리스트 (자기소개는 카드에서 본다). 연락은 룸메 신청으로
+ * archived: 지난 학기 글이면 읽기만 (룸메 신청 버튼 없음)
+ */
+export default function PostDetailModal({ post, mine = false, sent = false, archived = false, myGender = null, myChecklist = null, onClose, onEdit, onRequest, onBlock, onReport }) {
   const action = post && requestButton(post, mine, sent, myGender)
   return (
     <Modal
@@ -41,12 +30,26 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
       onClose={onClose}
       size="lg"
       title={post ? `${dormName(post.dormitory)} 룸메이트 ${post.isClosed ? '모집완료' : '찾아요'}` : ''}
-      subtitle={post && `${collegeName(post.collegeCode)} · ${post.age}세 · ${genderLabel(post.gender)} · ${timeAgo(post.createdAt)}`}
+      subtitle={
+        post &&
+        [
+          archived && post.semester && semesterLabel(post.semester),
+          genderLabel(post.gender),
+          `${post.age}세`,
+          collegeName(post.collegeCode),
+          post.mbti ?? 'MBTI 비공개',
+          timeAgo(post.createdAt),
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      }
       footer={
         post && (
           <>
             <p className="rm-contact">
-              {mine
+              {archived && !mine
+                ? '지난 학기 글이라 룸메 신청은 할 수 없어요.'
+                : mine
                 ? '신청한 사람들의 체크리스트를 나와 비교해 볼 수 있어요.'
                 : action.disabled && !post.isClosed
                   ? '룸메이트는 같은 성별끼리만 신청할 수 있어요.'
@@ -54,15 +57,17 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
                     ? '신청을 보냈어요. 글쓴이의 답장은 [신청 내역 → 보낸 신청]에서 볼 수 있어요.'
                     : '마음에 들면 룸메 신청을 보내 보세요.'}
             </p>
-            <button
-              type="button"
-              className={`btn rm-request-btn ${action.tone}`}
-              disabled={action.disabled}
-              onClick={() => onRequest(post)}
-            >
-              {action.label}
-              {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
-            </button>
+            {(!archived || mine) && (
+              <button
+                type="button"
+                className={`btn rm-request-btn ${action.tone}`}
+                disabled={action.disabled}
+                onClick={() => onRequest(post)}
+              >
+                {action.label}
+                {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
+              </button>
+            )}
             {mine && (
               <button type="button" className="btn btn-secondary" onClick={() => onEdit(post)}>
                 수정
@@ -92,13 +97,7 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
           {post.isClosed && (
             <p className="post-detail-closed">글쓴이가 룸메이트를 구해 모집을 마감했어요.</p>
           )}
-          {post.content && (
-            <section className="post-detail-section">
-              <h3>자기소개</h3>
-              <p className="post-detail-content">{post.content}</p>
-            </section>
-          )}
-          <ChecklistSection key={post.id} checklist={post.checklist} />
+          <ChecklistSection checklist={post.checklist} myChecklist={mine ? null : myChecklist} />
         </div>
       )}
     </Modal>

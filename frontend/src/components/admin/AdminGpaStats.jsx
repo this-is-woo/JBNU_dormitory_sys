@@ -18,6 +18,11 @@ const GENDERS = [
   { value: '남', label: '남자' },
   { value: '여', label: '여자' },
 ]
+// 같은 IP 에서 반복해 남긴 기록 (supabase/migrations/20261018000000_score_client_key.sql)
+const COUNTING = [
+  { value: false, label: '모든 기록' },
+  { value: true, label: '같은 IP 는 최근 1건만' },
+]
 const SORTS = [
   { value: 'mean', label: '평균 높은 순' },
   { value: 'count', label: '기록 많은 순' },
@@ -101,19 +106,20 @@ function StatsTable({ overall, rows }) {
 export default function AdminGpaStats() {
   const [days, setDays] = useState(null)
   const [gender, setGender] = useState(null)
+  const [onePerClient, setOnePerClient] = useState(false)
   const [sort, setSort] = useState('mean')
   const [state, setState] = useState({ status: 'loading' })
 
   useEffect(() => {
     let active = true
     setState((s) => ({ ...s, loading: true }))
-    fetchGpaStats({ days, gender })
+    fetchGpaStats({ days, gender, onePerClient })
       .then((data) => active && setState({ status: 'ready', data, loading: false }))
       .catch((err) => active && setState({ status: 'error', message: err.message }))
     return () => {
       active = false
     }
-  }, [days, gender])
+  }, [days, gender, onePerClient])
 
   const data = state.data
   const rows = useMemo(
@@ -124,7 +130,7 @@ export default function AdminGpaStats() {
     () => COLLEGES.filter((c) => !rows.some((r) => r.code === c.code)).sort(byName),
     [rows],
   )
-  const filtered = days != null || gender != null
+  const filtered = days != null || gender != null || onePerClient
 
   return (
     <section className="adm-panel" aria-labelledby="adm-gpa-title">
@@ -132,13 +138,15 @@ export default function AdminGpaStats() {
         <h2 id="adm-gpa-title">학점 통계</h2>
         <p>
           홈 계산기에서 환산점수가 계산될 때 남는 기록(기록 탭의 점수 계산)으로 단과대학별 학점을 모았어요. 누가
-          입력했는지는 알 수 없어서, 같은 사람이 여러 번 계산하면 여러 건으로 세요.
+          입력했는지는 알 수 없어서, 같은 사람이 여러 번 계산하면 여러 건으로 세요. ‘같은 IP 는 최근 1건만’을 고르면 같은
+          IP 에서 반복한 기록은 가장 최근 것만 세요 (IP 를 알 수 없는 예전 기록은 모두 세요).
         </p>
       </div>
 
       <div className="adm-gpa-filters">
         <ChoiceGroup label="기간" options={PERIODS} value={days} onChange={setDays} size="sm" />
         <ChoiceGroup label="성별" options={GENDERS} value={gender} onChange={setGender} size="sm" />
+        <ChoiceGroup label="같은 IP 기록" options={COUNTING} value={onePerClient} onChange={setOnePerClient} size="sm" />
       </div>
 
       {state.status === 'error' && (
@@ -170,9 +178,12 @@ export default function AdminGpaStats() {
                   label="기록"
                   value={data.total}
                   sub={
-                    !gender && data.noGender > 0
-                      ? `성별 없는 예전 기록 ${formatCount(data.noGender)}건 포함`
-                      : '홈에서 환산점수가 계산된 횟수'
+                    [
+                      onePerClient && data.repeatExcluded > 0 && `같은 IP 반복 ${formatCount(data.repeatExcluded)}건 뺌`,
+                      !gender && data.noGender > 0 && `성별 없는 예전 기록 ${formatCount(data.noGender)}건 포함`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || '홈에서 환산점수가 계산된 횟수'
                   }
                 />
                 <StatTile label="평균 학점" value={formatGpa(data.overall.mean)} sub={`중앙값 ${formatGpa(data.overall.median)}`} />

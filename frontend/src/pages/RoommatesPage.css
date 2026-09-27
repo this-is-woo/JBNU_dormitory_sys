@@ -115,6 +115,105 @@
   justify-self: start;
 }
 
+/* 지난 학기 글 보기 (필터 맨 아래) */
+.rm-archive-entry {
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+}
+
+.rm-archive-entry .btn {
+  gap: 6px;
+  padding-inline: 0;
+  color: var(--c-text-2);
+}
+
+.rm-archive-entry .btn:hover {
+  color: var(--c-text);
+}
+
+/* 지난 학기 글을 보는 중 */
+.rm-archive-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+}
+
+.rm-archive-banner strong {
+  font-size: 16px;
+}
+
+.rm-archive-banner p {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.rm-archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 지난 학기 목록 (창) */
+.archive-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.archive-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  font: inherit;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.archive-item:hover {
+  border-color: var(--c-border-strong);
+}
+
+.archive-item.is-current {
+  border-color: var(--c-text);
+}
+
+.archive-item strong {
+  flex: 1;
+  font-size: 15px;
+}
+
+.archive-item span {
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.archive-item svg {
+  color: var(--c-text-3);
+}
+
+.archive-status {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
 .rm-filter h2 {
   margin-bottom: 10px;
   font-family: var(--font-sans);
@@ -137,8 +236,6 @@
 }
 
 .rm-card {
-  /* 카드 폭에 맞춰 머리 배치를 바꾼다 (.rm-match) */
-  container: rm-card / inline-size;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -175,70 +272,83 @@
 
 .rm-card-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 4px 12px;
 }
 
+/* 호관 이름(굵게) + 그 아래 줄에 성별 · 나이 · 단과대학 · MBTI (작게) */
 .rm-who {
-  display: flex;
-  flex-direction: column;
   min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   line-height: 1.35;
 }
 
-.rm-who strong {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.rm-who span {
+.rm-meta {
+  order: 3;
+  flex-basis: 100%;
   font-size: 13px;
+  line-height: 1.45;
   color: var(--c-text-3);
 }
 
 .rm-when {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   margin-left: auto;
   font-size: 13px;
   color: var(--c-text-3);
   white-space: nowrap;
 }
 
-.rm-dorm {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rm-dorm-main {
+/* 자기소개: 5줄까지만, 넘치면 [더보기] */
+.rm-intro {
   display: grid;
-  gap: 2px;
+  justify-items: start;
+  gap: 4px;
 }
 
-.rm-semester {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-text-3);
-}
-
-.rm-dorm-name {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.rm-mbti {
+.rm-intro-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
   font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  line-height: 1.6;
   color: var(--c-text-2);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.rm-intro-text.is-open {
+  display: block;
+  overflow: visible;
+}
+
+.rm-intro-more {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.rm-intro-more:hover {
+  color: var(--c-text);
+  text-decoration: underline;
 }
 
 .rm-card-foot {
-  /* 본문을 카드에 싣지 않으므로, 높이가 다른 카드끼리도 버튼 줄이 바닥에 맞게 */
+  /* 자기소개 길이가 달라도 같은 줄의 카드끼리 버튼 줄이 바닥에 맞게 */
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
@@ -524,6 +634,47 @@
   color: var(--c-danger);
 }
 
+/* 나와 같은 답: 연한 초록 바탕 + 초록 글자 + ✓ (색만으로 구분하지 않게 표시를 함께) */
+.cl-view-row.is-match {
+  margin-inline: -10px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  border-top-color: transparent;
+  background: var(--c-success-soft);
+}
+
+.cl-view-row.is-match + .cl-view-row {
+  border-top-color: transparent;
+}
+
+.cl-view-row.is-match + .cl-view-row.is-match {
+  margin-top: 2px;
+}
+
+.cl-view-row.is-match dt {
+  color: var(--c-text);
+}
+
+.cl-view-row.is-match dd {
+  color: var(--c-success);
+}
+
+.cl-match-mark {
+  margin-right: 6px;
+  font-weight: 800;
+}
+
+.post-detail-match {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-success-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--c-success);
+}
+
 /* ── 글 자세히 보기 ── */
 .post-detail {
   display: grid;
@@ -566,60 +717,9 @@
   gap: 10px;
 }
 
-/* 자기소개와 체크리스트 사이 구분선 */
-.post-detail-section + .post-detail-section {
-  padding-top: 20px;
-  border-top: 1px solid var(--c-border);
-}
-
-.post-detail-toggle {
+.post-detail-section > h3 {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--c-text-3);
-  text-align: left;
-  cursor: pointer;
-}
-
-.post-detail-toggle-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-text-3);
-}
-
-.post-detail-toggle:hover .post-detail-toggle-hint {
-  color: var(--c-text);
-}
-
-/* 접힘: 아래 화살표 · 펼침: 위 화살표 */
-.post-detail-toggle-hint svg {
-  transform: rotate(90deg);
-  transition: transform 0.2s;
-}
-
-.post-detail-toggle[aria-expanded='true'] .post-detail-toggle-hint svg {
-  transform: rotate(-90deg);
-}
-
-.post-detail-toggle:focus-visible {
-  outline: 2px solid var(--c-primary);
-  outline-offset: 4px;
-  border-radius: 6px;
-}
-
-.post-detail-section > h3 {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -633,6 +733,11 @@
 }
 
 /* ── 내가 쓴 글 ── */
+.my-post-semester {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
 .my-posts {
   display: grid;
   gap: 10px;
@@ -836,34 +941,6 @@
   white-space: nowrap;
 }
 
-/* 카드 머리(단과대학과 작성 시각 사이)에 들어가므로 막대를 짧게, 자리가 모자라면 막대부터 줄어든다 */
-.rm-card-head .rm-match {
-  min-width: 0;
-}
-
-/* 자리가 모자라도 단과대학 이름은 줄바꿈하지 않는다 */
-.rm-card-head .rm-who {
-  flex-shrink: 0;
-}
-
-.rm-card-head .rm-match-bar {
-  flex: 0 1 auto;
-  width: 72px;
-  min-width: 24px;
-}
-
-/* 아주 좁은 카드(작은 휴대폰)에서는 한 줄에 다 들어가지 않으므로 머리 아래 줄로 내린다 */
-@container rm-card (max-width: 330px) {
-  .rm-card-head {
-    flex-wrap: wrap;
-  }
-
-  .rm-card-head .rm-match {
-    order: 3;
-    flex-basis: 100%;
-  }
-}
-
 .rm-match strong {
   font-weight: 700;
   color: var(--c-primary-text);
@@ -942,11 +1019,7 @@
   font-weight: 700;
 }
 
-.rm-edit-btn {
-  margin-left: auto;
-}
-
-/* 내 글의 [수정] [삭제]: 줄이 바뀌어도 둘이 함께 오른쪽에 붙어 있게 묶는다 */
+/* 카드 오른쪽 버튼 ([관리] [수정] [삭제] 또는 [관리] [신고]): 줄이 바뀌어도 함께 오른쪽에 붙어 있게 묶는다 */
 .rm-own-actions {
   display: flex;
   margin-left: auto;
@@ -1758,6 +1831,7 @@
 
 .rm-card.is-closed > :not(.rm-card-head):not(.rm-card-foot),
 .rm-card.is-closed .rm-who,
+.rm-card.is-closed .rm-meta,
 .rm-card.is-closed .rm-match {
   opacity: 0.45;
   filter: grayscale(1);
@@ -1861,15 +1935,13 @@
 }
 
 /* 관리자에게만 보이는 카드의 [관리] 링크 */
-.rm-admin-link {
-  border: 1px solid var(--c-border-strong);
-  background: transparent;
+/* 관리자에게만: 카드의 [관리] (관리자 페이지에서 이 글 열기) */
+.rm-admin-btn {
   font-weight: 600;
-  color: var(--c-text-2);
+  color: var(--c-primary-text);
 }
 
-.rm-admin-link:hover {
-  border-color: var(--c-text-3);
+.rm-admin-btn:hover {
   color: var(--c-text);
 }
 
@@ -1890,7 +1962,7 @@
 }
 
 /* ── 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼, 내가 쓴 글·신청 내역은 햄버거 메뉴에서 ── */
-.rm-fab {
+.rm-fab-dock {
   display: none;
 }
 
@@ -1899,11 +1971,26 @@
     display: none;
   }
 
-  .rm-fab {
-    position: fixed;
-    left: 50%;
+  /* 본문이 짧아도 버튼 자리가 본문 맨 아래(푸터 바로 위)로 가게 */
+  .app-main:has(> .rm-fab-dock) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* sticky: 스크롤하는 동안은 화면 아래에 붙어 있고, 페이지 끝에서는 푸터 위 제자리에 멈춘다.
+     그래서 푸터를 가리지 않고, 푸터 아래에 빈 여백을 둘 필요도 없다 */
+  .rm-fab-dock {
+    position: sticky;
     bottom: calc(28px + env(safe-area-inset-bottom));
     z-index: 40;
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+    padding-top: 28px;
+    pointer-events: none;
+  }
+
+  .rm-fab {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1916,16 +2003,16 @@
     font-size: 14px;
     font-weight: 700;
     color: var(--c-bg);
-    transform: translateX(-50%);
+    pointer-events: auto;
     cursor: pointer;
   }
 
   .rm-fab:active {
-    transform: translateX(-50%) scale(0.97);
+    transform: scale(0.97);
   }
 
-  /* 페이지 맨 아래(푸터)까지 내려도 떠 있는 버튼에 글씨가 가리지 않게 */
-  body:has(.rm-fab) .footer-inner {
-    padding-bottom: 96px;
+  /* 버튼 자리(위 28px + 버튼 42px)가 본문과 푸터 사이 간격을 대신한다 */
+  .app-main:has(> .rm-fab-dock) + .site-footer {
+    margin-top: 28px;
   }
 }
