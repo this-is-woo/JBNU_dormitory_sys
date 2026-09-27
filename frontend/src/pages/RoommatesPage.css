@@ -1825,3 +1825,60 @@
   border-color: var(--c-text-3);
   color: var(--c-text);
 }
+
+/* ── 무한 스크롤 ── */
+.rm-sentinel {
+  height: 1px;
+}
+
+.rm-more-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  padding: 20px 0 4px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+/* ── 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼, 내가 쓴 글·신청 내역은 햄버거 메뉴에서 ── */
+.rm-fab {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .rm-toolbar {
+    display: none;
+  }
+
+  .rm-fab {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--c-text);
+    box-shadow: var(--shadow-lg);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-bg);
+    transform: translateX(-50%);
+    cursor: pointer;
+  }
+
+  .rm-fab:active {
+    transform: translateX(-50%) scale(0.97);
+  }
+
+  /* 페이지 맨 아래(푸터)까지 내려도 떠 있는 버튼에 글씨가 가리지 않게 */
+  body:has(.rm-fab) .footer-inner {
+    padding-bottom: 96px;
+  }
+}

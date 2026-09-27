@@ -257,6 +257,12 @@ export async function replyToRequest(requestId, text, userId) {
   return saved
 }
 
+// 새 소식 수가 바뀌었음을 알리는 이벤트 (룸메이트 페이지 → 헤더의 모바일 메뉴 표시)
+export const INBOX_EVENT = 'jbnu-dorm:inbox-counts'
+export function announceInboxCounts(counts) {
+  window.dispatchEvent(new CustomEvent(INBOX_EVENT, { detail: counts }))
+}
+
 /** 툴바 배지: 새 신청 수 + 새 답장 수 */
 export async function fetchInboxCounts(userId) {
   if (!isSupabaseConfigured) {

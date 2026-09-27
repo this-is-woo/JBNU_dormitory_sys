@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { NavLink } from 'react-router'
 import { useAdmin } from '../../hooks/useAdmin.js'
+import { INBOX_EVENT, fetchInboxCounts } from '../../lib/roommateRequests.js'
 import { useSiteSettings } from '../../lib/siteSettings.js'
 import { IconMenu, IconShield } from '../common/Icons.jsx'
 import Logo from '../common/Logo.jsx'
@@ -14,6 +15,44 @@ export const NAV_ITEMS = [
   { to: '/support', label: '개발자 삼각김밥 사주기' },
 ]
 
+/**
+ * 새 신청·답장 수 (모바일 메뉴 표시용). 로그인했을 때 한 번, 메뉴를 열 때, 다른 탭에서 돌아올 때 확인하고,
+ * 룸메이트 페이지가 새로 센 값을 알려 주면(INBOX_EVENT) 그대로 쓴다. 주기적으로 묻지 않는다.
+ */
+function useInboxCounts(userId, menuOpen) {
+  const [counts, setCounts] = useState({ requests: 0, replies: 0 })
+  const [tick, setTick] = useState(0)
+
+  // 메뉴를 열 때마다 다시 센다
+  useEffect(() => {
+    if (menuOpen) setTick((t) => t + 1)
+  }, [menuOpen])
+
+  // 로그인했을 때 · 메뉴를 열 때 · 다른 탭에서 돌아올 때(tick) 새로 센다
+  useEffect(() => {
+    if (!userId) return setCounts({ requests: 0, replies: 0 })
+    let active = true
+    fetchInboxCounts(userId)
+      .then((next) => active && setCounts(next))
+      .catch(() => {}) // 표시만 생략
+    return () => {
+      active = false
+    }
+  }, [userId, tick])
+
+  useEffect(() => {
+    const onVisible = () => document.visibilityState === 'visible' && setTick((t) => t + 1)
+    const onAnnounce = (e) => setCounts(e.detail)
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener(INBOX_EVENT, onAnnounce)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener(INBOX_EVENT, onAnnounce)
+    }
+  }, [])
+  return counts
+}
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = useCallback(() => setMenuOpen(false), [])
@@ -21,6 +60,8 @@ export default function Header() {
   const { supportEnabled } = useSiteSettings()
   // 후원을 끄면(관리자 [설정]) 메뉴에서 뺀다
   const navItems = supportEnabled ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.to !== '/support')
+  const inbox = useInboxCounts(auth.status === 'signedIn' ? auth.user?.id : null, menuOpen)
+  const inboxNew = inbox.requests + inbox.replies
 
   return (
     <header className="site-header">
@@ -52,14 +93,17 @@ export default function Header() {
           type="button"
           className="nav-toggle"
           aria-expanded={menuOpen}
-          aria-label="메뉴 열기"
+          aria-label={inboxNew > 0 ? `메뉴 열기 (새 신청·답장 ${inboxNew}건)` : '메뉴 열기'}
           onClick={() => setMenuOpen(true)}
         >
           <IconMenu width={22} height={22} />
-          {auth.status === 'signedIn' && <span className="nav-toggle-dot" aria-hidden="true" />}
+          {/* 새 신청·답장이 있으면 빨간 점, 아니면 로그인 상태(초록 점) */}
+          {auth.status === 'signedIn' && (
+            <span className={`nav-toggle-dot${inboxNew > 0 ? ' is-new' : ''}`} aria-hidden="true" />
+          )}
         </button>
       </div>
-      <MobileDrawer open={menuOpen} onClose={closeMenu} items={navItems} auth={auth} />
+      <MobileDrawer open={menuOpen} onClose={closeMenu} items={navItems} auth={auth} inboxNew={inboxNew} />
     </header>
   )
 }

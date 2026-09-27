@@ -234,6 +234,33 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section ref={resultRef} className="home-block predict-result" aria-labelledby="block-result">
+          <BlockHead id="block-result" title="호관별 예상 합격률" desc="같은 관이라도 1인실·2인실·4인실은 따로 선발되어 합격선이 달라요." />
+          <AiGate unlocked={acknowledged} onUnlock={acknowledge}>
+            <PredictionResult
+              result={result}
+              stale={result.status === 'success' && submittedKey !== payloadKey}
+              onRetry={runPrediction}
+            />
+          </AiGate>
+          <div className="block-actions">
+            {/* 안내가 필요할 때만 한 줄 (안내 확인 전에는 위 "재미로 봐 주세요" 안내가 설명한다) */}
+            {acknowledged && !payload && (
+              <p className="predict-hint">성별을 포함해 위 항목을 모두 입력하면 예측할 수 있어요.</p>
+            )}
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={runPrediction}
+              disabled={!payload || isLoading || !acknowledged}
+            >
+              {isLoading && <span className="spinner" aria-hidden="true" />}
+              합격률 예측하기
+              {!isLoading && <IconArrowRight width={18} height={18} />}
+            </button>
+          </div>
+        </section>
+
         <section className="home-block" aria-labelledby="block-rules">
           {/* 계산 방법은 필요할 때만 보도록 기본은 접어 둔다 */}
           <header className="block-head">
@@ -275,33 +302,6 @@ export default function HomePage() {
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section ref={resultRef} className="home-block predict-result" aria-labelledby="block-result">
-          <BlockHead id="block-result" title="호관별 예상 합격률" desc="같은 관이라도 1인실·2인실·4인실은 따로 선발되어 합격선이 달라요." />
-          <AiGate unlocked={acknowledged} onUnlock={acknowledge}>
-            <PredictionResult
-              result={result}
-              stale={result.status === 'success' && submittedKey !== payloadKey}
-              onRetry={runPrediction}
-            />
-          </AiGate>
-          <div className="block-actions">
-            {/* 안내가 필요할 때만 한 줄 (안내 확인 전에는 위 "재미로 봐 주세요" 안내가 설명한다) */}
-            {acknowledged && !payload && (
-              <p className="predict-hint">성별을 포함해 위 항목을 모두 입력하면 예측할 수 있어요.</p>
-            )}
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={runPrediction}
-              disabled={!payload || isLoading || !acknowledged}
-            >
-              {isLoading && <span className="spinner" aria-hidden="true" />}
-              합격률 예측하기
-              {!isLoading && <IconArrowRight width={18} height={18} />}
-            </button>
           </div>
         </section>
 

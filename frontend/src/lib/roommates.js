@@ -158,13 +158,21 @@ const byOpenThenNewest = (a, b) =>
   Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed)) || b.createdAt.localeCompare(a.createdAt)
 
 /**
- * 게시글 한 페이지. 필터와 페이지 나누기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
- * @param {{ page?: number, semester?: string|null, dormitory?: string|null, gender?: string|null, userId?: string }} options
- *   page 는 1부터. userId 는 로컬 모드에서 차단한 사이의 글을 숨기는 데만 쓴다 (Supabase 에서는 DB 정책이 숨긴다)
+ * 게시글 목록의 한 구간 (무한 스크롤). 필터와 구간 자르기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
+ * @param {{ offset?: number, limit?: number, semester?: string|null, dormitory?: string|null, gender?: string|null, userId?: string }} options
+ *   offset 번째 글부터 limit 개. userId 는 로컬 모드에서 차단한 사이의 글을 숨기는 데만 쓴다 (Supabase 에서는 DB 정책이 숨긴다)
  * @returns {Promise<{ items: object[], total: number }>}
  */
-export async function fetchRoommatePage({ page = 1, semester = null, dormitory = null, gender = null, userId = null } = {}) {
-  const from = (page - 1) * PAGE_SIZE
+export async function fetchRoommatePosts({
+  offset = 0,
+  limit = PAGE_SIZE,
+  semester = null,
+  dormitory = null,
+  gender = null,
+  userId = null,
+} = {}) {
+  const from = Math.max(0, offset)
+  const size = Math.max(1, limit)
   if (!isSupabaseConfigured) {
     const all = [...readLocal(), ...SAMPLE_POSTS]
       .map((p) => ({ ...p, semester: p.semester ?? currentSemester() }))
@@ -179,7 +187,7 @@ export async function fetchRoommatePage({ page = 1, semester = null, dormitory =
       )
       .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
       .sort(byOpenThenNewest)
-    return { items: all.slice(from, from + PAGE_SIZE), total: all.length }
+    return { items: all.slice(from, from + size), total: all.length }
   }
   const supabase = await client()
   let query = supabase.from('roommate_posts').select(COLUMNS, { count: 'exact' })
@@ -189,9 +197,9 @@ export async function fetchRoommatePage({ page = 1, semester = null, dormitory =
   const { data, count, error } = await query
     .order('is_closed', { ascending: true })
     .order('created_at', { ascending: false })
-    .range(from, from + PAGE_SIZE - 1)
-  // 마지막 페이지의 글이 지워져 페이지 범위를 벗어난 경우
-  if (error?.code === 'PGRST103') return { items: [], total: 0, outOfRange: true }
+    .range(from, from + size - 1)
+  // 그사이 글이 지워져 목록 끝을 넘어선 경우: 더 불러올 글이 없는 것으로 본다
+  if (error?.code === 'PGRST103') return { items: [], total: from }
   if (error) throw new Error('게시글을 불러오지 못했어요.')
   return { items: data.map(fromRow), total: count ?? data.length }
 }

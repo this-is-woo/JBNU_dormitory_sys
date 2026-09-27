@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
-import { IconAlert, IconInfo } from '../components/common/Icons.jsx'
+import { IconAlert, IconInfo, IconPencil } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
-import Pagination from '../components/common/Pagination.jsx'
 import BoardGate from '../components/roommates/BoardGate.jsx'
 import DeletePostModal from '../components/roommates/DeletePostModal.jsx'
 import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
@@ -24,14 +23,21 @@ import { authMode } from '../hooks/useAuth.js'
 import { recallAfterLogin, rememberAfterLogin } from '../lib/afterLogin.js'
 import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
-import { blockAuthor, cancelRequest, fetchInboxCounts, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
+import {
+  announceInboxCounts,
+  blockAuthor,
+  cancelRequest,
+  fetchInboxCounts,
+  fetchSentPostIds,
+  sendRequest,
+} from '../lib/roommateRequests.js'
 import { browsableSemesters, semesterLabel } from '../lib/semester.js'
 import {
   PAGE_SIZE,
   SAMPLE_POSTS,
   createRoommatePost,
   deleteRoommatePost,
-  fetchRoommatePage,
+  fetchRoommatePosts,
   roommateStorage,
   updateRoommatePost,
 } from '../lib/roommates.js'
@@ -92,9 +98,14 @@ export default function RoommatesPage() {
   // 내 정보(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready' | 'error'(불러오지 못함)
   const [profile, setProfile] = useState({ status: 'idle', data: null })
   const [profileRetry, setProfileRetry] = useState(0)
-  // 지금 페이지의 글만 들고 있는다. status: 'loading'(처음) | 'ready' | 'error', loading: 페이지 넘기는 중
-  const [board, setBoard] = useState({ status: 'loading', items: [], total: 0, loading: true })
-  const [page, setPage] = useState(1)
+  // 지금까지 불러온 글 (무한 스크롤). status: 'loading'(처음) | 'ready' | 'error'
+  // loading: 처음부터 다시 불러오는 중 · more: 이어서 불러오는 중 · moreError: 이어서 불러오기 실패
+  const [board, setBoard] = useState({ status: 'loading', items: [], total: 0, loading: true, more: false, moreError: false })
+  // 다시 불러올 때 받을 글 수 (이어서 불러온 만큼 유지해, 글을 고치거나 지워도 보던 자리가 줄지 않게)
+  const wantRef = useRef(PAGE_SIZE)
+  // 필터가 바뀌면 늘어나는 번호: 그 전에 보낸 요청의 결과는 버린다
+  const genRef = useRef(0)
+  const sentinelRef = useRef(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const feedRef = useRef(null)
@@ -152,29 +163,62 @@ export default function RoommatesPage() {
     }
   }, [signedIn, user?.id, profileRetry]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const boardQuery = () => ({
+    userId: user?.id,
+    semester: filters.semester === ALL ? null : filters.semester,
+    dormitory: filters.dormitory === ALL ? null : filters.dormitory,
+    gender: filters.gender === ALL ? null : filters.gender,
+  })
+
   // 게시판은 체크리스트를 등록한 뒤에만 불러온다 (DB 도 그 전에는 글을 내주지 않는다)
+  // 필터가 바뀌거나 글을 고친 뒤: 처음부터 지금까지 본 만큼 다시 불러온다
   useEffect(() => {
     if (!unlocked) return
-    let active = true
-    setBoard((b) => ({ ...b, loading: true }))
-    fetchRoommatePage({
-      userId: user?.id,
-      page,
-      semester: filters.semester === ALL ? null : filters.semester,
-      dormitory: filters.dormitory === ALL ? null : filters.dormitory,
-      gender: filters.gender === ALL ? null : filters.gender,
-    })
-      .then(({ items, total, outOfRange }) => {
-        if (!active) return
-        // 마지막 페이지의 글이 모두 지워졌으면 앞 페이지로
-        if (page > 1 && (outOfRange || items.length === 0)) return setPage((p) => p - 1)
-        setBoard({ status: 'ready', items, total, loading: false })
+    const gen = ++genRef.current
+    setBoard((b) => ({ ...b, loading: true, more: false, moreError: false }))
+    fetchRoommatePosts({ ...boardQuery(), offset: 0, limit: wantRef.current })
+      .then(({ items, total }) => {
+        if (gen !== genRef.current) return
+        setBoard({ status: 'ready', items, total, loading: false, more: false, moreError: false })
       })
-      .catch(() => active && setBoard((b) => ({ ...b, status: 'error', loading: false })))
-    return () => {
-      active = false
+      .catch(() => gen === genRef.current && setBoard((b) => ({ ...b, status: 'error', loading: false })))
+  }, [unlocked, user?.id, filters.semester, filters.dormitory, filters.gender, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasMore = board.status === 'ready' && board.items.length < board.total
+
+  // 목록 끝에 닿으면 다음 글들을 이어 붙인다
+  async function loadMore() {
+    if (!hasMore || board.more || board.loading) return
+    const gen = genRef.current
+    const offset = board.items.length
+    setBoard((b) => ({ ...b, more: true, moreError: false }))
+    try {
+      const { items, total } = await fetchRoommatePosts({ ...boardQuery(), offset, limit: PAGE_SIZE })
+      if (gen !== genRef.current) return
+      setBoard((b) => {
+        // 그사이 새 글이 올라와 순서가 밀렸으면 겹치는 글은 한 번만
+        const seen = new Set(b.items.map((p) => p.id))
+        const next = [...b.items, ...items.filter((p) => !seen.has(p.id))]
+        wantRef.current = Math.max(PAGE_SIZE, next.length)
+        return { ...b, items: next, total, more: false }
+      })
+    } catch {
+      if (gen === genRef.current) setBoard((b) => ({ ...b, more: false, moreError: true }))
     }
-  }, [unlocked, user?.id, page, filters.semester, filters.dormitory, filters.gender, reloadKey])
+  }
+  const loadMoreRef = useRef(loadMore)
+  loadMoreRef.current = loadMore
+
+  // 목록 끝의 표시가 화면에 가까워지면(600px 전) 자동으로 더 불러온다
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasMore || board.moreError) return
+    const observer = new IntersectionObserver(([entry]) => entry.isIntersecting && loadMoreRef.current(), {
+      rootMargin: '600px 0px',
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, board.moreError, board.items.length])
 
   // 로그인과 체크리스트 확인이 끝나면, 누르려던 버튼의 동작을 이어서 한다
   useEffect(() => {
@@ -215,6 +259,8 @@ export default function RoommatesPage() {
     try {
       const [next, sent] = await Promise.all([fetchInboxCounts(user.id), fetchSentPostIds(user.id)])
       setCounts(next)
+      // 모바일 메뉴(햄버거)의 새 소식 표시도 맞춘다
+      announceInboxCounts(next)
       setSentIds(new Set(sent))
     } catch {
       // 배지와 "신청함" 표시만 못 보여 줄 뿐
@@ -276,20 +322,15 @@ export default function RoommatesPage() {
 
   const reload = () => setReloadKey((k) => k + 1)
 
-  function goToPage(next) {
-    setPage(next)
-    feedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   const { status, items: visible, total } = board
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  // 필터를 바꾸면 처음 한 묶음부터
   const setFilter = (key) => (value) => {
+    wantRef.current = PAGE_SIZE
     setFilters((f) => ({ ...f, [key]: value }))
-    setPage(1)
   }
   const resetFilters = () => {
+    wantRef.current = PAGE_SIZE
     setFilters(INITIAL_FILTERS)
-    setPage(1)
   }
   const filtered = Object.values(filters).some((v) => v !== ALL)
   const activeFilters = Object.values(filters).filter((v) => v !== ALL).length
@@ -313,9 +354,9 @@ export default function RoommatesPage() {
       replacePost(await updateRoommatePost(editor.post.id, post, user.id))
     } else {
       await createRoommatePost(post, user.id)
-      // 새 글은 첫 페이지 맨 위에 온다
-      if (page === 1) reload()
-      else setPage(1)
+      // 새 글은 목록 맨 위에 온다
+      wantRef.current += 1
+      reload()
     }
     setEditor(null)
   }
@@ -410,7 +451,8 @@ export default function RoommatesPage() {
     setBlockPost(null)
     setReportTarget(null)
     setDetail(null)
-    setBoard({ status: 'loading', items: [], total: 0, loading: true })
+    wantRef.current = PAGE_SIZE
+    setBoard({ status: 'loading', items: [], total: 0, loading: true, more: false, moreError: false })
   }
 
   const openWrite = () => requireAccess('write')
@@ -529,7 +571,17 @@ export default function RoommatesPage() {
                       />
                     ))}
                   </div>
-                  <Pagination page={page} pageCount={pageCount} onChange={goToPage} />
+                  {/* 무한 스크롤: 이 표시가 화면에 가까워지면 다음 글을 불러온다 */}
+                  {hasMore && <div ref={sentinelRef} className="rm-sentinel" aria-hidden="true" />}
+                  {board.more && <p className="rm-more-status">불러오는 중…</p>}
+                  {board.moreError && (
+                    <div className="rm-more-status">
+                      <p>글을 더 불러오지 못했어요.</p>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={loadMore}>
+                        다시 시도
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="rm-empty">
@@ -608,6 +660,14 @@ export default function RoommatesPage() {
             onRetry={() => setProfileRetry((n) => n + 1)}
           />
         </div>
+      )}
+
+      {/* 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서) */}
+      {signedIn && (
+        <button type="button" className="rm-fab" onClick={openWrite}>
+          <IconPencil width={18} height={18} />
+          글쓰기
+        </button>
       )}
 
       <LoginModal

@@ -8,6 +8,7 @@ import {
   IconChevronRight,
   IconClipboard,
   IconClose,
+  IconFile,
   IconHome,
   IconLogout,
   IconOnigiri,
@@ -24,8 +25,9 @@ const SUPPORT_PATH = '/support'
 
 // 룸메이트 찾기 바로가기: /roommates 로 이동하면서 열 창을 알려 준다 (RoommatesPage 가 location.state 로 받는다)
 const ROOMMATE_ACTIONS = [
+  { action: 'write', label: '글쓰기', Icon: IconPencil },
   { action: 'profile', label: '내 정보', Icon: IconClipboard },
-  { action: 'myPosts', label: '내가 쓴 글', Icon: IconPencil },
+  { action: 'myPosts', label: '내가 쓴 글', Icon: IconFile },
   { action: 'requests', label: '신청 내역', Icon: IconBell },
 ]
 
@@ -33,7 +35,7 @@ const ROOMMATE_ACTIONS = [
  * 모바일 메뉴: 오른쪽에서 밀려 나오는 서랍.
  * 프로필(로그인 계정) · 페이지 이동 · 룸메이트 바로가기 · 로그아웃
  */
-export default function MobileDrawer({ open, onClose, items: allItems, auth }) {
+export default function MobileDrawer({ open, onClose, items: allItems, auth, inboxNew = 0 }) {
   const navigate = useNavigate()
   const items = allItems.filter((item) => item.to !== SUPPORT_PATH)
   const support = allItems.find((item) => item.to === SUPPORT_PATH)
@@ -154,6 +156,11 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth }) {
                         <Icon width={18} height={18} />
                       </span>
                       <span className="drawer-item-label">{label}</span>
+                      {action === 'requests' && inboxNew > 0 && (
+                        <span className="drawer-badge tabular" aria-label={`새 신청·답장 ${inboxNew}건`}>
+                          {inboxNew > 99 ? '99+' : inboxNew}
+                        </span>
+                      )}
                       <IconChevronRight className="drawer-item-arrow" width={16} height={16} />
                     </button>
                   </li>

@@ -102,6 +102,11 @@
   box-sizing: content-box;
 }
 
+/* 새 신청·답장이 있으면 빨간 점 */
+.nav-toggle-dot.is-new {
+  background: var(--c-danger);
+}
+
 /* 관리자에게만 보이는 [관리] (메뉴 오른쪽) */
 .nav-admin {
   display: inline-flex;

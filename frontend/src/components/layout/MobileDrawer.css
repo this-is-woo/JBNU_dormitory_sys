@@ -238,6 +238,20 @@
   display: none;
 }
 
+/* 신청 내역: 새 신청·답장 수 */
+.drawer-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--c-danger);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  color: #fff;
+}
+
 /* 현재 페이지: 색 대신 굵기 + 옅은 회색 면 */
 .drawer-item.active {
   background: var(--c-surface);

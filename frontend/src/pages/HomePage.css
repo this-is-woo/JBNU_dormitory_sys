@@ -1,4 +1,4 @@
-/* 홈: 세 블록 (환산점수 계산 / 환산점수 계산 방법 / 호관별 예상 합격률) */
+/* 홈: 블록 순서 (환산점수 계산 / 호관별 예상 합격률 / 환산점수 계산 방법 / 합격 결과 제보) */
 .home-blocks {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

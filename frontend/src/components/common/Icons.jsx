@@ -134,6 +134,14 @@ export const IconClipboard = (p) => (
   </svg>
 )
 
+// 문서(내가 쓴 글)
+export const IconFile = (p) => (
+  <svg {...base} {...p}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+    <path d="M14 3v5h5M9 13h6M9 17h4" />
+  </svg>
+)
+
 export const IconPencil = (p) => (
   <svg {...base} {...p}>
     <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4M13.5 6.5l4 4" />
