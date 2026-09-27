@@ -57,14 +57,13 @@ export default function DormsPage() {
         <Section
           id="dorms"
           title="생활관 소개"
-          desc="호관별 호실 유형, 성별, 식사, 지원 대상"
         >
           <div className="dorm-grid">
             {dorms.items.map((d) => (
               <article key={d.code} className="card dorm-card">
                 <div className="dorm-card-head">
                   <h3>{d.name}</h3>
-                  <span className="chip chip-primary">
+                  <span className="dorm-type">
                     {SELECTION_TYPES[d.type]?.label ?? d.type}
                   </span>
                 </div>
@@ -94,7 +93,7 @@ export default function DormsPage() {
                     href={d.infoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn btn-secondary btn-sm dorm-link"
+                    className="dorm-link"
                   >
                     생활관 소개 <IconExternal width={14} height={14} />
                   </a>

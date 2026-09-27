@@ -56,20 +56,19 @@
 }
 
 .drawer-title {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .drawer-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--c-border);
+  width: 40px;
+  height: 40px;
+  border: 0;
   border-radius: var(--radius);
-  background: var(--c-bg);
+  background: transparent;
   color: var(--c-text);
   cursor: pointer;
 }
@@ -88,14 +87,9 @@
 .drawer-profile {
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid var(--c-border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--c-primary) 16%, var(--c-surface)),
-    var(--c-surface) 70%
-  );
 }
 
 .drawer-profile-skeleton {
@@ -116,13 +110,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--c-primary);
-  font-size: 20px;
+  background: var(--c-text);
+  font-size: 17px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-bg);
 }
 
 .drawer-avatar.is-guest {
@@ -151,8 +145,9 @@
   color: var(--c-text-2);
 }
 
+/* 로그인 상태 설명은 서랍에서 뺀다 (필요한 정보만) */
 .drawer-note {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 7px;
   font-size: 12px;
@@ -209,7 +204,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 10px 10px 8px;
+  padding: 10px 12px;
   border: 0;
   border-radius: var(--radius);
   background: transparent;
@@ -230,11 +225,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--c-surface-2);
-  color: var(--c-text-2);
+  width: 24px;
+  height: 24px;
+  color: var(--c-text-3);
 }
 
 .drawer-item-label {
@@ -242,21 +235,17 @@
 }
 
 .drawer-item-arrow {
-  color: var(--c-text-3);
+  display: none;
 }
 
+/* 현재 페이지: 색 대신 굵기 + 옅은 회색 면 */
 .drawer-item.active {
-  background: var(--c-primary-soft);
-  color: var(--c-primary-text);
+  background: var(--c-surface);
+  font-weight: 700;
 }
 
 .drawer-item.active .drawer-item-icon {
-  background: var(--c-primary);
-  color: #fff;
-}
-
-.drawer-item.active .drawer-item-arrow {
-  color: currentColor;
+  color: var(--c-text);
 }
 
 /* 로그아웃 */

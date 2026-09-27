@@ -1,8 +1,7 @@
 .table-card {
   background: var(--c-bg);
-  border: 1px solid var(--c-border-strong);
+  border: 1px solid var(--c-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
 }
 
 .score-table {
@@ -17,29 +16,28 @@
 }
 
 .score-table .col-gender {
-  width: 10%;
-}
-
-.score-table .col-gpa {
   width: 11%;
 }
 
+.score-table .col-gpa {
+  width: 13%;
+}
+
 .score-table .col-point {
-  width: 9%;
+  width: 8%;
 }
 
 .score-table .col-score {
-  width: 14%;
+  width: 13%;
 }
 
 .score-table thead th {
-  padding: 16px 16px 14px;
-  background: var(--c-surface);
+  padding: 14px 12px 10px;
   border-bottom: 1px solid var(--c-border);
   text-align: left;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--c-text);
+  color: var(--c-text-3);
 }
 
 .score-table thead th:first-child {
@@ -51,7 +49,7 @@
 }
 
 .score-table tbody td {
-  padding: 20px 16px;
+  padding: 16px 12px;
   vertical-align: top;
 }
 
@@ -137,12 +135,10 @@
   color: var(--c-warning);
 }
 
-/* 태블릿 이하: 표를 세로 카드 형태로 */
+/* 태블릿 이하: 표 대신 2열 입력 폼 (짧은 칸은 둘씩 나란히: 성별·학점, 상점·벌점) */
 @media (max-width: 960px) {
   .score-table,
-  .score-table tbody,
-  .score-table tr,
-  .score-table td {
+  .score-table tbody {
     display: block;
     width: 100%;
   }
@@ -159,49 +155,50 @@
     clip: rect(0 0 0 0);
   }
 
+  .score-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding: 18px;
+  }
+
   .score-table tbody td {
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--c-border);
+    display: block;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .score-table tbody td[data-label='단과대학'],
+  .score-table tbody td[data-label='주소지'],
+  .score-table tbody .is-result {
+    grid-column: 1 / -1;
   }
 
   .score-table tbody td::before {
     content: attr(data-label);
     display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: 6px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--c-text-2);
+    color: var(--c-text-3);
   }
 
-  .score-table tbody td:last-child {
-    border-bottom: 0;
-    /* 세로 배치에서는 마지막 칸(환산점수)이 카드 아래 두 모서리를 모두 채운다 */
-    border-bottom-left-radius: calc(var(--radius-lg) - 1px);
-    border-bottom-right-radius: calc(var(--radius-lg) - 1px);
-  }
-
-  .score-table tbody td:first-child {
-    border-top-left-radius: calc(var(--radius-lg) - 1px);
-    border-top-right-radius: calc(var(--radius-lg) - 1px);
-  }
-
+  /* 환산점수: 입력 칸 아래 구분선 + 한 줄 */
   .score-table tbody .is-result {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
+    justify-content: space-between;
     gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--c-border);
     border-left: 0;
+    background: none;
     text-align: left;
   }
 
   .score-table tbody .is-result::before {
-    width: 100%;
-    color: var(--c-primary-text);
-  }
-}
-
-@media (max-width: 560px) {
-  .region-select {
-    grid-template-columns: 1fr;
+    margin: 0;
+    color: var(--c-text);
   }
 }

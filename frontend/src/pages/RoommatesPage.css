@@ -145,7 +145,7 @@
   padding: 24px;
   border: 1px solid var(--c-border);
   border-radius: var(--radius-lg);
-  background: var(--c-surface);
+  background: var(--c-bg);
   transition: border-color 0.15s;
 }
 
@@ -208,12 +208,9 @@
 
 .rm-dorm {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  background: var(--c-bg);
 }
 
 .rm-dorm-main {
@@ -228,58 +225,21 @@
 }
 
 .rm-dorm-name {
-  font-family: var(--font-serif);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .rm-mbti {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--c-primary-text);
-}
-
-.rm-content {
-  flex: 1;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--c-text);
-  white-space: pre-line;
-}
-
-.rm-content-text {
-  overflow-wrap: anywhere;
-}
-
-/* 5줄이 넘는 본문은 접어 둔다 (RoommateCard 의 PostContent) */
-.rm-content-text.is-clamped {
-  display: -webkit-box;
-  -webkit-line-clamp: var(--clamp);
-  line-clamp: var(--clamp);
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.rm-more-btn {
-  margin-top: 4px;
-  padding: 2px 0;
-  border: 0;
-  background: none;
   font-size: 14px;
   font-weight: 600;
-  color: var(--c-text-3);
-  cursor: pointer;
-}
-
-.rm-more-btn:hover {
-  color: var(--c-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  letter-spacing: 0.04em;
+  color: var(--c-text-2);
 }
 
 .rm-card-foot {
+  /* 본문을 카드에 싣지 않으므로, 높이가 다른 카드끼리도 버튼 줄이 바닥에 맞게 */
+  margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -504,23 +464,16 @@
 }
 
 /* ── 체크리스트 보기 ── */
+/* 체크리스트 보기: 한 줄에 한 항목씩, 섹션은 위아래로 (좁은 창에서도 답이 잘리지 않게) */
 .cl-view {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.cl-view-section {
-  padding: 18px 20px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  background: var(--c-surface);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
 }
 
 .cl-view-section h3 {
-  margin-bottom: 8px;
-  font-family: var(--font-serif);
-  font-size: 16px;
+  margin-bottom: 4px;
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -532,10 +485,10 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-  border-top: 1px dashed var(--c-border);
-  font-size: 14px;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--c-border);
+  font-size: 15px;
 }
 
 .cl-view-row:first-child {
@@ -544,19 +497,23 @@
 
 .cl-view-row dt {
   display: flex;
+  flex: 1;
   gap: 8px;
+  min-width: 0;
   color: var(--c-text-2);
 }
 
+/* 답은 줄바꿈 없이 (긴 답만 절반 폭 안에서 줄바꿈) */
 .cl-view-row dd {
+  flex: none;
+  max-width: 55%;
   margin: 0;
   font-weight: 600;
   text-align: right;
 }
 
 .cl-ox {
-  font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: 16px;
 }
 
 .cl-ox.is-o {
@@ -573,6 +530,7 @@
   gap: 20px;
 }
 
+/* 요약 칸 (관리자 페이지의 게시글 체크리스트 보기에서 사용) */
 .post-detail-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -595,6 +553,30 @@
 .post-detail-summary strong {
   font-family: var(--font-serif);
   font-size: 18px;
+}
+
+@media (max-width: 560px) {
+  .post-detail-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.post-detail-section {
+  display: grid;
+  gap: 10px;
+}
+
+/* 자기소개와 체크리스트 사이 구분선 */
+.post-detail-section + .post-detail-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border);
+}
+
+.post-detail-section > h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--c-text-3);
 }
 
 .post-detail-content {
@@ -1208,6 +1190,11 @@
   color: var(--c-primary-text);
 }
 
+.rq-detail {
+  display: grid;
+  gap: 12px;
+}
+
 .rq-toggle {
   justify-self: start;
   padding: 6px 14px;
@@ -1729,10 +1716,6 @@
   filter: grayscale(1);
 }
 
-.rm-card.is-closed .rm-dorm {
-  background: var(--c-surface);
-}
-
 .my-post.is-closed .my-post-main p {
   opacity: 0.6;
 }
@@ -1773,10 +1756,6 @@
 
   .rm-field-row,
   .cl-view,
-  .post-detail-summary {
-    grid-template-columns: 1fr;
-  }
-
   .cl-progress {
     margin-inline: -18px;
     padding-inline: 18px;

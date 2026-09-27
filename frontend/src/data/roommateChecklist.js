@@ -6,7 +6,7 @@
 // 항목·선택지를 바꾸면 예전 답은 normalizeChecklist 가 새 형식으로 옮긴다
 // (DB 에 저장된 답은 supabase/migrations/20261014000000_checklist_v5.sql 이 한 번에 옮김)
 
-// 취침 시간은 24시 형태 (밤 12시 = 24시)
+// 취침 시간·스탠드 끄는 시간은 24시 형태 (밤 12시 = 24시)
 const BEDTIMES = ['22시 이전', '22-23시', '23-24시', '24-1시', '1시 이후']
 const CLEANING = ['매일', '일주일에 한 번', '일주일에 2-3번', '일주일에 4-5번', '더러울 때만']
 
@@ -25,7 +25,7 @@ export const CHECKLIST_SECTIONS = [
     items: [
       { key: 'bedtime', label: '취침 시간', options: BEDTIMES },
       { key: 'wakeup', label: '기상 시간', options: ['6시 이전', '6-7시', '7-8시', '8-9시', '9-10시', '10시 이후'] },
-      { key: 'lampOff', label: '야간 공부할 때 스탠드 끄는 시간', options: ['11시 이전', '11-12시', '12-1시'] },
+      { key: 'lampOff', label: '야간 공부할 때 스탠드 끄는 시간', options: ['23시 이전', '23-24시', '24-1시'] },
     ],
   },
   {
@@ -76,6 +76,7 @@ export const isAnswered = (value) =>
 const REMOVED_KEYS = ['mealPlan', 'earphones', 'sharedTrash']
 const LEGACY_VALUES = {
   bedtime: { '10시 이전': '22시 이전', '10-11시': '22-23시', '11-12시': '23-24시', '12-1시': '24-1시' },
+  lampOff: { '11시 이전': '23시 이전', '11-12시': '23-24시', '12-1시': '24-1시' },
   relationship: { '비즈니스 관계': '비즈니스' },
 }
 

@@ -6,8 +6,8 @@
 .dorm-section {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
-  padding: 48px 0;
+  gap: 16px;
+  padding: 40px 0;
   border-top: 1px solid var(--c-border);
   scroll-margin-top: calc(var(--header-h) + 8px);
 }
@@ -38,8 +38,7 @@
 }
 
 .fee-pay li {
-  padding: 6px 12px;
-  border: 1px solid var(--c-border);
+  padding: 4px 10px;
   border-radius: 999px;
   background: var(--c-surface);
   font-size: 13px;
@@ -81,7 +80,6 @@
 }
 
 .fee-table thead th {
-  background: var(--c-surface);
   font-size: 13px;
   font-weight: 600;
   text-align: center;
@@ -115,7 +113,7 @@
 }
 
 .fee-dorm-col {
-  background: var(--c-surface);
+  background: var(--c-bg);
 }
 
 .fee-table .fee-dorm {
@@ -228,7 +226,7 @@
 .dorm-card {
   display: flex;
   flex-direction: column;
-  padding: 28px;
+  padding: 24px;
   transition: border-color 0.15s;
 }
 
@@ -244,40 +242,44 @@
 }
 
 .dorm-card-head h3 {
-  font-size: 26px;
+  font-size: 20px;
+}
+
+/* 선발 유형: 색 없이 작은 회색 글씨 */
+.dorm-type {
+  font-size: 13px;
+  color: var(--c-text-3);
 }
 
 .dorm-rooms {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .dorm-room {
-  padding: 6px 12px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: var(--radius);
-  background: var(--c-bg);
-  font-size: 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  font-size: 13px;
   font-weight: 600;
+  color: var(--c-text-2);
 }
 
 .dorm-info {
   display: grid;
   align-content: start;
   flex: 1;
-  gap: 10px;
-  margin: 20px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid var(--c-border);
+  gap: 8px;
+  margin: 18px 0 0;
 }
 
 .dorm-info div {
   display: grid;
   grid-template-columns: 72px 1fr;
   gap: 8px;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .dorm-info dt {
@@ -290,6 +292,18 @@
 
 /* 카드 높이가 달라도 버튼은 카드 맨 아래에 맞춘다 */
 .dorm-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   align-self: flex-start;
-  margin-top: 22px;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.dorm-link:hover {
+  color: var(--c-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

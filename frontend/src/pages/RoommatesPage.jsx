@@ -556,7 +556,7 @@ export default function RoommatesPage() {
       <title>룸메이트 찾기 | JBNU Dormi</title>
       <PageHeader
         title="나와 잘 맞는 룸메이트 찾기"
-        lead="전북대 룸메이트 체크리스트로 생활 습관을 남기고, 마음에 드는 글에 룸메 신청을 보내 보세요. 룸메이트는 같은 성별끼리만 신청할 수 있어요. 비슷한 생활 패턴의 룸메이트를 만나면 기숙사 생활이 훨씬 편해져요."
+        lead="생활 습관이 맞는 룸메이트를 찾아 신청해 보세요. 같은 성별끼리만 신청할 수 있어요."
       />
 
       <div className="container rm-toolbar">

@@ -3,7 +3,7 @@
 --
 --   · 없어진 항목: 의무식(mealPlan) · 이어폰 사용(earphones) · 방 쓰레기통 공유(sharedTrash) → 지움
 --   · 잠버릇(sleepHabit): O/X → 복수 선택 배열. X → ["없음"], O → 지움 (어떤 잠버릇인지 몰라 다시 고르게)
---   · 취침 시간(bedtime): 24시 형태 (10-11시 → 22-23시 등)
+--   · 취침 시간(bedtime) · 스탠드 끄는 시간(lampOff): 24시 형태 (10-11시 → 22-23시, 11-12시 → 23-24시 등)
 --   · 룸메이트와의 관계: "비즈니스 관계" → "비즈니스"
 --   · 방 안 전화 통화: "배달 전화만" 선택지가 없어져 그 답은 지움 (다시 고르게)
 -- 화면(frontend/src/data/roommateChecklist.js 의 normalizeChecklist)도 같은 규칙으로 예전 답을 읽으므로,
@@ -31,6 +31,12 @@ as $$
            when '10-11시' then '{"bedtime": "22-23시"}'::jsonb
            when '11-12시' then '{"bedtime": "23-24시"}'::jsonb
            when '12-1시' then '{"bedtime": "24-1시"}'::jsonb
+           else '{}'::jsonb
+         end
+      || case c->>'lampOff'
+           when '11시 이전' then '{"lampOff": "23시 이전"}'::jsonb
+           when '11-12시' then '{"lampOff": "23-24시"}'::jsonb
+           when '12-1시' then '{"lampOff": "24-1시"}'::jsonb
            else '{}'::jsonb
          end
       || case when c->>'relationship' = '비즈니스 관계' then '{"relationship": "비즈니스"}'::jsonb else '{}'::jsonb end

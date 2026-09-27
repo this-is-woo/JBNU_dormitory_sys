@@ -1,12 +1,17 @@
 /* ─────────────────────────────────────────────
-   디자인 토큰
+   디자인 토큰 — "심플 이즈 베스트"
+   · 글꼴은 하나(Pretendard, 한글 가독성 우선). 로고만 Outfit. 크기와 굵기로만 위계를 준다
+   · 색은 흑백 + 강조 한 가지(파랑). 면은 흰 바탕 + 가는 선, 회색 면은 꼭 필요한 곳에만
+   · 설명 문장은 짧게, 장식(그림자·배지·아이콘)은 정보가 있을 때만
    색: JetBrains IntelliJ IDEA New UI (Dark / Light)
-   글꼴·버튼·여백: Claude 웹사이트 느낌 (세리프 제목 + 산세리프 본문, 부드러운 라운드, 넉넉한 여백)
    ───────────────────────────────────────────── */
 :root {
   --font-sans: 'Pretendard Variable', Pretendard, Inter, -apple-system, BlinkMacSystemFont, system-ui,
     'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  --font-serif: 'Noto Serif KR', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  /* 로고만 Outfit (index.html 에서 로고 글자만 받아 옴), 나머지는 모두 Pretendard */
+  --font-logo: 'Outfit', var(--font-sans);
+  /* 예전 세리프 자리도 같은 글꼴을 쓴다 (한 글꼴로 통일) */
+  --font-serif: var(--font-sans);
 
   /* Light */
   --c-bg: #ffffff;
@@ -16,7 +21,8 @@
   --c-border-strong: #c9ccd6;
   --c-text: #1e1f22;
   --c-text-2: #494b57;
-  --c-text-3: #818594;
+  /* 보조 글씨도 흰 바탕에서 4.5:1 이상 (작은 글씨까지 읽히게) */
+  --c-text-3: #6b7080;
 
   --c-primary: #3574f0;
   --c-primary-hover: #3369d6;
@@ -36,7 +42,7 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04);
   --shadow-lg: 0 12px 32px -12px rgb(0 0 0 / 0.18);
 
-  --header-h: 96px;
+  --header-h: 64px;
   --container: 1200px;
 
   color-scheme: light dark;
@@ -51,7 +57,7 @@
     --c-border-strong: #4e5157;
     --c-text: #dfe1e5;
     --c-text-2: #b4b8bf;
-    --c-text-3: #868a91;
+    --c-text-3: #95999f;
 
     --c-primary: #3574f0;
     --c-primary-hover: #467ff2;
@@ -72,7 +78,7 @@
 
 @media (max-width: 640px) {
   :root {
-    --header-h: 72px;
+    --header-h: 56px;
   }
 }
 
@@ -121,12 +127,11 @@ h4 {
   line-height: 1.3;
 }
 
-/* Claude 처럼 큰 제목은 세리프 */
+/* 제목: 본문과 같은 글꼴, 굵기와 자간으로만 구분 */
 h1,
 h2 {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 h3,
@@ -391,7 +396,7 @@ svg {
    공통 컴포넌트
    ───────────────────────────────────────────── */
 .card {
-  background: var(--c-surface);
+  background: var(--c-bg);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-lg);
 }
@@ -431,34 +436,33 @@ svg {
 }
 
 .page-header {
-  padding: 72px 0 40px;
+  padding: 56px 0 32px;
 }
 
 .page-header h1 {
-  font-size: clamp(32px, 4.4vw, 48px);
-  line-height: 1.2;
+  font-size: clamp(28px, 3.4vw, 36px);
+  line-height: 1.25;
 }
 
 .page-header .lead {
-  margin-top: 16px;
-  max-width: 680px;
-  font-size: 18px;
+  margin-top: 8px;
+  max-width: 640px;
+  font-size: 16px;
   color: var(--c-text-2);
 }
 
 /* 모바일: 헤더 바로 아래 여백을 줄여 제목이 화면 위쪽에 자연스럽게 붙도록 */
 @media (max-width: 640px) {
   .page-header {
-    padding: 36px 0 28px;
+    padding: 28px 0 20px;
   }
 
   .page-header h1 {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   .page-header .lead {
-    margin-top: 12px;
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 

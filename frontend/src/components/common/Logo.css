@@ -1,24 +1,26 @@
+/* 워드마크: Outfit (기하학적이지만 부드러운 산세리프). JBNU 는 굵게, Dormi 는 가늘게 */
 .logo {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.3em;
-  font-family: var(--font-serif);
-  font-size: 26px;
+  gap: 0.28em;
+  font-family: var(--font-logo);
+  font-size: 22px;
   line-height: 1;
   white-space: nowrap;
   color: var(--c-text);
 }
 
 .logo-sm {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .logo-en {
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
 }
 
 .logo-name {
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: -0.01em;
+  color: var(--c-text-2);
 }

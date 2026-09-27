@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoginModal from '../components/auth/LoginModal.jsx'
-import {
-  IconAlert,
-  IconArrowRight,
-  IconChevronRight,
-  IconGraduation,
-  IconMapPin,
-  IconStar,
-} from '../components/common/Icons.jsx'
+import { IconAlert, IconArrowRight, IconChevronRight } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
@@ -48,20 +41,17 @@ function readAcknowledged() {
 
 const SCORE_RULES = [
   {
-    icon: IconGraduation,
     title: '성적점수',
     range: '최대 90점',
     body: '직전 학기 평점(4.5 만점)을 90점 만점으로 환산합니다.',
   },
   {
-    icon: IconStar,
     title: '상점 · 벌점',
     // 평점에 ±0.009 → 90점 만점 환산 후 환산점수로는 1점당 ±0.18 (0.009 ÷ 4.5 × 90)
     range: '1점당 ±0.18',
     body: '상점 1점마다 환산점수가 0.18점 오르고, 벌점 1점마다 0.18점 내려갑니다. 전년도 생활관 입주생에게만 반영돼요.',
   },
   {
-    icon: IconMapPin,
     title: '거리점수',
     range: '5 ~ 10점',
     body: ['거리(km) 기준: PC 카카오맵 → 길찾기', '출발지: 전북대학교 생활관 관리동', '도착지: 학생 주소의 시·군·구청'],
@@ -74,11 +64,6 @@ const REPORT_LOGIN_POINTS = [
   '구글 계정으로 한 번에 로그인해요. 따로 가입할 필요가 없어요.',
   '계정당 학기별로 한 번만 제보할 수 있어 중복·장난 제보를 막아요.',
   '이메일·이름은 학습 데이터에 포함되지 않아요.',
-]
-const REPORT_POINTS = [
-  ['학기 · 지원 호실 · 결과', 'B타입 2인실은 배정된 호관까지'],
-  ['환산점수 · 성별 · 단과대학 · 학년', '환산점수는 위 계산기 값으로 채워져요'],
-  ['불합격도 똑같이 중요해요', '합격선은 붙은 점수와 떨어진 점수 사이에 있어요'],
 ]
 
 const readAfterLogin = () => recallAfterLogin(AFTER_LOGIN_KEY) === 'report'
@@ -222,7 +207,7 @@ export default function HomePage() {
       <title>JBNU Dormi | 생활관 합격 예측</title>
       <PageHeader
         title="내 점수로 보는 생활관 합격 가능성"
-        lead="단과대학, 성별, 직전 학기 학점, JUMP에 등록된 주소지, 상·벌점을 입력하면 환산점수가 바로 계산되고 호관별 예상 합격률을 확인할 수 있어요."
+        lead="입력하면 환산점수와 호관별 예상 합격률이 바로 나와요. 주소지는 JUMP에 등록된 주소 기준이에요."
       />
 
       <div className="container home-blocks">
@@ -274,11 +259,8 @@ export default function HomePage() {
               <p className="formula-note">최종 점수는 소수점 셋째 자리에서 반올림합니다.</p>
             </div>
             <div className="rule-grid">
-              {SCORE_RULES.map(({ icon: Icon, title, range, body }) => (
+              {SCORE_RULES.map(({ title, range, body }) => (
                 <article key={title} className="card rule-card">
-                  <span className="rule-icon">
-                    <Icon width={20} height={20} />
-                  </span>
                   <h3>{title}</h3>
                   <p className="rule-range">{range}</p>
                   {Array.isArray(body) ? (
@@ -306,13 +288,10 @@ export default function HomePage() {
             />
           </AiGate>
           <div className="block-actions">
-            <p className="predict-hint">
-              {!acknowledged
-                ? '위 AI 예측 안내를 확인하면 합격률을 예측할 수 있어요.'
-                : payload
-                  ? '입력한 점수로 호관별 합격률을 계산해요.'
-                  : '환산점수 계산의 항목(성별 포함)을 모두 입력해 주세요.'}
-            </p>
+            {/* 안내가 필요할 때만 한 줄 (안내 확인 전에는 위 "재미로 봐 주세요" 안내가 설명한다) */}
+            {acknowledged && !payload && (
+              <p className="predict-hint">성별을 포함해 위 항목을 모두 입력하면 예측할 수 있어요.</p>
+            )}
             <button
               type="button"
               className="btn btn-primary btn-lg"
@@ -327,26 +306,12 @@ export default function HomePage() {
         </section>
 
         <section className="home-block" aria-labelledby="block-report">
-          <BlockHead
-            id="block-report"
-            title="합격 결과 제보"
-            desc="실제 선발 결과를 알려 주시면 호관별 합격선을 더 정확하게 예측할 수 있어요."
-          />
+          <BlockHead id="block-report" title="합격 결과 제보" />
           <div className="report-cta">
-            <ul className="report-points">
-              {REPORT_POINTS.map(([title, body]) => (
-                <li key={title}>
-                  <strong>{title}</strong>
-                  <span>{body}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="report-cta-action">
-              <button type="button" className="btn btn-primary btn-lg" onClick={openReport}>
-                결과 제보하기
-              </button>
-              <p>구글 로그인 · 1분이면 끝나요</p>
-            </div>
+            <p>실제 선발 결과를 알려 주시면 합격선을 더 정확하게 예측할 수 있어요. 불합격 결과도 똑같이 중요해요.</p>
+            <button type="button" className="btn btn-secondary" onClick={openReport}>
+              결과 제보하기
+            </button>
           </div>
         </section>
       </div>

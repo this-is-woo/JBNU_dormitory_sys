@@ -28,7 +28,7 @@ const SAMPLES = [
     mbti: 'ISTJ',
     checklist: {
       smoking: false, sleepHabit: ['없음'], deepSleeper: true, lateSnack: false,
-      bedtime: '23-24시', wakeup: '7-8시', lampOff: '11-12시',
+      bedtime: '23-24시', wakeup: '7-8시', lampOff: '23-24시',
       roomCleaning: '일주일에 2-3번', bathroomCleaning: '일주일에 한 번', recycling: '분리수거함을 놓고 한 번에 버린다',
       relationship: '중간', phoneCalls: '짧은 전화만', sharing: '허락 맡고 가능', friendsOver: false, seat: '상관 없음',
     },
@@ -46,7 +46,7 @@ const SAMPLES = [
     mbti: 'ENFP',
     checklist: {
       smoking: false, sleepHabit: ['코골이', '잠꼬대'], deepSleeper: false, lateSnack: true,
-      bedtime: '1시 이후', wakeup: '9-10시', lampOff: '12-1시',
+      bedtime: '1시 이후', wakeup: '9-10시', lampOff: '24-1시',
       roomCleaning: '일주일에 한 번', bathroomCleaning: '일주일에 한 번', recycling: '생길 때마다 각자 치운다',
       relationship: '베스트 프렌드', phoneCalls: '상관 없음', sharing: '상관 없음', friendsOver: true, seat: '상관 없음',
     },
@@ -64,7 +64,7 @@ const SAMPLES = [
     mbti: null,
     checklist: {
       smoking: false, sleepHabit: ['이갈이'], deepSleeper: true, lateSnack: false,
-      bedtime: '22-23시', wakeup: '6시 이전', lampOff: '11시 이전',
+      bedtime: '22-23시', wakeup: '6시 이전', lampOff: '23시 이전',
       roomCleaning: '매일', bathroomCleaning: '일주일에 2-3번', recycling: '생길 때마다 각자 치운다',
       relationship: '비즈니스', phoneCalls: '무조건 밖에서', sharing: '절대 안 돼', friendsOver: false, seat: '문과 마주보지 않는, 에어컨 직방 자리',
     },

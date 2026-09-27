@@ -55,20 +55,6 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
     >
       {post && (
         <div className="post-detail">
-          <div className="post-detail-summary">
-            <div>
-              <span>호관</span>
-              <strong>{dormName(post.dormitory)}</strong>
-            </div>
-            <div>
-              <span>MBTI</span>
-              <strong>{post.mbti ?? '비공개'}</strong>
-            </div>
-            <div>
-              <span>단과대학</span>
-              <strong>{collegeName(post.collegeCode)}</strong>
-            </div>
-          </div>
           {mine && post.isOpen === false && (
             <p className="post-detail-closed">
               운영자가 이 글을 숨겼어요. 다른 사람에게 보이지 않고 신청을 받을 수 없어요. 궁금한 점은 운영자에게 문의해 주세요.
@@ -77,8 +63,16 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
           {post.isClosed && (
             <p className="post-detail-closed">글쓴이가 룸메이트를 구해 모집을 마감했어요.</p>
           )}
-          {post.content && <p className="post-detail-content">{post.content}</p>}
-          <ChecklistView checklist={post.checklist} />
+          {post.content && (
+            <section className="post-detail-section">
+              <h3>자기소개</h3>
+              <p className="post-detail-content">{post.content}</p>
+            </section>
+          )}
+          <section className="post-detail-section">
+            <h3>생활 습관 체크리스트</h3>
+            <ChecklistView checklist={post.checklist} />
+          </section>
         </div>
       )}
     </Modal>

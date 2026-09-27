@@ -1,133 +1,53 @@
+/* 푸터: 흰 바탕 + 위쪽 가는 선, 작은 글씨 세 줄 */
 .site-footer {
   margin-top: 96px;
-  background: var(--c-surface);
   border-top: 1px solid var(--c-border);
-  font-size: 14px;
-  color: var(--c-text-2);
+  font-size: 13px;
+  color: var(--c-text-3);
 }
 
-.footer-grid {
+.footer-inner {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr 1.5fr;
-  gap: 40px;
-  padding-top: 56px;
-  padding-bottom: 44px;
+  gap: 8px;
+  padding-top: 28px;
+  padding-bottom: 36px;
 }
 
-.footer-about p {
-  margin-top: 18px;
-  max-width: 340px;
-  line-height: 1.7;
-}
-
-.footer-col h2 {
-  margin-bottom: 14px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--c-text);
-}
-
-.footer-col ul {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.footer-col a {
-  display: inline-flex;
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 4px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
+.footer-links a {
+  color: var(--c-text-2);
   transition: color 0.15s;
 }
 
-.footer-col a:hover {
-  color: var(--c-primary-text);
-}
-
-.footer-sources li {
-  line-height: 1.5;
-  color: var(--c-text-3);
-}
-
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  padding-top: 20px;
-  padding-bottom: 24px;
-  border-top: 1px solid var(--c-border);
-  font-size: 12px;
-  color: var(--c-text-3);
-}
-
-.footer-legal {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 16px;
-  white-space: nowrap;
-}
-
-.footer-legal a {
-  color: var(--c-text-2);
-}
-
-.footer-legal a:hover {
+.footer-links a:hover {
   color: var(--c-text);
-  text-decoration: underline;
 }
 
-@media (max-width: 860px) {
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .footer-about {
-    grid-column: 1 / -1;
-  }
+.footer-sources {
+  font-size: 12px;
 }
 
-.footer-disclaimer-short {
-  display: none;
-}
-
-/* 모바일: 로고 · 한 줄 안내 · 약관 링크만 */
 @media (max-width: 560px) {
   .site-footer {
     margin-top: 64px;
   }
 
-  .footer-grid {
-    display: block;
-    padding-top: 28px;
-    padding-bottom: 16px;
-  }
-
-  .footer-about p,
-  .footer-col {
-    display: none;
-  }
-
-  .footer-bottom {
-    flex-direction: column;
-    gap: 10px;
-    padding-top: 16px;
+  .footer-inner {
+    padding-top: 24px;
     padding-bottom: 28px;
-  }
-
-  .footer-disclaimer-full {
-    display: none;
-  }
-
-  .footer-disclaimer-short {
-    display: inline;
-  }
-
-  .footer-legal {
-    gap: 4px 14px;
   }
 }

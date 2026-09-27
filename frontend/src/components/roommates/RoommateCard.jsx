@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
 import { semesterLabel } from '../../lib/semester.js'
@@ -12,45 +11,6 @@ export function requestButton(post, mine, sent, myGender) {
   if (myGender && post.gender !== myGender) return { label: '같은 성별만 신청 가능', tone: 'btn-secondary', disabled: true }
   if (post.isClosed) return { label: '모집 마감', tone: 'btn-secondary', disabled: true }
   return { label: '룸메 신청', tone: 'btn-primary' }
-}
-
-const CLAMP_LINES = 5
-
-/** 본문: 5줄이 넘으면 접어 두고 [더보기]로 펼친다 */
-function PostContent({ text }) {
-  const ref = useRef(null)
-  const [expanded, setExpanded] = useState(false)
-  const [overflowing, setOverflowing] = useState(false)
-
-  // 카드 폭이 바뀌거나(화면 회전·창 크기) 웹 글꼴이 늦게 적용되면 줄 수도 바뀌므로 다시 잰다.
-  // 펼친 동안에는 접힌 상태를 기준으로 판단할 수 없어 그대로 둔다.
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el || expanded) return
-    let alive = true
-    const measure = () => alive && setOverflowing(el.scrollHeight > el.clientHeight + 1)
-    measure()
-    document.fonts?.ready.then(measure)
-    const observer = new ResizeObserver(measure)
-    observer.observe(el)
-    return () => {
-      alive = false
-      observer.disconnect()
-    }
-  }, [text, expanded])
-
-  return (
-    <div className="rm-content">
-      <p ref={ref} className={`rm-content-text${expanded ? '' : ' is-clamped'}`} style={{ '--clamp': CLAMP_LINES }}>
-        {text}
-      </p>
-      {(overflowing || expanded) && (
-        <button type="button" className="rm-more-btn" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
-          {expanded ? '접기' : '더보기'}
-        </button>
-      )}
-    </div>
-  )
 }
 
 /**
@@ -106,8 +66,6 @@ export default function RoommateCard({ post, mine, sent = false, match = null, o
         </div>
         <span className="rm-mbti">{post.mbti ?? 'MBTI 비공개'}</span>
       </div>
-
-      {post.content ? <PostContent text={post.content} /> : <div className="rm-content" />}
 
       <footer className="rm-card-foot">
         {/* 룸메 신청·받은 신청은 자세히 보기 창에서 (체크리스트와 자기소개를 본 뒤 신청하도록) */}

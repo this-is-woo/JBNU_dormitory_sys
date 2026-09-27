@@ -131,13 +131,6 @@ function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied
         {request.isNew && <span className="rq-new">NEW</span>}
         <time dateTime={request.createdAt}>{timeAgo(request.createdAt)}</time>
       </div>
-      <div className="rq-facts">
-        <span>{collegeName(a.collegeCode)}</span>
-        <span>{a.age}세</span>
-        <span>{genderLabel(a.gender)}</span>
-        <span>{a.mbti ?? 'MBTI 비공개'}</span>
-        <span>희망 {dormName(a.dormitory)}</span>
-      </div>
       <p className="rq-match-line tabular">
         체크리스트 <strong>{CHECKLIST_ITEMS.length}개 중 {match}개</strong>가 나와 같아요
       </p>
@@ -176,7 +169,7 @@ function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? '비교 접기' : `${CHECKLIST_ITEMS.length}개 항목 나와 비교하기`}
+          {open ? '정보 접기' : '정보 보기'}
         </button>
         {!request.reply && !replying && (
           <button type="button" className="btn btn-primary btn-sm" onClick={() => setReplying(true)}>
@@ -190,7 +183,19 @@ function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied
           차단
         </button>
       </div>
-      {open && <CompareTable mine={myChecklist} theirs={a.checklist} theirLabel={`신청자 ${index}`} />}
+      {/* 펼치면: 기본 정보 뱃지 + 체크리스트 항목별 비교 */}
+      {open && (
+        <div className="rq-detail">
+          <div className="rq-facts">
+            <span>{collegeName(a.collegeCode)}</span>
+            <span>{a.age}세</span>
+            <span>{genderLabel(a.gender)}</span>
+            <span>{a.mbti ?? 'MBTI 비공개'}</span>
+            <span>희망 {dormName(a.dormitory)}</span>
+          </div>
+          <CompareTable mine={myChecklist} theirs={a.checklist} theirLabel={`신청자 ${index}`} />
+        </div>
+      )}
     </li>
   )
 }
