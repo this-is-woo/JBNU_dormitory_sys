@@ -59,6 +59,10 @@ export const CHECKLIST_SECTIONS = [
         key: 'seat',
         label: '원하는 침대/책상 자리',
         options: ['문과 마주보는, 에어컨 없는 자리', '문과 마주보지 않는, 에어컨 직방 자리', '상관 없음'],
+        // 자리는 서로 달라야 잘 맞는다: 다른 자리를 원하거나 한쪽이라도 '상관 없음'이면 일치
+        // (DB 의 roommate_match_count 와 같은 규칙: supabase/migrations/20261019000000_match_seat_different.sql)
+        match: 'different',
+        any: '상관 없음',
       },
     ],
   },
@@ -115,6 +119,17 @@ export function toggleMulti(item, current, option) {
   const next = rest.includes(option) ? rest.filter((v) => v !== option) : [...rest, option]
   // 선택지 순서대로 저장해 비교·표시가 흔들리지 않게
   return item.options.filter((o) => next.includes(o))
+}
+
+/**
+ * 두 사람의 답이 서로 맞는지 (일치 수·초록 표시·비교표가 모두 이것으로 센다)
+ *   · 보통 항목: 답이 같으면 일치
+ *   · match: 'different' 항목(원하는 자리): 답이 다르거나, 둘 중 하나라도 '상관 없음'이면 일치
+ */
+export function answersMatch(item, a, b) {
+  if (item.match !== 'different') return sameAnswer(a, b)
+  if (!isAnswered(a) || !isAnswered(b)) return false
+  return a !== b || a === item.any
 }
 
 /** 두 답이 같은지 (복수 선택은 고른 것이 모두 같아야 같음) */

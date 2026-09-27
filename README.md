@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -223,7 +223,9 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 4. 정지된 사용자는 글쓰기·수정, 룸메 신청, 답장, 신고를 할 수 없고, 그 사람의 글·신청은 다른 사람에게 보이지 않습니다. 본인 화면에는 정지 안내가 뜹니다.
    실시간 알림이나 주기적 확인은 없고, 게시판을 열 때와 탭으로 돌아올 때만 새 신청 수를 확인합니다 (서버 요청 절약).
 
-- 체크리스트를 등록하면 각 카드에 **"나와 N/18 일치"** (같은 답의 수)가 보입니다.
+- 체크리스트를 등록하면 각 카드에 **"나와 N/15 일치"** (맞는 항목 수)가 보입니다. 보통은 답이 같으면 일치이고, **원하는 침대/책상 자리만은 서로 달라야(또는 한쪽이 "상관 없음"이면) 일치**입니다.
+- 카드 버튼은 신청할 수 있는 글이면 **[신청하기]**, 아니면(내 글·마감·다른 성별·이미 신청·지난 학기) [자세히 보기]. 둘 다 체크리스트 창을 열고, 신청은 그 창의 [룸메 신청]으로 보냅니다.
+- 모바일에서는 이 페이지의 푸터를 숨기고, [글쓰기] 버튼을 화면 아래에 고정합니다.
 - `20261002000000_roommate_profiles.sql` 을 실행하면 이미 글을 쓴 사용자는 가장 최근 글의 정보로 체크리스트가 자동으로 만들어집니다.
 - 체크리스트 답변은 `roommate_posts.checklist`(jsonb)에 저장됩니다. 항목을 바꾸려면 `roommateChecklist.js` 만 수정하면 됩니다.
 - **필터**: 호관·성별

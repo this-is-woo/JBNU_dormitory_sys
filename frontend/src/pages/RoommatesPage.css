@@ -1971,22 +1971,28 @@
     display: none;
   }
 
-  /* 본문이 짧아도 버튼 자리가 본문 맨 아래(푸터 바로 위)로 가게 */
-  .app-main:has(> .rm-fab-dock) {
-    display: flex;
-    flex-direction: column;
+  /* 모바일 룸메이트 찾기: 푸터 없이, 글쓰기 버튼은 화면 아래(28px 위)에 늘 고정 */
+  .app-shell:has(.rm-feed) .site-footer {
+    display: none;
   }
 
-  /* sticky: 스크롤하는 동안은 화면 아래에 붙어 있고, 페이지 끝에서는 푸터 위 제자리에 멈춘다.
-     그래서 푸터를 가리지 않고, 푸터 아래에 빈 여백을 둘 필요도 없다 */
+  .app-main:has(.rm-feed) {
+    padding-bottom: 32px;
+  }
+
+  /* 떠 있는 버튼(42px + 아래 28px)에 마지막 카드가 가리지 않게 */
+  .app-main:has(> .rm-fab-dock) {
+    padding-bottom: 104px;
+  }
+
   .rm-fab-dock {
-    position: sticky;
+    position: fixed;
+    right: 0;
     bottom: calc(28px + env(safe-area-inset-bottom));
+    left: 0;
     z-index: 40;
     display: flex;
     justify-content: center;
-    margin-top: auto;
-    padding-top: 28px;
     pointer-events: none;
   }
 
@@ -2009,10 +2015,5 @@
 
   .rm-fab:active {
     transform: scale(0.97);
-  }
-
-  /* 버튼 자리(위 28px + 버튼 42px)가 본문과 푸터 사이 간격을 대신한다 */
-  .app-main:has(> .rm-fab-dock) + .site-footer {
-    margin-top: 28px;
   }
 }

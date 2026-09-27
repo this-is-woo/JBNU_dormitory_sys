@@ -45,12 +45,14 @@ export function requestButton(post, mine, sent, myGender) {
 }
 
 /**
- * match: 내 정보와 같은 답의 수 (내 글이거나 모르면 null)
+ * match: 내 정보와 맞는 항목 수 (내 글이거나 모르면 null)
  * sent: 내가 이 글에 룸메 신청을 보냈는지 (카드에는 "신청함" 표시만, 신청은 자세히 보기 창에서)
+ * requestable: 지금 룸메 신청을 보낼 수 있는 글인지. 그러면 버튼이 [신청하기], 아니면 [자세히 보기]
+ *   (어느 쪽이든 체크리스트 창을 열고, 신청은 그 창 아래의 [룸메 신청]으로 보낸다)
  * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
  */
-export default function RoommateCard({ post, mine, sent = false, match = null, onOpen, onEdit, onReport, onDelete, adminLink = false }) {
+export default function RoommateCard({ post, mine, sent = false, match = null, requestable = false, onOpen, onEdit, onReport, onDelete, adminLink = false }) {
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
       <header className="rm-card-head">
@@ -77,7 +79,7 @@ export default function RoommateCard({ post, mine, sent = false, match = null, o
       </header>
 
       {match !== null && (
-        <div className="rm-match" title="내 정보와 답이 같은 항목 수">
+        <div className="rm-match" title="내 정보와 맞는 항목 수">
           <span className="rm-match-bar" aria-hidden="true">
             <span style={{ width: `${(match / CHECKLIST_ITEMS.length) * 100}%` }} />
           </span>
@@ -89,9 +91,13 @@ export default function RoommateCard({ post, mine, sent = false, match = null, o
       {post.content && <Intro text={post.content} />}
 
       <footer className="rm-card-foot">
-        {/* 룸메 신청·받은 신청은 자세히 보기 창에서 (체크리스트와 자기소개를 본 뒤 신청하도록) */}
-        <button type="button" className="btn btn-secondary btn-sm" onClick={() => onOpen(post)}>
-          자세히 보기
+        {/* 체크리스트를 보고 신청하도록, 신청하기도 체크리스트 창을 연다 (신청은 그 창의 [룸메 신청]) */}
+        <button
+          type="button"
+          className={`btn btn-sm ${requestable ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => onOpen(post)}
+        >
+          {requestable ? '신청하기' : '자세히 보기'}
         </button>
         {/* 오른쪽 버튼 줄: 내 글이면 수정·삭제, 남의 글이면 신고. 관리자에게는 [관리]를 함께 */}
         <div className="rm-own-actions">

@@ -4,14 +4,14 @@ import { requestButton } from './RoommateCard.jsx'
 import { collegeName, dormName, genderLabel, matchCount, timeAgo } from './postFormat.js'
 import { semesterLabel } from '../../lib/semester.js'
 
-/** 체크리스트: 창을 열면 바로 보인다. 내 체크리스트가 있으면 나와 같은 답을 초록색으로 표시하고 개수를 제목 옆에 */
+/** 체크리스트: 창을 열면 바로 보인다. 내 체크리스트가 있으면 나와 맞는 항목을 초록색으로 표시하고 개수를 제목 옆에 */
 function ChecklistSection({ checklist, myChecklist }) {
   const same = myChecklist ? matchCount(myChecklist, checklist) : null
   return (
     <section className="post-detail-section">
       <h3 className="post-detail-heading">
         생활 습관 체크리스트
-        {same !== null && <span className="post-detail-match tabular">나와 같은 답 {same}개</span>}
+        {same !== null && <span className="post-detail-match tabular">나와 맞는 항목 {same}개</span>}
       </h3>
       <ChecklistView checklist={checklist} compare={myChecklist} />
     </section>

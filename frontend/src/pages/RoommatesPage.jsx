@@ -377,6 +377,13 @@ export default function RoommatesPage() {
       .join(' · ') || `${semesterLabel(recruit)} 전체 글`
   const filterCount = unlocked && status === 'ready' ? ` · ${total}개` : ''
   const isMine = (post) => Boolean(user) && post.authorId === user.id
+  // 지금 룸메 신청을 보낼 수 있는 글: 남의 글 · 모집 학기 · 모집 중 · 같은 성별 · 아직 안 보냄
+  const canRequest = (post) =>
+    !isMine(post) &&
+    !archived &&
+    !post.isClosed &&
+    !sentIds.has(post.id) &&
+    post.gender === profile.data?.gender
 
   const replacePost = (post) =>
     setBoard((b) => ({ ...b, items: b.items.map((p) => (p.id === post.id ? post : p)) }))
@@ -584,7 +591,7 @@ export default function RoommatesPage() {
           // 잠긴 동안에는 실제 글 대신 예시 글을 흐리게 보여 준다
           <div className="rm-grid">
             {SAMPLE_POSTS.map((post) => (
-              <RoommateCard key={post.id} post={post} mine={false} onOpen={() => {}} onEdit={() => {}} />
+              <RoommateCard key={post.id} post={post} mine={false} requestable={!post.isClosed} onOpen={() => {}} onEdit={() => {}} />
             ))}
           </div>
         ) : (
@@ -615,6 +622,7 @@ export default function RoommatesPage() {
                         mine={isMine(post)}
                         sent={sentIds.has(post.id)}
                         match={isMine(post) ? null : matchCount(profile.data.checklist, post.checklist)}
+                        requestable={canRequest(post)}
                         onOpen={setDetail}
                         onEdit={openEditor}
                         onDelete={setDeletingPost}
@@ -722,8 +730,8 @@ export default function RoommatesPage() {
         </div>
       )}
 
-      {/* 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서).
-          화면 아래에 붙어 따라오다가 페이지 끝에서는 푸터 위에 멈춘다 (sticky) */}
+      {/* 모바일: 글쓰기는 화면 아래에 고정된 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서).
+          모바일에서는 이 페이지의 푸터를 숨기므로 버튼이 가릴 것이 없다 */}
       {signedIn && (
         <div className="rm-fab-dock">
           <button type="button" className="rm-fab" onClick={openWrite}>

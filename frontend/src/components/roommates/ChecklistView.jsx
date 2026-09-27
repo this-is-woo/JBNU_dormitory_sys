@@ -1,8 +1,8 @@
-import { CHECKLIST_SECTIONS, answerLabel, itemNumber, normalizeChecklist, sameAnswer } from '../../data/roommateChecklist.js'
+import { CHECKLIST_SECTIONS, answerLabel, answersMatch, itemNumber, normalizeChecklist } from '../../data/roommateChecklist.js'
 
 /**
  * 체크리스트 답변을 섹션별 표 형태로 보여준다 (읽기 전용)
- * @param {object} [compare] 내 체크리스트. 주면 나와 답이 같은 항목을 초록색으로 표시
+ * @param {object} [compare] 내 체크리스트. 주면 나와 맞는 항목을 초록색으로 표시 (자리 항목은 서로 달라야 맞음)
  */
 export default function ChecklistView({ checklist: raw, compare = null }) {
   const checklist = normalizeChecklist(raw)
@@ -16,7 +16,7 @@ export default function ChecklistView({ checklist: raw, compare = null }) {
             {section.items.map((item) => {
               const value = checklist[item.key]
               const ox = item.type === 'ox' && typeof value === 'boolean'
-              const same = Boolean(mine) && sameAnswer(mine[item.key], value)
+              const same = Boolean(mine) && answersMatch(item, mine[item.key], value)
               return (
                 <div key={item.key} className={`cl-view-row${same ? ' is-match' : ''}`}>
                   <dt>
@@ -25,7 +25,7 @@ export default function ChecklistView({ checklist: raw, compare = null }) {
                   </dt>
                   <dd className={ox ? `cl-ox ${value ? 'is-o' : 'is-x'}` : ''}>
                     {same && (
-                      <span className="cl-match-mark" aria-label="나와 같음">
+                      <span className="cl-match-mark" aria-label="나와 맞음">
                         ✓
                       </span>
                     )}
