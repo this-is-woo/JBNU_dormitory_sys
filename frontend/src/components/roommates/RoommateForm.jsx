@@ -34,6 +34,7 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (submitting) return
     setSubmitting(true)
     try {
       await onSubmit({ semester: form.semester, content: form.content.trim() })

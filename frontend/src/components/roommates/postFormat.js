@@ -6,13 +6,14 @@ const rtf = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' })
 
 export function timeAgo(iso) {
   const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000)
+  // 시각이 없거나 잘못됐으면 비워 둔다 (Intl.RelativeTimeFormat 은 NaN 이면 오류를 내 화면 전체가 멈춘다)
+  if (!Number.isFinite(minutes)) return ''
   if (minutes > -1) return '방금 전'
   if (minutes > -60) return rtf.format(minutes, 'minute')
   const hours = Math.round(minutes / 60)
   if (hours > -24) return rtf.format(hours, 'hour')
   return rtf.format(Math.round(hours / 24), 'day')
 }
-
 
 export const dormName = (code) => DORMITORIES.find((d) => d.code === code)?.name ?? code
 export const collegeName = (code) => findCollege(code)?.name ?? ''

@@ -94,7 +94,11 @@ def test_baseline_by_gender():
     male = BaselinePredictor().predict({**SAMPLE, "gender": "남"})
     female = BaselinePredictor().predict({**SAMPLE, "gender": "여"})
     assert "saebit_2" not in male and "hanbit_2" not in female
-    assert female["changui_1"] < male["changui_1"]
+    # 기준점에서 멀면 남녀 모두 최저 확률이라, 기준점(남 95.5 · 여 96.5) 근처 점수로 비교한다
+    near = {**SAMPLE, "converted_score": 96.0}
+    male_near = BaselinePredictor().predict({**near, "gender": "남"})
+    female_near = BaselinePredictor().predict({**near, "gender": "여"})
+    assert female_near["changui_1"] < male_near["changui_1"]
     # 창의관 1인실은 95 ~ 97점대라 다른 호실보다 훨씬 어렵다
     assert male["changui_1"] == min(male.values())
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import AdminActivity from '../components/admin/AdminActivity.jsx'
 import AdminAdmissions from '../components/admin/AdminAdmissions.jsx'
+import AdminGpaStats from '../components/admin/AdminGpaStats.jsx'
 import AdminOverview from '../components/admin/AdminOverview.jsx'
 import AdminPosts from '../components/admin/AdminPosts.jsx'
 import AdminReports from '../components/admin/AdminReports.jsx'
@@ -22,6 +23,7 @@ const TABS = [
   { id: 'reports', label: '신고' },
   { id: 'users', label: '사용자' },
   { id: 'admissions', label: '합격 제보' },
+  { id: 'gpa', label: '학점 통계' },
   { id: 'activity', label: '기록' },
 ]
 
@@ -187,6 +189,7 @@ export default function AdminPage() {
             <AdminUsers initial={initial} notify={notify} onChanged={loadOverview} onOpenPosts={(search) => go('posts', { search })} />
           )}
           {tab === 'admissions' && <AdminAdmissions notify={notify} onChanged={loadOverview} />}
+          {tab === 'gpa' && <AdminGpaStats />}
           {tab === 'activity' && <AdminActivity initial={initial} />}
         </div>
       </div>

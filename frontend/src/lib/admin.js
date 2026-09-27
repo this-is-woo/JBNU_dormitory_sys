@@ -2,6 +2,7 @@ import { isSupabaseConfigured } from '../config.js'
 import { DEMO_USER } from '../hooks/useAuth.js'
 import { isLocallySuspended, readModeration, writeModeration } from './localModeration.js'
 import { SAMPLE_POSTS } from './roommates.js'
+import { readLocalScores } from './scoreLog.js'
 import { currentSemester } from './semester.js'
 
 // 관리자 페이지 (supabase/migrations/20261010000000_admin.sql)
@@ -18,6 +19,8 @@ const ERRORS = {
   until: '정지 기한은 지금 이후로 정해 주세요.',
   too_long: '메모는 500자까지 쓸 수 있어요.',
   sample: '예시 글은 바꿀 수 없어요. 데모에서는 직접 쓴 글로 확인해 주세요.',
+  // 화면이 먼저 배포되고 이 기능의 마이그레이션은 아직 실행하지 않은 경우
+  missing: '서버에 아직 이 기능이 없어요. supabase/migrations 의 새 파일을 SQL Editor 에서 실행해 주세요.',
 }
 
 async function call(name, args, fallback) {
@@ -30,11 +33,12 @@ async function call(name, args, fallback) {
   }
   const { supabase } = await import('./supabase.js')
   const { data, error } = await supabase.rpc(name, args)
-  if (error) throw new Error(ERRORS[error.hint] ?? fallback)
+  if (error) throw new Error(error.code === 'PGRST202' ? ERRORS.missing : (ERRORS[error.hint] ?? fallback))
   return data
 }
 
 const num = (v) => Number(v ?? 0)
+const numOrNull = (v) => (v == null || !Number.isFinite(Number(v)) ? null : Number(v))
 const offsetOf = (page) => (Math.max(1, page) - 1) * ADMIN_PAGE_SIZE
 const toPage = (rows, map) => ({ items: rows.map(map), total: rows.length ? num(rows[0].total_count) : 0 })
 
@@ -258,6 +262,32 @@ export async function fetchActivity(kind, page = 1) {
   return { items: data.items ?? [], total: num(data.total) }
 }
 
+// ── 학점 통계 (점수 계산 기록으로) ──
+
+const toGpaSummary = (s) => ({
+  n: num(s?.n),
+  mean: numOrNull(s?.mean),
+  min: numOrNull(s?.min),
+  q1: numOrNull(s?.q1),
+  median: numOrNull(s?.median),
+  q3: numOrNull(s?.q3),
+  max: numOrNull(s?.max),
+})
+
+/**
+ * days: null(전체) 또는 최근 며칠 · gender: null | '남' | '여'
+ * → { total, noGender, overall: 요약, colleges: [{ code, ...요약 }] } (요약 = n, mean, min, q1, median, q3, max)
+ */
+export async function fetchGpaStats({ days = null, gender = null } = {}) {
+  const data = await call('admin_gpa_stats', { p_days: days, p_gender: gender }, '학점 통계를 불러오지 못했어요.')
+  return {
+    total: num(data?.total),
+    noGender: num(data?.no_gender),
+    overall: toGpaSummary(data?.overall),
+    colleges: (data?.colleges ?? []).map((c) => ({ code: c.college_code, ...toGpaSummary(c) })),
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // 데모(Supabase 미연결): 이 브라우저의 데이터로 SQL 함수와 같은 모양의 결과를 만든다.
 // 개발 서버에서 데모 계정으로 로그인했을 때만 관리자 페이지가 열린다 (hooks/useAdmin.js).
@@ -381,12 +411,35 @@ function localUserIds() {
   return [...ids]
 }
 
+// SQL 의 percentile_cont 와 같은 선형 보간 사분위 (소수 둘째 자리)
+function gpaSummary(values) {
+  const v = values.filter(Number.isFinite).sort((a, b) => a - b)
+  const n = v.length
+  if (!n) return { n: 0, mean: null, min: null, q1: null, median: null, q3: null, max: null }
+  const round2 = (x) => Math.round(x * 100) / 100
+  const at = (p) => {
+    const pos = p * (n - 1)
+    const lo = Math.floor(pos)
+    return v[lo] + (v[Math.ceil(pos)] - v[lo]) * (pos - lo)
+  }
+  return {
+    n,
+    mean: round2(v.reduce((sum, x) => sum + x, 0) / n),
+    min: v[0],
+    q1: round2(at(0.25)),
+    median: round2(at(0.5)),
+    q3: round2(at(0.75)),
+    max: v[n - 1],
+  }
+}
+
 const LOCAL = {
   admin_overview() {
     const posts = allLocalPosts()
     const requests = read(KEYS.requests, [])
     const reports = read(KEYS.reports, [])
     const admissions = read(KEYS.admissions, [])
+    const scores = readLocalScores()
     const today = kstDay(nowIso())
     const days = Array.from({ length: 14 }, (_, i) => kstDay(new Date(Date.now() - (13 - i) * 86400000).toISOString()))
     return {
@@ -405,13 +458,13 @@ const LOCAL = {
       suspended: Object.keys(readModeration()).filter((id) => isLocallySuspended(id)).length,
       admission_reports: admissions.length,
       admission_excluded: admissions.filter((a) => a.isExcluded).length,
-      scores: 0,
-      scores_today: 0,
+      scores: scores.length,
+      scores_today: scores.filter((s) => kstDay(s.created_at) === today).length,
       predictions: 0,
       predictions_today: 0,
       daily: days.map((day) => ({
         day,
-        scores: 0,
+        scores: scores.filter((s) => kstDay(s.created_at) === day).length,
         predictions: 0,
         posts: posts.filter((p) => kstDay(p.createdAt) === day).length,
         requests: requests.filter((r) => kstDay(r.createdAt) === day).length,
@@ -635,9 +688,29 @@ const LOCAL = {
   },
 
   admin_list_activity({ p_kind, p_limit = ADMIN_PAGE_SIZE, p_offset = 0 }) {
-    if (p_kind === 'scores' || p_kind === 'predictions') return { total: 0, items: [] }
-    if (p_kind !== 'admin') fail('invalid')
-    const logs = read(KEYS.logs, [])
-    return { total: logs.length, items: logs.slice(p_offset, p_offset + p_limit) }
+    // 예측 요청은 백엔드가 서버에만 남긴다
+    if (p_kind === 'predictions') return { total: 0, items: [] }
+    if (p_kind !== 'admin' && p_kind !== 'scores') fail('invalid')
+    const rows = p_kind === 'scores' ? readLocalScores() : read(KEYS.logs, [])
+    return { total: rows.length, items: rows.slice(p_offset, p_offset + p_limit) }
+  },
+
+  admin_gpa_stats({ p_days = null, p_gender = null }) {
+    if ((p_days != null && !(p_days >= 1 && p_days <= 3650)) || (p_gender != null && p_gender !== '남' && p_gender !== '여')) {
+      fail('invalid')
+    }
+    const since = p_days == null ? -Infinity : Date.now() - p_days * 86400000
+    const period = readLocalScores().filter((s) => new Date(s.created_at).getTime() >= since)
+    const picked = period.filter((s) => !p_gender || s.gender === p_gender)
+    const byCollege = new Map()
+    picked.forEach((s) => byCollege.set(s.college_code, [...(byCollege.get(s.college_code) ?? []), Number(s.gpa)]))
+    return {
+      total: picked.length,
+      no_gender: period.filter((s) => !s.gender).length,
+      overall: gpaSummary(picked.map((s) => Number(s.gpa))),
+      colleges: [...byCollege]
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([code, values]) => ({ college_code: code, ...gpaSummary(values) })),
+    }
   },
 }

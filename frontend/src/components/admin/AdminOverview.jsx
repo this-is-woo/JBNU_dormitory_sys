@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchActivity } from '../../lib/admin.js'
-import { IconAlert, IconChevronRight } from '../common/Icons.jsx'
+import { IconAlert } from '../common/Icons.jsx'
+import StatTile from './StatTile.jsx'
 import TrendChart, { dayLabel } from './TrendChart.jsx'
 import { ACTION_LABEL, formatCount, formatKst } from './adminFormat.js'
 
@@ -10,31 +11,6 @@ const TRENDS = [
   { key: 'posts', title: '새 룸메이트 글' },
   { key: 'requests', title: '룸메 신청' },
 ]
-
-/** 숫자 하나와 짧은 설명. to 가 있으면 눌러서 해당 탭으로 간다 */
-function StatTile({ label, value, sub, flag, onClick }) {
-  const body = (
-    <>
-      <span className="adm-stat-label">{label}</span>
-      <span className="adm-stat-value">{formatCount(value)}</span>
-      {sub && <span className="adm-stat-sub">{sub}</span>}
-      {flag && (
-        <span className="adm-stat-flag">
-          <IconAlert width={14} height={14} />
-          {flag}
-        </span>
-      )}
-      {onClick && <IconChevronRight className="adm-stat-arrow" width={16} height={16} />}
-    </>
-  )
-  return onClick ? (
-    <button type="button" className="adm-stat is-link" onClick={onClick}>
-      {body}
-    </button>
-  ) : (
-    <div className="adm-stat">{body}</div>
-  )
-}
 
 export default function AdminOverview({ overview, onGo }) {
   const [logs, setLogs] = useState(null)

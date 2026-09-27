@@ -12,7 +12,9 @@ export default function NumericInput({ id, value, onChange, isAllowed, normalize
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const handleChange = (e) => {
-    const next = e.target.value.trim()
+    let next = e.target.value.trim()
+    // 일부 휴대폰의 숫자 키패드는 소수점을 쉼표로 넣는다 (3,85 → 3.85)
+    if (inputProps.inputMode === 'decimal') next = next.replace(',', '.')
     if (isAllowed(next)) {
       setShowWarning(false)
       onChange(normalize ? normalize(next) : next)

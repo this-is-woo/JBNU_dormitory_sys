@@ -9,6 +9,8 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
   const [state, setState] = useState({ status: 'loading', posts: [] })
   const [confirmId, setConfirmId] = useState(null)
   const [error, setError] = useState('')
+  // 처리 중인 글 (두 번 눌러 같은 요청이 두 번 가지 않게)
+  const [busyId, setBusyId] = useState(null)
 
   useEffect(() => {
     if (!open) return
@@ -25,6 +27,8 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
   }, [open, userId])
 
   async function remove(id) {
+    if (busyId) return
+    setBusyId(id)
     try {
       await deleteRoommatePost(id, userId)
       setState((s) => ({ ...s, posts: s.posts.filter((p) => p.id !== id) }))
@@ -32,10 +36,14 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
       onDeleted(id)
     } catch (err) {
       setError(err.message)
+    } finally {
+      setBusyId(null)
     }
   }
 
   async function toggleClosed(post) {
+    if (busyId) return
+    setBusyId(post.id)
     try {
       const saved = await setRoommatePostClosed(post.id, !post.isClosed, userId)
       setState((s) => ({ ...s, posts: s.posts.map((p) => (p.id === post.id ? saved : p)) }))
@@ -43,6 +51,8 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
       onChanged(saved)
     } catch (err) {
       setError(err.message)
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -97,13 +107,23 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(null)}>
                       취소
                     </button>
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(post.id)}>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => remove(post.id)}
+                      disabled={busyId === post.id}
+                    >
                       삭제
                     </button>
                   </>
                 ) : (
                   <>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggleClosed(post)}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => toggleClosed(post)}
+                      disabled={busyId === post.id}
+                    >
                       {post.isClosed ? '다시 모집하기' : '모집완료'}
                     </button>
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => onView(post)}>

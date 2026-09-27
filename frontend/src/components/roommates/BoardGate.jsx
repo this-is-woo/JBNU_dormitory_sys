@@ -1,10 +1,10 @@
 /**
  * 잠긴 게시판 위에 띄우는 안내. 로그인 → 내 체크리스트 등록을 마쳐야 글을 볼 수 있다.
- * @param {'loading'|'signedOut'|'noProfile'} stage
+ * @param {'loading'|'signedOut'|'noProfile'|'error'} stage  error: 내 체크리스트를 불러오지 못함
  */
-export default function BoardGate({ stage, onLogin, onRegister }) {
+export default function BoardGate({ stage, onLogin, onRegister, onRetry }) {
   const steps = [
-    { label: '구글 로그인', done: stage === 'noProfile' },
+    { label: '구글 로그인', done: stage === 'noProfile' || stage === 'error' },
     { label: '기본 정보 · 체크리스트 등록', done: false },
   ]
   return (
@@ -17,7 +17,7 @@ export default function BoardGate({ stage, onLogin, onRegister }) {
 
       <ol className="board-gate-steps">
         {steps.map((s, i) => (
-          <li key={s.label} className={s.done ? 'is-done' : i === (stage === 'noProfile' ? 1 : 0) ? 'is-current' : ''}>
+          <li key={s.label} className={s.done ? 'is-done' : i === (stage === 'noProfile' || stage === 'error' ? 1 : 0) ? 'is-current' : ''}>
             <span className="board-gate-no">{s.done ? '✓' : i + 1}</span>
             {s.label}
           </li>
@@ -33,6 +33,16 @@ export default function BoardGate({ stage, onLogin, onRegister }) {
         <button type="button" className="btn btn-primary btn-lg" onClick={onLogin}>
           로그인하기
         </button>
+      )}
+      {stage === 'error' && (
+        <>
+          <p className="board-gate-loading" role="alert">
+            내 체크리스트를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.
+          </p>
+          <button type="button" className="btn btn-primary btn-lg" onClick={onRetry}>
+            다시 시도
+          </button>
+        </>
       )}
       {stage === 'noProfile' && (
         <button type="button" className="btn btn-primary btn-lg" onClick={onRegister}>

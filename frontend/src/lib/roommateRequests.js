@@ -1,6 +1,7 @@
 import { isSupabaseConfigured } from '../config.js'
 import { dormName } from '../components/roommates/postFormat.js'
 import { semesterLabel } from './semester.js'
+import { uid } from './uid.js'
 
 // 룸메 신청 · 답장 · 차단
 // (supabase/migrations/20261006000000_roommate_requests.sql, 20261007000000_roommate_blocks_replies.sql)
@@ -95,7 +96,7 @@ function localBlock(userId, blockedId, context) {
   if (!blockedId || blockedId === userId) throw new Error(ERRORS.forbidden)
   const blocks = read(BLOCKS_KEY, [])
   if (!blocks.some((b) => b.blockerId === userId && b.blockedId === blockedId)) {
-    blocks.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), blockerId: userId, blockedId, context })
+    blocks.unshift({ id: uid(), createdAt: new Date().toISOString(), blockerId: userId, blockedId, context })
     write(BLOCKS_KEY, blocks)
   }
   // 두 사람 사이의 신청 삭제
@@ -127,7 +128,7 @@ export async function sendRequest(post, message, userId, myGender) {
     const requests = read(REQUESTS_KEY, [])
     if (requests.some((r) => r.postId === post.id && r.applicantId === userId)) throw new Error(ERRORS.duplicate)
     requests.push({
-      id: crypto.randomUUID(),
+      id: uid(),
       createdAt: new Date().toISOString(),
       postId: post.id,
       applicantId: userId,

@@ -2,6 +2,7 @@ import { isSupabaseConfigured } from '../config.js'
 import { isLocallySuspended } from './localModeration.js'
 import { isLocallyBlocked, localRequestCount } from './roommateRequests.js'
 import { currentSemester } from './semester.js'
+import { uid } from './uid.js'
 
 // 룸메이트 찾기는 구글 로그인한 사용자만 이용한다.
 // 글쓰기·수정·삭제 권한은 roommate_posts.user_id = auth.uid() 인 행에만 주는 RLS 정책으로 지킨다.
@@ -140,6 +141,14 @@ async function client() {
   return supabase
 }
 
+// 글쓰기·수정 오류를 알아들을 수 있는 말로 (DB 의 트리거·정책이 막은 이유)
+function postError(error, fallback) {
+  if (error?.hint === 'dorm_gender') return new Error('고른 호관은 다른 성별 전용이에요. 내 체크리스트에서 호관을 다시 골라 주세요.')
+  // 행 수준 보안 정책 위반: 글쓴이 본인인데 막혔다면 이용 정지 때문이다
+  if (error?.code === '42501') return new Error('이용이 정지된 계정이라 글을 쓰거나 고칠 수 없어요.')
+  return new Error(fallback)
+}
+
 export const roommateStorage = isSupabaseConfigured ? 'supabase' : 'local'
 
 export const PAGE_SIZE = 12
@@ -206,14 +215,14 @@ export async function fetchMyPosts(userId) {
 
 export async function createRoommatePost(post, userId) {
   if (!isSupabaseConfigured) {
-    const saved = { ...post, id: crypto.randomUUID(), createdAt: new Date().toISOString(), authorId: userId, isClosed: false }
+    const saved = { ...post, id: uid(), createdAt: new Date().toISOString(), authorId: userId, isClosed: false }
     writeJson(LOCAL_POSTS_KEY, [saved, ...readLocal()])
     return saved
   }
   const supabase = await client()
   // user_id 는 DB 기본값 auth.uid() 로 채워진다
   const { data, error } = await supabase.from('roommate_posts').insert(toRow(post)).select(COLUMNS).single()
-  if (error) throw new Error('글을 등록하지 못했어요. 입력값을 확인해 주세요.')
+  if (error) throw postError(error, '글을 등록하지 못했어요. 입력값을 확인해 주세요.')
   return fromRow(data)
 }
 
@@ -221,7 +230,7 @@ export async function updateRoommatePost(id, post, userId) {
   if (!isSupabaseConfigured) return updateLocal(id, userId, post)
   const supabase = await client()
   const { data, error } = await supabase.from('roommate_posts').update(toRow(post)).eq('id', id).select(COLUMNS).single()
-  if (error) throw new Error('글을 수정하지 못했어요.')
+  if (error) throw postError(error, '글을 수정하지 못했어요.')
   return fromRow(data)
 }
 
@@ -235,7 +244,7 @@ export async function setRoommatePostClosed(id, closed, userId) {
     .eq('id', id)
     .select(COLUMNS)
     .single()
-  if (error) throw new Error('모집 상태를 바꾸지 못했어요.')
+  if (error) throw postError(error, '모집 상태를 바꾸지 못했어요.')
   return fromRow(data)
 }
 

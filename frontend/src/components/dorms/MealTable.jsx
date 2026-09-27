@@ -3,7 +3,7 @@ export default function MealTable({ data }) {
   // 같은 group 이 이어지면 머리글을 합친다
   const groups = []
   for (const c of data.columns) {
-    const last = groups.at(-1)
+    const last = groups[groups.length - 1]
     if (last?.label === c.group) last.span += 1
     else groups.push({ label: c.group, span: 1 })
   }

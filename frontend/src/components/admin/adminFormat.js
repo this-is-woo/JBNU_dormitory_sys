@@ -12,9 +12,26 @@ const KST = new Intl.DateTimeFormat('ko-KR', {
 })
 const KST_DATE = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' })
 
-export const formatKst = (iso) => (iso ? KST.format(new Date(iso)) : '—')
-export const formatKstDate = (iso) => (iso ? KST_DATE.format(new Date(iso)) : '—')
+// 잘못된 시각이면 Intl.DateTimeFormat 이 오류를 내므로 먼저 확인한다
+const validDate = (iso) => {
+  const d = iso ? new Date(iso) : null
+  return d && !Number.isNaN(d.getTime()) ? d : null
+}
+export const formatKst = (iso) => {
+  const d = validDate(iso)
+  return d ? KST.format(d) : '—'
+}
+export const formatKstDate = (iso) => {
+  const d = validDate(iso)
+  return d ? KST_DATE.format(d) : '—'
+}
+
+/** 신고 당시 내용(snapshot)처럼 모양을 보장할 수 없는 값을 화면에 안전한 글자로 */
+export const asText = (value) => (value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value))
 export const formatCount = (n) => Number(n ?? 0).toLocaleString('ko-KR')
+/** 학점: 3.5 → "3.50", 값이 없으면 "—" */
+export const formatGpa = (v) => (Number.isFinite(v) ? v.toFixed(2) : '—')
+export const formatGpaRange = (lo, hi) => (Number.isFinite(lo) && Number.isFinite(hi) ? `${formatGpa(lo)} ~ ${formatGpa(hi)}` : '—')
 
 export const reasonLabel = (value) => REPORT_REASONS.find((r) => r.value === value)?.label ?? value
 

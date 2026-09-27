@@ -121,7 +121,7 @@ npm run dev
   "collegeName": "공과대학",
   "predictions": [{ "code": "changui_1", "name": "창의관 1인실", "dormitory": "창의관", "roomType": "1인실", "type": "D", "genders": ["남", "여"], "probability": 0.2599 }, ...],
   "notice": null,   // 특성화캠퍼스 대상 단과대학이면 안내 문구, predictions 는 빈 배열
-  "model": { "mode": "baseline", "version": "baseline-v0" }
+  "model": { "mode": "baseline", "version": "baseline-v1" }
 }
 ```
 
@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -152,7 +152,7 @@ npm run dev
 | `admins` | 관리자 계정 (계정 id) | 직접 접근 불가. `is_admin()` 으로 확인만 |
 | `admin_logs` | 관리 기록 (숨김·삭제·정지 등 누가 언제 무엇을) | 관리자 페이지 [기록] 탭 |
 | `admission_reports` | 합격 결과 제보 (모델 학습용) | 로그인 사용자가 본인 것만 읽기·쓰기, 계정당 학기별 1건 |
-| `score_submissions` | 환산점수 계산 기록 (단과대학·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 대시보드에서 |
+| `score_submissions` | 환산점수 계산 기록 (단과대학·성별·학점·거리점수·환산점수, 익명) | 누구나 쓰기만, 조회는 관리자 페이지 [기록]·[학점 통계] 탭 |
 | `roommate_profiles` | 내 체크리스트 (기본 정보 + 체크리스트) | 본인만 |
 | `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
 
@@ -265,7 +265,9 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 - **신고**: 처리 대기/완료/기각. 신고한 사람·신고받은 사람(누적 신고 수·정지 상태), 신고 당시 내용, 운영자 메모, 글 숨기기, 신고받은 사람 정지
 - **사용자**: 구글 로그인한 모든 계정의 이메일·가입일·최근 로그인·쓴 글·보낸 신청·받은/한 신고 수, 이용 정지(3일/7일/30일/무기한/날짜) · 해제 · 메모
 - **합격 제보**: 제보자 이메일과 함께 보고, 이상한 값은 **학습에서 제외**(`is_excluded`)로 표시해 학습용 보기에서 뺍니다.
-- **기록**: 관리 기록, 점수 계산 기록, 예측 요청 기록 (최신순, 한국 시간)
+- **학점 통계**: 점수 계산 기록으로 단과대학별 학점의 건수·평균·중앙값·가운데 50%(하위 25%~상위 25%)·최저·최고. 기간(전체/90/30/7일)·성별로 보기, 분포 차트 + 표
+  (기록은 계산 단위라 같은 사람이 여러 번 계산하면 여러 건. 5건 미만인 단과대학은 흐리게 표시)
+- **기록**: 관리 기록, 점수 계산 기록(성별 포함), 예측 요청 기록 (최신순, 한국 시간)
 - 룸메 신청의 한마디·답장 내용은 관리 화면에도 보이지 않습니다 (신고된 신청은 신고 당시 내용만).
 - 데모 모드(Supabase 미연결)에서는 개발 서버(`npm run dev`)에서 데모 계정으로 로그인하면 관리자 페이지를 볼 수 있고, 이 브라우저의 데이터로 동작합니다.
 

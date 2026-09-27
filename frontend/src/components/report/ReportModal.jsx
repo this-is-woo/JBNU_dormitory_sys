@@ -141,6 +141,7 @@ export default function ReportModal({ open, onClose, userId, defaults }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (saving) return
     if (existing) return setError(`${semesterLabel(form.semester)}에는 이미 제보했어요. 위 목록에서 수정해 주세요.`)
     const message = validate(form)
     if (message) return setError(message)

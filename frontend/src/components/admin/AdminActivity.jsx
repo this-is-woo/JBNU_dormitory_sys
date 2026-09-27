@@ -15,7 +15,8 @@ const KINDS = [
 
 const KIND_NOTE = {
   admin: '관리자 페이지에서 한 일이 모두 남아요.',
-  scores: '홈에서 환산점수가 계산될 때 익명으로 남는 기록이에요 (누가 입력했는지는 남지 않아요).',
+  scores:
+    '홈에서 단과대학·성별·학점·주소지를 모두 입력해 환산점수가 계산될 때 익명으로 남는 기록이에요 (누가 입력했는지는 남지 않아요). 성별을 함께 저장하기 전의 기록은 성별이 “—”로 보여요.',
   predictions: '합격률 예측 요청마다 백엔드가 남기는 기록이에요.',
 }
 
@@ -82,6 +83,7 @@ function ActivityTable({ kind, items }) {
           <tr>
             <th scope="col">시각</th>
             <th scope="col">단과대학</th>
+            <th scope="col">성별</th>
             <th scope="col" className="is-num">학점</th>
             <th scope="col" className="is-num">거리점수</th>
             <th scope="col" className="is-num">환산점수</th>
@@ -92,6 +94,7 @@ function ActivityTable({ kind, items }) {
             <tr key={item.id}>
               <td className="tabular">{formatKst(item.created_at)}</td>
               <td>{collegeName(item.college_code) || item.college_code}</td>
+              <td>{item.gender ?? '—'}</td>
               <td className="is-num tabular">{Number(item.gpa).toFixed(2)}</td>
               <td className="is-num tabular">{Number(item.distance_score).toFixed(2)}</td>
               <td className="is-num tabular">{Number(item.converted_score).toFixed(2)}</td>
@@ -152,7 +155,8 @@ export default function AdminActivity({ initial }) {
   }, [kind, page])
 
   const pageCount = Math.max(1, Math.ceil(state.total / ADMIN_PAGE_SIZE))
-  const demoEmpty = !isSupabaseConfigured && kind !== 'admin'
+  // 데모에서도 점수 계산은 이 브라우저에 남지만, 예측 요청은 백엔드가 서버에만 남긴다
+  const demoEmpty = !isSupabaseConfigured && kind === 'predictions'
 
   return (
     <section className="adm-panel" aria-labelledby="adm-activity-title">

@@ -20,6 +20,7 @@ export function previousSemester(semester) {
 }
 
 export const semesterLabel = (value) => {
+  if (typeof value !== 'string' || !value.includes('-')) return ''
   const [year, term] = value.split('-')
   return `${year}년 ${term}학기`
 }

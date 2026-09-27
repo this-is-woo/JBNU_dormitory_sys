@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from '../config.js'
 import { readModeration } from './localModeration.js'
+import { uid } from './uid.js'
 
 // 신고 · 이용 정지 (supabase/migrations/20261008000000_roommate_reports.sql)
 // 신고는 운영자만 Supabase Dashboard 에서 본다 (roommate_reports_admin).
@@ -56,7 +57,7 @@ function saveLocal(report) {
   const same = (r) =>
     r.reporterId === report.reporterId && r.targetType === report.targetType && r.targetId === report.targetId
   if (reports.some(same)) throw new Error(ERRORS.duplicate)
-  write(REPORTS_KEY, [{ id: crypto.randomUUID(), createdAt: new Date().toISOString(), status: 'pending', ...report }, ...reports])
+  write(REPORTS_KEY, [{ id: uid(), createdAt: new Date().toISOString(), status: 'pending', ...report }, ...reports])
 }
 
 async function rpc(name, args) {

@@ -111,7 +111,69 @@
   color: var(--c-text-3);
 }
 
-/* 점수 계산 방법 */
+/* 점수 계산 방법: 제목을 눌러 접기/펼치기 (기본은 접힘) */
+.block-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.block-toggle:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.block-toggle-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  transition: color 0.15s;
+}
+
+.block-toggle:hover .block-toggle-hint {
+  color: var(--c-text);
+}
+
+/* 접힘: 아래 화살표(펼치기) · 펼침: 위 화살표(접기) */
+.block-toggle-hint svg {
+  transform: rotate(90deg);
+  transition: transform 0.2s;
+}
+
+.block-toggle[aria-expanded='true'] .block-toggle-hint svg {
+  transform: rotate(-90deg);
+}
+
+.rules-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.rules-body[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block-toggle-hint svg {
+    transition: none;
+  }
+}
+
 .formula-card {
   padding: 40px 24px 28px;
   border: 1px solid var(--c-border);

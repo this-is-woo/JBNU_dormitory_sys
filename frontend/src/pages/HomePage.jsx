@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoginModal from '../components/auth/LoginModal.jsx'
-import { IconAlert, IconArrowRight, IconGraduation, IconMapPin, IconStar } from '../components/common/Icons.jsx'
+import {
+  IconAlert,
+  IconArrowRight,
+  IconChevronRight,
+  IconGraduation,
+  IconMapPin,
+  IconStar,
+} from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
@@ -10,6 +17,7 @@ import ReportModal from '../components/report/ReportModal.jsx'
 import { findCollege } from '../data/colleges.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { useRegions } from '../hooks/useRegions.js'
+import { recallAfterLogin, rememberAfterLogin } from '../lib/afterLogin.js'
 import { predictAdmission } from '../lib/api.js'
 import { calcScoreBreakdown, parseGpa, parsePoint } from '../lib/score.js'
 import { recordScore } from '../lib/scoreLog.js'
@@ -73,22 +81,8 @@ const REPORT_POINTS = [
   ['불합격도 똑같이 중요해요', '합격선은 붙은 점수와 떨어진 점수 사이에 있어요'],
 ]
 
-function readAfterLogin() {
-  try {
-    return sessionStorage.getItem(AFTER_LOGIN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-function writeAfterLogin(on) {
-  try {
-    if (on) sessionStorage.setItem(AFTER_LOGIN_KEY, '1')
-    else sessionStorage.removeItem(AFTER_LOGIN_KEY)
-  } catch {
-    // 저장하지 못하면 로그인 뒤 창을 한 번 더 눌러야 한다
-  }
-}
+const readAfterLogin = () => recallAfterLogin(AFTER_LOGIN_KEY) === 'report'
+const writeAfterLogin = (on) => rememberAfterLogin(AFTER_LOGIN_KEY, on ? 'report' : null)
 
 function BlockHead({ id, title, desc }) {
   return (
@@ -108,6 +102,7 @@ export default function HomePage() {
   const { status: authStatus, user, signIn, signInWithIdToken } = useAuth()
   const [reportOpen, setReportOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
+  const [rulesOpen, setRulesOpen] = useState(false)
   const resultRef = useRef(null)
   const slowTimer = useRef(null)
 
@@ -155,15 +150,21 @@ export default function HomePage() {
   const breakdown =
     gpa !== null && sigungu ? calcScoreBreakdown({ gpa, merit, demerit, distanceScore: sigungu.distanceScore }) : null
 
-  // 단과대학·학점·주소지(시/군/구)가 모두 정해져 점수가 나오면 잠시 뒤 익명으로 기록
-  const recordKey = college && breakdown ? [college.code, gpa, breakdown.distanceScore, breakdown.convertedScore].join('|') : null
+  // 단과대학·성별·학점·주소지(시/군/구)가 모두 정해져 점수가 나오면 잠시 뒤 익명으로 기록.
+  // 성별은 점수에 쓰이지 않지만 통계를 성별로 나눠 보려고 함께 남긴다. 성별을 나중에 고르면
+  // 같은 계산이 성별 없이 한 번, 성별과 함께 한 번 두 번 남지 않도록 성별까지 정해진 뒤에 기록한다.
+  const recordKey =
+    college && form.gender && breakdown
+      ? [college.code, form.gender, gpa, breakdown.distanceScore, breakdown.convertedScore].join('|')
+      : null
   useEffect(() => {
     if (!recordKey) return
-    const [collegeCode, g, distanceScore, convertedScore] = recordKey.split('|')
+    const [collegeCode, gender, g, distanceScore, convertedScore] = recordKey.split('|')
     const timer = setTimeout(
       () =>
         recordScore({
           collegeCode,
+          gender,
           gpa: Number(g),
           distanceScore: Number(distanceScore),
           convertedScore: Number(convertedScore),
@@ -249,30 +250,49 @@ export default function HomePage() {
         </section>
 
         <section className="home-block" aria-labelledby="block-rules">
-          <BlockHead id="block-rules" title="환산점수 계산 방법" />
-          <div className="formula-card">
-            <FormulaDisplay />
-            <p className="formula-note">최종 점수는 소수점 셋째 자리에서 반올림합니다.</p>
-          </div>
-          <div className="rule-grid">
-            {SCORE_RULES.map(({ icon: Icon, title, range, body }) => (
-              <article key={title} className="card rule-card">
-                <span className="rule-icon">
-                  <Icon width={20} height={20} />
+          {/* 계산 방법은 필요할 때만 보도록 기본은 접어 둔다 */}
+          <header className="block-head">
+            <h2 id="block-rules">
+              <button
+                type="button"
+                className="block-toggle"
+                aria-expanded={rulesOpen}
+                aria-controls="block-rules-body"
+                onClick={() => setRulesOpen((open) => !open)}
+              >
+                환산점수 계산 방법
+                <span className="block-toggle-hint">
+                  {rulesOpen ? '접기' : '펼치기'}
+                  <IconChevronRight width={18} height={18} />
                 </span>
-                <h3>{title}</h3>
-                <p className="rule-range">{range}</p>
-                {Array.isArray(body) ? (
-                  <ul className="rule-lines">
-                    {body.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>{body}</p>
-                )}
-              </article>
-            ))}
+              </button>
+            </h2>
+          </header>
+          <div id="block-rules-body" className="rules-body" hidden={!rulesOpen}>
+            <div className="formula-card">
+              <FormulaDisplay />
+              <p className="formula-note">최종 점수는 소수점 셋째 자리에서 반올림합니다.</p>
+            </div>
+            <div className="rule-grid">
+              {SCORE_RULES.map(({ icon: Icon, title, range, body }) => (
+                <article key={title} className="card rule-card">
+                  <span className="rule-icon">
+                    <Icon width={20} height={20} />
+                  </span>
+                  <h3>{title}</h3>
+                  <p className="rule-range">{range}</p>
+                  {Array.isArray(body) ? (
+                    <ul className="rule-lines">
+                      {body.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>{body}</p>
+                  )}
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 

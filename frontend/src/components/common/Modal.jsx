@@ -10,18 +10,33 @@ import './Modal.css'
  */
 export default function Modal({ open, onClose, title, subtitle, size = 'md', footer, as: Wrapper = 'div', wrapperProps, children }) {
   const ref = useRef(null)
+  // open 이 false 가 되어 이쪽에서 닫은 경우, 뒤따르는 close 이벤트로 onClose 를 한 번 더 부르지 않는다
+  // (닫기 버튼 → onClose → open=false → dialog.close() → close 이벤트 → onClose 두 번째 호출을 막음)
+  const closingByProp = useRef(false)
 
   useEffect(() => {
     const dialog = ref.current
     if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
+    if (!open && dialog.open) {
+      closingByProp.current = true
+      dialog.close()
+    }
   }, [open])
+
+  // Esc 로 닫힌 경우처럼 브라우저가 먼저 닫았을 때만 부모에게 알린다
+  function handleNativeClose() {
+    if (closingByProp.current) {
+      closingByProp.current = false
+      return
+    }
+    onClose()
+  }
 
   return (
     <dialog
       ref={ref}
       className={`modal modal-${size}`}
-      onClose={onClose}
+      onClose={handleNativeClose}
       onClick={(e) => e.target === ref.current && onClose()}
       aria-label={title}
     >

@@ -116,6 +116,7 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (submitting) return
     const message = validateStep(step, form)
     if (message) return setError(message)
     if (step < STEPS.length - 1) return setStep(step + 1)

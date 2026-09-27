@@ -30,6 +30,8 @@ async function request(path, { timeout = DEFAULT_TIMEOUT_MS, body, ...options } 
     })
     const data = await res.json().catch(() => null)
     if (!res.ok) throw new ApiError(errorMessage(data, res.status), res.status)
+    // 200 인데 JSON 이 아니면(예: API 주소가 잘못돼 웹사이트의 HTML 이 돌아온 경우) 성공으로 보지 않는다
+    if (data === null) throw new ApiError('서버 응답을 이해하지 못했어요. 잠시 후 다시 시도해 주세요.', res.status)
     return data
   } catch (err) {
     if (err instanceof ApiError) throw err
@@ -49,4 +51,11 @@ export const checkHealth = () => request('/health')
  * 호실 유형별 합격률 예측
  * @param {{collegeCode:string, gender:'남'|'여', gpa:number, merit:number, demerit:number, sidoCode:string, sigunguCode:string}} payload
  */
-export const predictAdmission = (payload) => request('/api/v1/predict', { method: 'POST', body: payload })
+export async function predictAdmission(payload) {
+  const data = await request('/api/v1/predict', { method: 'POST', body: payload })
+  // 결과 화면이 기대하는 모양인지 확인 (다르면 화면이 멈추는 대신 오류 안내를 보여 준다)
+  if (!data?.score || !Array.isArray(data.predictions) || !data.model) {
+    throw new ApiError('서버 응답을 이해하지 못했어요. 잠시 후 다시 시도해 주세요.')
+  }
+  return data
+}

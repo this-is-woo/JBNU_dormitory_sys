@@ -1,15 +1,22 @@
 /* 관리자 페이지 (/admin) */
 
-/* 차트 색: 한 지표 = 한 색(파랑). 밝은·어두운 화면의 카드 배경에서 대비·색각 검사를 통과한 단계 */
+/* 차트 색: 한 지표 = 한 색(파랑). 밝은·어두운 화면의 카드 배경에서 대비·색각 검사를 통과한 단계
+   학점 분포: 막대(가운데 50%)는 옅은 단계, 평균 점은 진한 단계 — 같은 파랑의 두 단계라 한 지표로 읽힌다 */
 :root {
   --viz-series: #2a78d6;
   --viz-series-active: #1c5cab;
+  --viz-band: #6da7ec;
+  --viz-dot: #256abf;
+  --viz-dot-active: #104281;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --viz-series: #3987e5;
     --viz-series-active: #6da7ec;
+    --viz-band: #256abf;
+    --viz-dot: #86b6ef;
+    --viz-dot-active: #cde2fb;
   }
 }
 
@@ -182,13 +189,15 @@
 /* 다시 불러오는 동안 이전 목록을 흐리게 두고 자리를 지킨다 */
 .adm-grid,
 .adm-table-wrap,
-.adm-overview {
+.adm-overview,
+.adm-gpa {
   transition: opacity 0.15s;
 }
 
 .adm-grid.is-loading,
 .adm-table-wrap.is-loading,
-.adm-overview.is-loading {
+.adm-overview.is-loading,
+.adm-gpa.is-loading {
   opacity: 0.55;
 }
 
@@ -552,6 +561,11 @@
   overflow-wrap: anywhere;
 }
 
+/* 펼친 표가 넓어도 페이지가 아니라 표 안에서 가로로 밀리게 (격자 칸은 기본값이 "내용 너비 이상"이다) */
+.adm-table-toggle {
+  min-width: 0;
+}
+
 .adm-table-toggle summary {
   display: inline-block;
   padding: 6px 0;
@@ -657,7 +671,8 @@
   gap: 4px 12px;
 }
 
-.adm-section-head h2 {
+.adm-section-head h2,
+.adm-section-head h3 {
   font-size: 20px;
 }
 
@@ -817,6 +832,346 @@
 
 .adm-log-list .adm-muted {
   overflow-wrap: anywhere;
+}
+
+/* ── 학점 통계 ── */
+.adm-gpa {
+  display: grid;
+  gap: 28px;
+}
+
+.adm-gpa-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+
+.adm-gpa-foot {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.adm-table-caption {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 12px;
+  text-align: left;
+  color: var(--c-text-3);
+}
+
+.adm-table tr.is-total > * {
+  background: var(--c-surface);
+  font-weight: 700;
+}
+
+/* 분포 차트: 줄마다 [단과대학 | 눈금 위의 막대 | 평균] */
+.adm-range {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 18px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+}
+
+.adm-range-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12px;
+  color: var(--c-text-2);
+}
+
+.adm-range-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adm-range-key {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+
+.adm-range-key.is-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--viz-dot);
+}
+
+.adm-range-key.is-band {
+  width: 20px;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--viz-band);
+}
+
+.adm-range-key.is-whisker {
+  width: 20px;
+  height: 9px;
+  border-inline: 1px solid var(--c-text-3);
+}
+
+.adm-range-key.is-whisker::before {
+  content: '';
+  position: absolute;
+  inset: 4px 0 auto;
+  height: 1px;
+  background: var(--c-text-3);
+}
+
+.adm-range-body {
+  border-radius: 8px;
+}
+
+.adm-range-body:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 4px;
+}
+
+.adm-range-axis,
+.adm-range-row {
+  display: grid;
+  grid-template-columns: minmax(132px, 180px) minmax(0, 1fr) 52px;
+  grid-template-areas: 'name strip value';
+  align-items: center;
+  column-gap: 12px;
+  padding: 0 8px;
+}
+
+.adm-range-axis {
+  padding-bottom: 6px;
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.adm-range-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 점 둘레(--ring)는 줄 배경과 같은 색이라 막대·선 위에서도 점이 떨어져 보인다 */
+.adm-range-row {
+  --ring: var(--c-surface);
+  min-height: 44px;
+  border-radius: 8px;
+  transition: background-color 0.1s;
+}
+
+.adm-range-row.is-active {
+  --ring: var(--c-surface-2);
+  background: var(--c-surface-2);
+}
+
+.adm-range-name {
+  grid-area: name;
+  display: grid;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.adm-range-axis .adm-range-name,
+.adm-range-axis .adm-range-value {
+  font-weight: 500;
+  color: var(--c-text-3);
+}
+
+.adm-range-name small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-range-value {
+  grid-area: value;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.adm-range-strip {
+  grid-area: strip;
+  position: relative;
+  align-self: stretch;
+  min-height: 28px;
+}
+
+.adm-range-axis .adm-range-strip {
+  min-height: 16px;
+}
+
+/* 양 끝 눈금 글자와 점이 넘치지 않게 안쪽으로 들인 영역. 모든 줄과 눈금이 같은 영역을 쓴다 */
+.adm-range-track {
+  position: absolute;
+  inset: 0 12px;
+}
+
+.adm-range-tick {
+  position: absolute;
+  top: 0;
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.adm-range-grid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--c-border);
+}
+
+.adm-range-whisker {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background: var(--c-text-3);
+}
+
+.adm-range-whisker::before,
+.adm-range-whisker::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 9px;
+  background: inherit;
+}
+
+.adm-range-whisker::before {
+  left: 0;
+}
+
+.adm-range-whisker::after {
+  right: 0;
+}
+
+/* 최저값이 눈금보다 낮으면 왼쪽 끝 세로 막대 대신 ◂ */
+.adm-range-whisker.is-clipped::before {
+  top: -3.5px;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-block: 4px solid transparent;
+  border-right: 5px solid var(--c-text-3);
+  background: none;
+}
+
+.adm-range-note {
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.adm-range-iqr {
+  position: absolute;
+  top: 50%;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 4px;
+  background: var(--viz-band);
+}
+
+.adm-range-dot {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--viz-dot);
+  box-shadow: 0 0 0 2px var(--ring);
+  transition: background-color 0.1s;
+}
+
+.adm-range-row.is-active .adm-range-dot {
+  background: var(--viz-dot-active);
+}
+
+/* 기록이 적은 줄은 표시만 흐리게 (툴팁까지 흐려지지 않게 줄 전체가 아니라 표시에만) */
+.adm-range-row.is-sparse :is(.adm-range-whisker, .adm-range-iqr, .adm-range-dot, .adm-range-value) {
+  opacity: 0.45;
+}
+
+.adm-range-tip {
+  position: absolute;
+  bottom: calc(50% + 12px);
+  left: clamp(88px, var(--x), calc(100% - 88px));
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-bg);
+  box-shadow: var(--shadow-lg);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--c-text-2);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.adm-range-tip-head {
+  margin-bottom: 2px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.adm-range-tip strong {
+  margin-right: 4px;
+  font-size: 13px;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 휴대폰: 이름·평균을 한 줄에, 막대는 그 아래 전체 폭으로 */
+@media (max-width: 640px) {
+  .adm-range {
+    padding: 14px 12px 10px;
+  }
+
+  .adm-range-axis,
+  .adm-range-row {
+    padding: 0 4px;
+  }
+
+  .adm-range-axis {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'strip';
+  }
+
+  .adm-range-axis .adm-range-name,
+  .adm-range-axis .adm-range-value {
+    display: none;
+  }
+
+  .adm-range-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name value'
+      'strip strip';
+    padding-top: 6px;
+  }
+
+  .adm-range-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+  }
 }
 
 /* ── 알림 (작업 결과) ── */

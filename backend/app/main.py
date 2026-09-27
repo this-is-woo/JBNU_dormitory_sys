@@ -36,7 +36,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     errors = exc.errors()
     labels = []
     for err in errors:
-        label = FIELD_LABELS.get(str(err.get("loc", ("",))[-1]))
+        loc = err.get("loc") or ("",)
+        label = FIELD_LABELS.get(str(loc[-1]))
         if label and label not in labels:
             labels.append(label)
     if labels:

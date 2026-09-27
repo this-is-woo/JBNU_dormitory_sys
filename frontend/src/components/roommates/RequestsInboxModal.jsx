@@ -197,15 +197,19 @@ function ReceivedCard({ request, index, userId, myChecklist, showPost, onReplied
 
 function SentCard({ request, userId, onCanceled }) {
   const [confirming, setConfirming] = useState(false)
+  const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const a = request.author ?? {}
 
   async function cancel() {
+    if (pending) return
+    setPending(true)
     try {
       await cancelRequest(request.postId, userId)
       onCanceled(request)
     } catch (err) {
       setError(err.message)
+      setPending(false)
     }
   }
 
@@ -250,7 +254,7 @@ function SentCard({ request, userId, onCanceled }) {
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirming(false)}>
               아니요
             </button>
-            <button type="button" className="btn btn-danger btn-sm" onClick={cancel}>
+            <button type="button" className="btn btn-danger btn-sm" onClick={cancel} disabled={pending}>
               신청 취소
             </button>
           </>
@@ -298,15 +302,19 @@ function ReceivedTab({ postId, user, myChecklist, onBlocked }) {
   const replied = (id, saved) =>
     setState((s) => ({ ...s, items: s.items.map((r) => (r.id === id ? { ...r, ...saved } : r)) }))
 
-  // 신고 (+ 원하면 함께 차단)
+  // 신고 (+ 원하면 함께 차단). 차단만 실패하면 신고 창이 그 사실을 알린다
   async function report({ reason, detail, block: alsoBlock }) {
     const { request } = reportTarget
     await reportRequest(request, reason, detail, user.id)
-    if (alsoBlock) {
+    if (!alsoBlock) return { blocked: false }
+    try {
       await blockApplicant(request, user.id)
-      setState((s) => ({ ...s, items: s.items.filter((r) => r.id !== request.id) }))
-      onBlocked()
+    } catch {
+      return { blocked: false, blockFailed: true }
     }
+    setState((s) => ({ ...s, items: s.items.filter((r) => r.id !== request.id) }))
+    onBlocked()
+    return { blocked: true }
   }
 
   async function block() {

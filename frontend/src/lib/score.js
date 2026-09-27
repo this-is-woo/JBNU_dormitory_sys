@@ -52,4 +52,4 @@ export function calcScoreBreakdown({ gpa, merit, demerit, distanceScore }) {
   }
 }
 
-export const formatScore = (n) => n.toFixed(2)
+export const formatScore = (n) => (Number.isFinite(n) ? n.toFixed(2) : '—')

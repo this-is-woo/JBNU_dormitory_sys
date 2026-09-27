@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '../config.js'
+import { uid } from './uid.js'
 
 // 합격 결과 제보 (supabase/migrations/20260930000000_admission_reports.sql)
 // 로그인한 본인 제보만 읽고 쓸 수 있다 (RLS). Supabase 미연결 시에는 이 브라우저에만 저장 (데모 계정).
@@ -79,7 +80,7 @@ export async function saveReport(report, userId, id = null) {
     const now = new Date().toISOString()
     const saved = id
       ? { ...list.find((r) => r.id === id), ...report, updatedAt: now }
-      : { ...report, id: crypto.randomUUID(), userId, createdAt: now, updatedAt: null }
+      : { ...report, id: uid(), userId, createdAt: now, updatedAt: null }
     writeLocal(id ? list.map((r) => (r.id === id ? saved : r)) : [saved, ...list])
     return saved
   }

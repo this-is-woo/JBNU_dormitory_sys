@@ -21,6 +21,7 @@ import { DORMITORIES } from '../data/dormitories.js'
 import { GENDERS } from '../data/roommateOptions.js'
 import { useAdmin } from '../hooks/useAdmin.js'
 import { authMode } from '../hooks/useAuth.js'
+import { recallAfterLogin, rememberAfterLogin } from '../lib/afterLogin.js'
 import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import { blockAuthor, cancelRequest, fetchInboxCounts, fetchSentPostIds, sendRequest } from '../lib/roommateRequests.js'
@@ -53,22 +54,8 @@ const LOGIN_REASONS = {
 }
 const NEEDS_PROFILE = ['write', 'unlock', 'requests']
 
-function readAfterLogin() {
-  try {
-    return sessionStorage.getItem(AFTER_LOGIN_KEY)
-  } catch {
-    return null
-  }
-}
-
-function writeAfterLogin(action) {
-  try {
-    if (action) sessionStorage.setItem(AFTER_LOGIN_KEY, action)
-    else sessionStorage.removeItem(AFTER_LOGIN_KEY)
-  } catch {
-    // 저장하지 못하면 로그인 뒤 이어서 하기만 생략된다
-  }
-}
+const readAfterLogin = () => recallAfterLogin(AFTER_LOGIN_KEY)
+const writeAfterLogin = (action) => rememberAfterLogin(AFTER_LOGIN_KEY, action)
 
 function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) {
   if (status === 'loading') return <span className="rm-account-placeholder" aria-hidden="true" />
@@ -102,8 +89,9 @@ function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) 
 
 export default function RoommatesPage() {
   const { status: authStatus, user, signIn, signInWithIdToken, signOut, isAdmin } = useAdmin()
-  // 내 체크리스트(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready'
+  // 내 체크리스트(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready' | 'error'(불러오지 못함)
   const [profile, setProfile] = useState({ status: 'idle', data: null })
+  const [profileRetry, setProfileRetry] = useState(0)
   // 지금 페이지의 글만 들고 있는다. status: 'loading'(처음) | 'ready' | 'error', loading: 페이지 넘기는 중
   const [board, setBoard] = useState({ status: 'loading', items: [], total: 0, loading: true })
   const [page, setPage] = useState(1)
@@ -139,11 +127,13 @@ export default function RoommatesPage() {
   const signedIn = authStatus === 'signedIn'
   const unlocked = signedIn && Boolean(profile.data)
   const gateStage =
-    authStatus === 'loading' || (signedIn && profile.status !== 'ready')
-      ? 'loading'
-      : !signedIn
-        ? 'signedOut'
-        : 'noProfile'
+    signedIn && profile.status === 'error'
+      ? 'error'
+      : authStatus === 'loading' || (signedIn && profile.status !== 'ready')
+        ? 'loading'
+        : !signedIn
+          ? 'signedOut'
+          : 'noProfile'
 
   // 로그인하면 내 체크리스트를 불러온다
   useEffect(() => {
@@ -155,11 +145,12 @@ export default function RoommatesPage() {
     setProfile({ status: 'loading', data: null })
     fetchMyProfile(user.id)
       .then((data) => active && setProfile({ status: 'ready', data }))
-      .catch(() => active && setProfile({ status: 'ready', data: null }))
+      // 불러오지 못한 것을 "체크리스트 없음"으로 보면, 등록 창이 떠서 이미 있는 체크리스트를 다시 만들려다 실패한다
+      .catch(() => active && setProfile({ status: 'error', data: null }))
     return () => {
       active = false
     }
-  }, [signedIn, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [signedIn, user?.id, profileRetry]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 게시판은 체크리스트를 등록한 뒤에만 불러온다 (DB 도 그 전에는 글을 내주지 않는다)
   useEffect(() => {
@@ -233,7 +224,13 @@ export default function RoommatesPage() {
   // 이용 정지 여부 (게시판을 열 때 한 번)
   useEffect(() => {
     if (!unlocked) return setSuspension({ suspended: false, until: null })
-    fetchMyStatus(user?.id).then(setSuspension)
+    let active = true
+    fetchMyStatus(user?.id)
+      .then((status) => active && setSuspension(status))
+      .catch(() => {}) // 확인하지 못하면 안내만 생략 (실제 제한은 DB 가 한다)
+    return () => {
+      active = false
+    }
   }, [unlocked, user?.id])
 
   useEffect(() => {
@@ -367,15 +364,19 @@ export default function RoommatesPage() {
     setBlockPost(post)
   }
 
-  // 게시글 신고 (+ 원하면 글쓴이 차단)
+  // 게시글 신고 (+ 원하면 글쓴이 차단). 신고는 됐는데 차단만 실패하면 신고 창이 그 사실을 알린다
   async function submitReport({ reason, detail, block }) {
     await reportPost(reportTarget, reason, detail, user.id)
-    if (block) {
+    if (!block) return { blocked: false }
+    try {
       await blockAuthor(reportTarget, user.id)
-      setDetail(null)
-      refreshRequests()
-      reload()
+    } catch {
+      return { blocked: false, blockFailed: true }
     }
+    setDetail(null)
+    refreshRequests()
+    reload()
+    return { blocked: true }
   }
 
   async function confirmDeletePost() {
@@ -561,7 +562,12 @@ export default function RoommatesPage() {
       />
 
       <div className="container rm-toolbar">
-        <div className="rm-header-actions">
+        {/* 로그인 전에는 게시판처럼 흐리게 두고 누를 수 없게 한다 (로그인은 아래 안내 창·로그인 버튼에서) */}
+        <div
+          className={`rm-header-actions${signedIn ? '' : ' is-locked'}`}
+          inert={!signedIn}
+          aria-hidden={signedIn ? undefined : true}
+        >
           <button type="button" className="btn btn-primary btn-lg" onClick={openWrite}>
             글쓰기
           </button>
@@ -597,7 +603,12 @@ export default function RoommatesPage() {
           <div className="rm-layout rm-locked-content" inert aria-hidden="true">
             {board$}
           </div>
-          <BoardGate stage={gateStage} onLogin={() => requireAccess('unlock')} onRegister={() => requireAccess('unlock')} />
+          <BoardGate
+            stage={gateStage}
+            onLogin={() => requireAccess('unlock')}
+            onRegister={() => requireAccess('unlock')}
+            onRetry={() => setProfileRetry((n) => n + 1)}
+          />
         </div>
       )}
 

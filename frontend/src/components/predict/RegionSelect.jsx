@@ -1,6 +1,8 @@
 import { koCompare } from '../../data/colleges.js'
 
 const byName = (a, b) => koCompare(a.name, b.name)
+// toSorted() 는 iOS 15 Safari 에 없어 복사한 뒤 정렬한다
+const sortedByName = (list) => [...list].sort(byName)
 
 /**
  * 시/도 → 시/군/구 연쇄 드롭다운. 목록은 「2026학년도 선발기준 거리 데이터」에 있는 지역만 (data/jbnu_distance_2026.csv).
@@ -22,7 +24,7 @@ export default function RegionSelect({ regions, value, onChange }) {
         <option value="" hidden>
           시/도
         </option>
-        {regions?.sido.toSorted(byName).map((s) => (
+        {regions && sortedByName(regions.sido).map((s) => (
           <option key={s.code} value={s.code}>
             {s.name}
           </option>
@@ -39,7 +41,7 @@ export default function RegionSelect({ regions, value, onChange }) {
         <option value="" hidden>
           시/군/구
         </option>
-        {sido?.sigungu.toSorted(byName).map((g) => (
+        {sido && sortedByName(sido.sigungu).map((g) => (
           <option key={g.code} value={g.code}>
             {g.name}
           </option>

@@ -72,7 +72,8 @@ export const isAnswered = (value) => value !== undefined && value !== null && va
 export function answerLabel(item, value) {
   if (!isAnswered(value)) return '—'
   if (item.type === 'ox') return value ? 'O' : 'X'
-  return value
+  // 예상 밖의 값(객체 등)이 저장돼 있어도 화면이 멈추지 않게 글자로 바꿔 보여 준다
+  return typeof value === 'object' ? JSON.stringify(value) : String(value)
 }
 
 /** 취침 시간 필터: 12시 이전(10시 이전·10-11·11-12) / 12시 이후 */

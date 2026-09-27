@@ -537,3 +537,27 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+/* 화면 오류 안내 (components/common/RouteError.jsx) */
+.route-error {
+  padding: 120px 0 80px;
+  text-align: center;
+}
+
+.route-error h1 {
+  font-size: clamp(28px, 4vw, 40px);
+}
+
+.route-error p {
+  margin-top: 14px;
+  font-size: 17px;
+  color: var(--c-text-2);
+}
+
+.route-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 32px;
+}

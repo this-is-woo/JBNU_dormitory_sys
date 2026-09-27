@@ -8,6 +8,7 @@ import Modal from '../common/Modal.jsx'
  * 신고 입력 창.
  * target: { title, context }  (예: "이 글을 신고할까요?", "게시글 · 대동관 · 2026년 2학기")
  * onSubmit({ reason, detail, block }) 가 끝나면 "접수 완료" 화면을 보여 준다.
+ *   onSubmit 은 { blocked, blockFailed } 를 돌려줄 수 있다 (신고는 됐는데 차단만 실패한 경우를 알리려고).
  */
 export default function ReportModal({ target, onClose, onSubmit }) {
   const [reason, setReason] = useState('')
@@ -16,6 +17,7 @@ export default function ReportModal({ target, onClose, onSubmit }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [outcome, setOutcome] = useState(null) // { blocked, blockFailed }
 
   const needsDetail = reason === 'etc'
 
@@ -27,7 +29,8 @@ export default function ReportModal({ target, onClose, onSubmit }) {
     setPending(true)
     setError('')
     try {
-      await onSubmit({ reason, detail, block })
+      const result = await onSubmit({ reason, detail, block })
+      setOutcome(result ?? { blocked: block })
       setDone(true)
     } catch (err) {
       setError(err.message)
@@ -69,9 +72,15 @@ export default function ReportModal({ target, onClose, onSubmit }) {
             </span>
             <p>
               신고해 주셔서 고마워요.
-              {block && (
+              {outcome?.blocked && (
                 <>
                   <br />이 사용자는 차단했어요. [신청 내역 → 차단 목록]에서 해제할 수 있어요.
+                </>
+              )}
+              {outcome?.blockFailed && (
+                <>
+                  <br />
+                  <strong>차단은 하지 못했어요.</strong> 잠시 후 [차단]을 다시 눌러 주세요.
                 </>
               )}
             </p>

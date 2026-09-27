@@ -48,15 +48,39 @@ class Predictor(Protocol):
         ...
 
 
-class BaselinePredictor:
-    """모델 연결 전 임시 예측: 환산점수와 호실 유형·성별 가상 기준점의 차이를 로지스틱 함수로 변환.
+def cutoff_probability(
+    diff: float,
+    band: float = 5.0,
+    edge: float = 0.10,
+    tail: float = 1.0,
+    floor: float = 0.01,
+) -> float:
+    """환산점수 - 기준점(diff) → 합격 확률.
 
+    호관별 합격선은 해마다 크게 움직이지 않으므로, 불확실한 구간은 기준점 ±band 점 안으로 본다.
+      · 구간 안 (|diff| ≤ band): 로지스틱 곡선. 기준점에서 50%, 구간 끝(±band)에서 edge / 1 - edge
+      · 구간 밖: 1점 멀어질 때마다 남은 확률이 e^(-1/tail) 배로 줄어 빠르게 0% · 100% 쪽으로 간다
+        (band 에서 값이 이어지고, 기울기는 구간 밖이 더 가파르다)
+    임시 기준점이라 확실하다고 말하지 않도록 floor ~ 1 - floor 로 자른다.
+    """
+    if abs(diff) <= band:
+        scale = band / math.log((1 - edge) / edge)  # diff = ±band 에서 edge / 1 - edge 가 되는 기울기
+        p = 1 / (1 + math.exp(-diff / scale))
+    else:
+        outside = edge * math.exp(-(abs(diff) - band) / tail)
+        p = 1 - outside if diff > 0 else outside
+    return min(1 - floor, max(floor, p))
+
+
+class BaselinePredictor:
+    """모델 연결 전 임시 예측: 환산점수와 호실 유형·성별 가상 기준점의 차이를 확률로 변환 (cutoff_probability).
+
+    기준점 ±5점 안에서는 완만하게, 그 밖으로 벗어나면 급격하게 0% · 100% 쪽으로 간다.
     성별을 모르면(옛 요청) 그 호실에 지원할 수 있는 성별의 기준점 평균을 쓴다.
     """
 
     mode = "baseline"
-    version = "baseline-v0"
-    scale = 3.0
+    version = "baseline-v1"
 
     def predict(self, features: dict) -> dict[str, float]:
         score = features["converted_score"]
@@ -67,7 +91,7 @@ class BaselinePredictor:
             if gender is not None and gender not in cutoffs:
                 continue
             cutoff = cutoffs[gender] if gender is not None else sum(cutoffs.values()) / len(cutoffs)
-            result[r.code] = 1 / (1 + math.exp(-(score - cutoff) / self.scale))
+            result[r.code] = cutoff_probability(score - cutoff)
         return result
 
 

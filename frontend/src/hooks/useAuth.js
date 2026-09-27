@@ -40,13 +40,23 @@ export function useAuth() {
     }
     let active = true
     let subscription
-    import('../lib/supabase.js').then(({ supabase }) => {
-      if (!active) return
-      supabase.auth.getSession().then(({ data }) => active && setUser(toUser(data.session?.user) ?? null))
-      ;({ data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(toUser(session?.user) ?? null)
-      }))
-    })
+    // 불러오지 못하면(네트워크·저장소 오류) 로그아웃 상태로 둔다. "확인하는 중"에 머물러 화면이 멈추지 않게.
+    const signedOut = (err) => {
+      console.warn('[auth] 로그인 상태를 확인하지 못했습니다.', err)
+      if (active) setUser(null)
+    }
+    import('../lib/supabase.js')
+      .then(({ supabase }) => {
+        if (!active) return
+        supabase.auth
+          .getSession()
+          .then(({ data }) => active && setUser(toUser(data.session?.user) ?? null))
+          .catch(signedOut)
+        ;({ data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(toUser(session?.user) ?? null)
+        }))
+      })
+      .catch(signedOut)
     return () => {
       active = false
       subscription?.unsubscribe()
@@ -95,8 +105,15 @@ export function useAuth() {
       window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
-    const { supabase } = await import('../lib/supabase.js')
-    await supabase.auth.signOut()
+    try {
+      const { supabase } = await import('../lib/supabase.js')
+      // 서버에 알리지 못하면(오프라인 등) 이 브라우저의 세션만이라도 지운다.
+      // 그렇지 않으면 화면만 로그아웃되고, 새로고침하면 다시 로그인된 채로 돌아온다.
+      const { error } = await supabase.auth.signOut()
+      if (error) await supabase.auth.signOut({ scope: 'local' })
+    } catch (err) {
+      console.warn('[auth] 로그아웃 중 오류', err)
+    }
     // 구글 원탭 자동 로그인이 바로 다시 로그인시키지 않도록
     window.google?.accounts?.id?.disableAutoSelect()
     setUser(null)

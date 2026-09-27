@@ -12,6 +12,7 @@ import {
   REPORT_STATUS_FILTERS,
   REPORT_STATUS_LABEL,
   formatCount,
+  asText,
   formatKst,
   reasonLabel,
   suspendedUntilLabel,
@@ -20,7 +21,9 @@ import {
 const STATUS_CHIP = { pending: 'chip-warning', reviewed: 'chip-success', dismissed: '' }
 
 function Snapshot({ report }) {
-  const s = report.snapshot
+  // 신고 당시 내용은 모양을 보장할 수 없어(예전에는 지어낸 내용도 들어올 수 있었다) 모두 글자로 바꿔 보여 준다
+  const raw = report.snapshot && typeof report.snapshot === 'object' ? report.snapshot : {}
+  const s = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, asText(v)]))
   if (report.targetType === 'request') {
     return (
       <div className="adm-snapshot">

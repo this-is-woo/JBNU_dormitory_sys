@@ -79,10 +79,13 @@ export async function saveProfile(profile, userId, exists) {
     return saved
   }
   const supabase = await client()
-  const query = exists
-    ? supabase.from('roommate_profiles').update(toRow(profile)).eq('user_id', userId)
-    : supabase.from('roommate_profiles').insert(toRow(profile))
-  const { data, error } = await query.select(COLUMNS).single()
+  const update = () => supabase.from('roommate_profiles').update(toRow(profile)).eq('user_id', userId).select(COLUMNS).single()
+  let { data, error } = exists
+    ? await update()
+    : await supabase.from('roommate_profiles').insert(toRow(profile)).select(COLUMNS).single()
+  // 다른 탭·기기에서 먼저 등록한 경우: 새로 만들지 말고 고친다
+  if (error?.code === '23505') ({ data, error } = await update())
+  if (error?.hint === 'dorm_gender') throw new Error('고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.')
   if (error) throw new Error('내 체크리스트를 저장하지 못했어요. 입력값을 확인해 주세요.')
   return fromRow(data)
 }
