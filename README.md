@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -227,6 +227,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 - 체크리스트 답변은 `roommate_posts.checklist`(jsonb)에 저장됩니다. 항목을 바꾸려면 `roommateChecklist.js` 만 수정하면 됩니다.
 - **필터**: 호관·성별
 - 신청은 글 하나에 한 번이고, 글을 지우면 그 글에 온 신청도 함께 지워집니다. 부적절한 신청은 Table Editor 에서 `roommate_requests` 행을 지웁니다.
+- 정렬: 최신 순 · 일치 많은 순(DB 함수 `list_roommate_posts_by_match`) · 신청 적은 순. 모든 정렬에서 모집 중인 글이 먼저
 - 목록은 **무한 스크롤**: 12개씩 DB 에서 받아오고, 목록 끝에 가까워지면 다음 12개를 이어 붙입니다 (Supabase 전송량 절약). 모집 중인 글이 먼저, 그다음 최신순.
 - 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼, 내 정보·내가 쓴 글·신청 내역은 햄버거 메뉴에서 (새 신청·답장이 있으면 메뉴 아이콘에 빨간 점)
 - **내가 쓴 글**: 글마다 `user_id`(= `auth.uid()`)가 저장되고, RLS 정책으로 글쓴이만 수정·삭제·모집완료를 바꿀 수 있습니다.

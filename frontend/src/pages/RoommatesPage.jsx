@@ -38,6 +38,7 @@ import {
   createRoommatePost,
   deleteRoommatePost,
   fetchRoommatePosts,
+  SORTS,
   roommateStorage,
   updateRoommatePost,
 } from '../lib/roommates.js'
@@ -108,6 +109,9 @@ export default function RoommatesPage() {
   const sentinelRef = useRef(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
+  const [sort, setSort] = useState('newest')
+  // 내가 쓴 글 창을 다시 불러오게 하는 번호 (그 창에서 연 글쓰기로 글을 고친 뒤)
+  const [myPostsKey, setMyPostsKey] = useState(0)
   const feedRef = useRef(null)
   // null: 닫힘 / { post: null }: 새 글 / { post }: 수정
   const [editor, setEditor] = useState(null)
@@ -164,7 +168,9 @@ export default function RoommatesPage() {
   }, [signedIn, user?.id, profileRetry]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const boardQuery = () => ({
+    sort,
     userId: user?.id,
+    myChecklist: profile.data?.checklist ?? null,
     semester: filters.semester === ALL ? null : filters.semester,
     dormitory: filters.dormitory === ALL ? null : filters.dormitory,
     gender: filters.gender === ALL ? null : filters.gender,
@@ -182,7 +188,7 @@ export default function RoommatesPage() {
         setBoard({ status: 'ready', items, total, loading: false, more: false, moreError: false })
       })
       .catch(() => gen === genRef.current && setBoard((b) => ({ ...b, status: 'error', loading: false })))
-  }, [unlocked, user?.id, filters.semester, filters.dormitory, filters.gender, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [unlocked, user?.id, filters.semester, filters.dormitory, filters.gender, sort, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasMore = board.status === 'ready' && board.items.length < board.total
 
@@ -332,6 +338,10 @@ export default function RoommatesPage() {
     wantRef.current = PAGE_SIZE
     setFilters(INITIAL_FILTERS)
   }
+  const changeSort = (value) => {
+    wantRef.current = PAGE_SIZE
+    setSort(value)
+  }
   const filtered = Object.values(filters).some((v) => v !== ALL)
   const activeFilters = Object.values(filters).filter((v) => v !== ALL).length
   const filterSummary =
@@ -339,6 +349,7 @@ export default function RoommatesPage() {
       filters.semester !== ALL && semesterLabel(filters.semester),
       filters.dormitory !== ALL && DORMITORIES.find((d) => d.code === filters.dormitory)?.name,
       filters.gender !== ALL && GENDERS.find((g) => g.value === filters.gender)?.label,
+      sort !== 'newest' && SORTS.find((o) => o.value === sort)?.label,
     ]
       .filter(Boolean)
       .join(' · ') || '전체 글'
@@ -351,7 +362,11 @@ export default function RoommatesPage() {
   async function handleSubmit(values) {
     const post = { ...profileFields(profile.data), ...values }
     if (editor?.post) {
-      replacePost(await updateRoommatePost(editor.post.id, post, user.id))
+      const saved = await updateRoommatePost(editor.post.id, post, user.id)
+      replacePost(saved)
+      // 자세히 보기·내가 쓴 글 창에서 연 수정이면, 돌아갔을 때 고친 내용이 보이게
+      setDetail((d) => (d?.id === saved.id ? saved : d))
+      setMyPostsKey((k) => k + 1)
     } else {
       await createRoommatePost(post, user.id)
       // 새 글은 목록 맨 위에 온다
@@ -363,9 +378,8 @@ export default function RoommatesPage() {
 
   // 내 글이면 그 글에 온 신청, 남의 글이면 신청 보내기(이미 보냈으면 취소) 확인 창
   function handleRequest(post) {
+    // 여는 창(자세히 보기·내가 쓴 글)은 그대로 두고 위에 띄운다: 닫으면 그 창으로 돌아간다
     if (isMine(post)) {
-      setDetail(null)
-      setMyPostsOpen(false)
       setInbox({ postId: post.id })
       return
     }
@@ -436,9 +450,8 @@ export default function RoommatesPage() {
     reload()
   }
 
+  // 자세히 보기·내가 쓴 글 창에서 [수정]을 눌러도 그 창은 닫지 않는다: 글쓰기 창을 닫으면 그 창으로 돌아간다
   function openEditor(post) {
-    setDetail(null)
-    setMyPostsOpen(false)
     setEditor({ post })
   }
 
@@ -477,6 +490,10 @@ export default function RoommatesPage() {
         <span className="rm-filter-chevron" aria-hidden="true" />
       </button>
       <aside id="rm-filters" className={`rm-filters${filtersOpen ? ' is-open' : ''}`} aria-label="게시글 필터">
+        <div className="rm-filter">
+          <h2>정렬</h2>
+          <ChoiceGroup label="정렬" size="sm" options={SORTS} value={sort} onChange={changeSort} />
+        </div>
         <div className="rm-filter">
           <h2>학기</h2>
           <ChoiceGroup
@@ -665,7 +682,7 @@ export default function RoommatesPage() {
       {/* 모바일: 글쓰기는 화면 아래에 늘 떠 있는 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서) */}
       {signedIn && (
         <button type="button" className="rm-fab" onClick={openWrite}>
-          <IconPencil width={18} height={18} />
+          <IconPencil width={16} height={16} />
           글쓰기
         </button>
       )}
@@ -696,15 +713,14 @@ export default function RoommatesPage() {
             open={Boolean(editor)}
             initial={editor?.post ?? null}
             profile={profile.data}
-            onEditProfile={() => {
-              setEditor(null)
-              setProfileOpen(true)
-            }}
+            // 글쓰기 창은 그대로 두고 내 정보 창을 위에 띄운다: 내 정보 창을 닫거나 저장하면 글쓰기로 돌아간다
+            onEditProfile={() => setProfileOpen(true)}
             onClose={() => setEditor(null)}
             onSubmit={handleSubmit}
           />
           <MyPostsModal
             open={myPostsOpen}
+            reloadKey={myPostsKey}
             userId={user.id}
             onClose={() => setMyPostsOpen(false)}
             onView={setDetail}

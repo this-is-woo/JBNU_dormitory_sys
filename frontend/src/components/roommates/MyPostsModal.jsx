@@ -5,7 +5,7 @@ import Modal from '../common/Modal.jsx'
 import { dormName, timeAgo } from './postFormat.js'
 
 /** 로그인한 구글 계정으로 쓴 글 목록 + 모집완료 / 수정 / 자세히 보기 / 삭제 */
-export default function MyPostsModal({ open, userId, onClose, onView, onRequests, onEdit, onDeleted, onChanged }) {
+export default function MyPostsModal({ open, reloadKey = 0, userId, onClose, onView, onRequests, onEdit, onDeleted, onChanged }) {
   const [state, setState] = useState({ status: 'loading', posts: [] })
   const [confirmId, setConfirmId] = useState(null)
   const [error, setError] = useState('')
@@ -24,7 +24,7 @@ export default function MyPostsModal({ open, userId, onClose, onView, onRequests
     return () => {
       active = false
     }
-  }, [open, userId])
+  }, [open, userId, reloadKey])
 
   async function remove(id) {
     if (busyId) return

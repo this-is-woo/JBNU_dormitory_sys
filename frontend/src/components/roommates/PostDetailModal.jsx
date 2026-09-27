@@ -1,7 +1,36 @@
+import { useState } from 'react'
+import { IconChevronRight } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
 import ChecklistView from './ChecklistView.jsx'
 import { requestButton } from './RoommateCard.jsx'
 import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
+
+/** 체크리스트: 기본은 접어 두고 [펼치기]로 연다 (글마다 처음엔 접힌 상태) */
+function ChecklistSection({ checklist }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <section className="post-detail-section">
+      <h3 className="post-detail-heading">
+        <button
+          type="button"
+          className="post-detail-toggle"
+          aria-expanded={open}
+          aria-controls="post-detail-checklist"
+          onClick={() => setOpen((v) => !v)}
+        >
+          생활 습관 체크리스트
+          <span className="post-detail-toggle-hint">
+            {open ? '접기' : '펼치기'}
+            <IconChevronRight width={16} height={16} />
+          </span>
+        </button>
+      </h3>
+      <div id="post-detail-checklist" hidden={!open}>
+        <ChecklistView checklist={checklist} />
+      </div>
+    </section>
+  )
+}
 
 /** 게시글 전체 보기: 기본 정보 + 체크리스트 + 자기소개. 연락은 룸메 신청으로 */
 export default function PostDetailModal({ post, mine = false, sent = false, myGender = null, onClose, onEdit, onRequest, onBlock, onReport }) {
@@ -69,10 +98,7 @@ export default function PostDetailModal({ post, mine = false, sent = false, myGe
               <p className="post-detail-content">{post.content}</p>
             </section>
           )}
-          <section className="post-detail-section">
-            <h3>생활 습관 체크리스트</h3>
-            <ChecklistView checklist={post.checklist} />
-          </section>
+          <ChecklistSection key={post.id} checklist={post.checklist} />
         </div>
       )}
     </Modal>

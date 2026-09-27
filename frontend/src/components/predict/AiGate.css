@@ -1,18 +1,69 @@
-/* AI 예측 안내: 한 줄 + 확인 버튼 */
 .ai-gate {
+  position: relative;
+}
+
+/* 안내 카드가 들어갈 만큼만 높이를 확보하고, 확인한 뒤에는 내용 높이에 맞춘다 */
+.ai-gate:not(.is-unlocked) {
+  min-height: 380px;
+}
+
+.ai-gate-content {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+.ai-gate:not(.is-unlocked) .ai-gate-content {
+  filter: blur(7px);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ai-gate-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px 20px;
-  padding: 16px 20px;
-  border: 1px solid var(--c-border);
+  justify-content: center;
+  padding: 24px;
+}
+
+.ai-gate-card {
+  max-width: 460px;
+  padding: 32px;
+  border: 1px solid var(--c-border-strong);
   border-radius: var(--radius-lg);
+  background: var(--c-bg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: gate-in 0.3s ease;
+}
+
+.ai-gate-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary-text);
+}
+
+.ai-gate-card h2 {
+  margin-top: 16px;
+  font-size: 22px;
+}
+
+.ai-gate-card p {
+  margin: 12px 0 24px;
   font-size: 15px;
   color: var(--c-text-2);
 }
 
-.ai-gate strong {
-  font-weight: 600;
-  color: var(--c-text);
+@keyframes gate-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }

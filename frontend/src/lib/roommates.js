@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from '../config.js'
+import { matchCount } from '../components/roommates/postFormat.js'
 import { isLocallySuspended } from './localModeration.js'
 import { isLocallyBlocked, localRequestCount } from './roommateRequests.js'
 import { currentSemester } from './semester.js'
@@ -153,23 +154,50 @@ export const roommateStorage = isSupabaseConfigured ? 'supabase' : 'local'
 
 export const PAGE_SIZE = 12
 
+// 목록 정렬. 모든 정렬에서 모집 중인 글이 먼저 온다
+//   newest: 최신 순 · match: 내 정보와 일치 많은 순 (DB 함수 list_roommate_posts_by_match) · fewest: 받은 신청 적은 순
+export const SORTS = [
+  { value: 'newest', label: '최신 순' },
+  { value: 'match', label: '일치 많은 순' },
+  { value: 'fewest', label: '신청 적은 순' },
+]
+
 // 모집 중인 글 먼저, 그다음 최신순
 const byOpenThenNewest = (a, b) =>
   Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed)) || b.createdAt.localeCompare(a.createdAt)
 
+// 로컬 모드 정렬 (DB 와 같은 순서)
+function localSorter(sort, userId, myChecklist) {
+  if (sort === 'fewest') {
+    return (a, b) =>
+      Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed)) ||
+      a.requestCount - b.requestCount ||
+      b.createdAt.localeCompare(a.createdAt)
+  }
+  if (sort === 'match') {
+    const score = (p) => (p.authorId === userId ? -1 : (matchCount(myChecklist, p.checklist) ?? 0))
+    return (a, b) =>
+      Number(Boolean(a.isClosed)) - Number(Boolean(b.isClosed)) || score(b) - score(a) || b.createdAt.localeCompare(a.createdAt)
+  }
+  return byOpenThenNewest
+}
+
 /**
  * 게시글 목록의 한 구간 (무한 스크롤). 필터와 구간 자르기를 DB 에서 처리해 필요한 글만 받아온다 (Supabase 전송량 절약).
- * @param {{ offset?: number, limit?: number, semester?: string|null, dormitory?: string|null, gender?: string|null, userId?: string }} options
- *   offset 번째 글부터 limit 개. userId 는 로컬 모드에서 차단한 사이의 글을 숨기는 데만 쓴다 (Supabase 에서는 DB 정책이 숨긴다)
+ * @param {{ offset?: number, limit?: number, sort?: string, semester?: string|null, dormitory?: string|null, gender?: string|null, userId?: string, myChecklist?: object }} options
+ *   offset 번째 글부터 limit 개. sort 는 SORTS 의 value.
+ *   userId · myChecklist 는 로컬 모드에서만 쓴다 (차단한 사이 숨기기 · 일치 수 계산. Supabase 에서는 DB 가 한다)
  * @returns {Promise<{ items: object[], total: number }>}
  */
 export async function fetchRoommatePosts({
   offset = 0,
   limit = PAGE_SIZE,
+  sort = 'newest',
   semester = null,
   dormitory = null,
   gender = null,
   userId = null,
+  myChecklist = null,
 } = {}) {
   const from = Math.max(0, offset)
   const size = Math.max(1, limit)
@@ -186,16 +214,28 @@ export async function fetchRoommatePosts({
           (p.authorId === userId || (p.isOpen !== false && !isLocallySuspended(p.authorId))),
       )
       .map((p) => ({ ...p, requestCount: localRequestCount(p.id) }))
-      .sort(byOpenThenNewest)
+      .sort(localSorter(sort, userId, myChecklist))
     return { items: all.slice(from, from + size), total: all.length }
   }
   const supabase = await client()
+  if (sort === 'match') {
+    const { data, error } = await supabase.rpc('list_roommate_posts_by_match', {
+      p_semester: semester,
+      p_dormitory: dormitory,
+      p_gender: gender,
+      p_offset: from,
+      p_limit: size,
+    })
+    if (error) throw new Error('게시글을 불러오지 못했어요.')
+    return { items: data.map(fromRow), total: data.length ? Number(data[0].total_count) : from }
+  }
   let query = supabase.from('roommate_posts').select(COLUMNS, { count: 'exact' })
   if (semester) query = query.eq('semester', semester)
   if (dormitory) query = query.eq('dormitory_code', dormitory)
   if (gender) query = query.eq('gender', gender)
+  query = query.order('is_closed', { ascending: true })
+  if (sort === 'fewest') query = query.order('request_count', { ascending: true })
   const { data, count, error } = await query
-    .order('is_closed', { ascending: true })
     .order('created_at', { ascending: false })
     .range(from, from + size - 1)
   // 그사이 글이 지워져 목록 끝을 넘어선 경우: 더 불러올 글이 없는 것으로 본다
