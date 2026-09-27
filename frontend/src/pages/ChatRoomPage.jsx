@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import Composer from '../components/chat/Composer.jsx'
+import LeaveConfirmModal from '../components/chat/LeaveConfirmModal.jsx'
 import { MessageActions, SelectCopySheet, copyText } from '../components/chat/MessageActions.jsx'
 import MessageList from '../components/chat/MessageList.jsx'
 import { counterpartRole, threadContext, threadTitle } from '../components/chat/chatFormat.js'
@@ -17,13 +18,14 @@ import {
   fetchMessages,
   fetchThread,
   findMyThreadForPost,
+  leaveThread,
   markRead,
   sendMessage,
   subscribeMessages,
 } from '../lib/roommateChat.js'
 import { fetchMyProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportThread } from '../lib/roommateReports.js'
-import { announceInboxCounts, blockCounterpart, cancelRequest, fetchInboxCounts, startChat } from '../lib/roommateRequests.js'
+import { announceInboxCounts, blockCounterpart, fetchInboxCounts, startChat } from '../lib/roommateRequests.js'
 import { fetchRoommatePost } from '../lib/roommates.js'
 import { semesterLabel } from '../lib/semester.js'
 import { useSiteSettings } from '../lib/siteSettings.js'
@@ -111,7 +113,7 @@ function PostCard({ thread, myChecklist }) {
   )
 }
 
-/** ⋯ 메뉴: 신고 · 차단 · (보낸 쪽이면) 채팅방 나가기 */
+/** ⋯ 메뉴: 신고 · 차단 · 채팅방 나가기 */
 function RoomMenu({ thread, onPick }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -158,13 +160,11 @@ function RoomMenu({ thread, onPick }) {
               차단하기
             </button>
           </li>
-          {thread.role === 'applicant' && (
-            <li role="none">
-              <button type="button" role="menuitem" className="is-danger" onClick={() => pick('cancel')}>
-                채팅방 나가기
-              </button>
-            </li>
-          )}
+          <li role="none">
+            <button type="button" role="menuitem" className="is-danger" onClick={() => pick('leave')}>
+              채팅방 나가기
+            </button>
+          </li>
         </ul>
       )}
     </div>
@@ -197,8 +197,8 @@ export default function ChatRoomPage() {
   const [live, setLive] = useState('live')
   const [profile, setProfile] = useState(null)
   const [suspended, setSuspended] = useState(false)
-  const [action, setAction] = useState(null) // 'report' | 'block' | 'cancel'
-  const [cancelError, setCancelError] = useState('')
+  const [action, setAction] = useState(null) // 'report' | 'block' | 'leave'
+  const [otherLeft, setOtherLeft] = useState(false) // 상대가 채팅방을 나갔는지
   const [pressed, setPressed] = useState(null) // 꾹 누른 메시지 (메뉴)
   const [selecting, setSelecting] = useState(null) // 선택 복사 중인 메시지
   const [deleting, setDeleting] = useState(null) // 삭제 확인 중인 메시지
@@ -250,6 +250,7 @@ export default function ChatRoomPage() {
         if (!data) return setThread({ status: 'missing', data: null })
         setThread({ status: 'ready', data })
         setOtherRead(data.otherReadId ?? 0)
+        setOtherLeft(Boolean(data.otherLeft))
         setMessages(page.messages)
         setHasMore(page.hasMore)
       })
@@ -300,7 +301,11 @@ export default function ChatRoomPage() {
     const myRole = t.role
     return subscribeMessages({
       requestId,
-      onMessage: (m) => setMessages((list) => mergeMessages(list, [m])),
+      onMessage: (m) => {
+        setMessages((list) => mergeMessages(list, [m]))
+        // 상대가 나갔으면 입력칸을 잠근다
+        if (m.kind === 'left' && m.senderRole !== myRole) setOtherLeft(true)
+      },
       onRead: (role, lastId) => role !== myRole && setOtherRead((v) => Math.max(v, lastId)),
       onStatus: (s) => {
         setLive(s)
@@ -446,14 +451,10 @@ export default function ChatRoomPage() {
     navigate('/chats', { replace: true })
   }
 
-  async function confirmCancel() {
-    setCancelError('')
-    try {
-      await cancelRequest(t.postId, user.id)
-      navigate('/chats', { replace: true })
-    } catch (err) {
-      setCancelError(err.message)
-    }
+  async function confirmLeave() {
+    await leaveThread({ ...t, otherLeft }, user.id)
+    fetchInboxCounts(user.id).then(announceInboxCounts).catch(() => {})
+    navigate('/chats', { replace: true })
   }
 
   if (!signedIn) {
@@ -478,7 +479,11 @@ export default function ChatRoomPage() {
               ? '지난 학기 글이라 채팅을 시작할 수 없어요.'
               : ''
       : ''
-  const disabled = suspended ? '이용이 정지된 계정이라 메시지를 보낼 수 없어요.' : draftBlock
+  const disabled = otherLeft
+    ? `${t ? counterpartRole(t) : '상대'}가 채팅방을 나가서 메시지를 보낼 수 없어요.`
+    : suspended
+      ? '이용이 정지된 계정이라 메시지를 보낼 수 없어요.'
+      : draftBlock
 
   return (
     <div className="chat-room">
@@ -598,24 +603,11 @@ export default function ChatRoomPage() {
                 onClose={() => setAction(null)}
                 onConfirm={confirmBlock}
               />
-              <Modal
-                open={action === 'cancel'}
+              <LeaveConfirmModal
+                key={action === 'leave' ? 'leave-open' : 'leave'}
+                thread={action === 'leave' ? { ...t, otherLeft } : null}
                 onClose={() => setAction(null)}
-                title="채팅방을 나갈까요?"
-                subtitle="나가면 룸메 신청이 취소되고, 이 대화는 두 사람 모두에게서 지워져요."
-                footer={
-                  <>
-                    <p className="rm-error" role="alert">
-                      {cancelError}
-                    </p>
-                    <button type="button" className="btn btn-ghost" onClick={() => setAction(null)}>
-                      아니요
-                    </button>
-                    <button type="button" className="btn btn-danger" onClick={confirmCancel}>
-                      나가기
-                    </button>
-                  </>
-                }
+                onConfirm={confirmLeave}
               />
             </>
           )}

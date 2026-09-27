@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
-import { IconAlert, IconArrowRight, IconChevronRight } from '../components/common/Icons.jsx'
+import { IconAlert, IconArrowRight, IconChevronRight, IconUsers } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
@@ -209,6 +210,24 @@ export default function HomePage() {
         title="내 점수로 보는 생활관 합격 가능성"
         lead="입력하면 환산점수와 호관별 예상 합격률이 바로 나와요. 주소지는 JUMP에 등록된 주소 기준이에요."
       />
+
+      {/* 모바일에서만: 룸메이트 찾기 소개 (PC 는 헤더 메뉴에 늘 보이므로 생략) */}
+      <div className="container home-promo-wrap">
+        <Link to="/roommates" className="home-promo">
+          <span className="home-promo-icon" aria-hidden="true">
+            <IconUsers width={22} height={22} />
+          </span>
+          <span className="home-promo-text">
+            <span className="home-promo-kicker">룸메이트 찾기</span>
+            <strong>요거 엄청 열심히 만들었어요..</strong>
+            <span className="home-promo-desc">생활 습관 체크리스트로 나랑 잘 맞는 룸메이트를 찾고, 바로 채팅해 보세요.</span>
+          </span>
+          <span className="home-promo-go">
+            룸메이트 찾기 바로가기
+            <IconArrowRight width={16} height={16} />
+          </span>
+        </Link>
+      </div>
 
       <div className="container home-blocks">
         <section className="home-block" aria-labelledby="block-score">

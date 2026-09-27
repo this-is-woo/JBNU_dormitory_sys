@@ -60,6 +60,7 @@ export function previewText(thread) {
   const m = thread.lastMessage
   if (!m) return '아직 메시지가 없어요.'
   if (m.deletedAt) return DELETED_TEXT
+  if (m.kind === 'left') return `${m.senderRole === thread.role ? '내가' : `${counterpartRole(thread)}가`} 채팅방을 나갔어요.`
   if (m.kind === 'request') {
     if (m.body) return m.body
     return thread.role === 'applicant' ? '룸메 신청을 보냈어요.' : '룸메 신청이 왔어요.'

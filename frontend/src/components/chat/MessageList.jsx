@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { IconUser } from '../common/Icons.jsx'
 import { DELETED_TEXT, clockLabel, counterpartRole, dayLabel, quoteText } from './chatFormat.js'
+import { useLongPress } from './useLongPress.js'
 
 // 같은 사람이 같은 분에 이어 보낸 메시지는 한 묶음: 이름은 첫 메시지에, 시각은 마지막 메시지에만
 const sameGroup = (a, b) =>
@@ -8,45 +9,6 @@ const sameGroup = (a, b) =>
 
 // 화면 맨 아래에서 이만큼 안이면 "맨 아래를 보고 있다"고 본다 (새 메시지가 오면 따라 내려간다)
 const NEAR_BOTTOM = 120
-// 꾹 누르기: 이만큼 누르고 있으면 메뉴 (손가락이 이만큼 움직이면 스크롤로 보고 취소)
-const LONG_PRESS_MS = 450
-const MOVE_TOLERANCE = 10
-
-/** 말풍선을 꾹 누르거나(휴대폰) 오른쪽 클릭하면(PC) onPress */
-function useLongPress(onPress) {
-  const timer = useRef(null)
-  const start = useRef(null)
-  const cancel = () => {
-    clearTimeout(timer.current)
-    timer.current = null
-  }
-  useEffect(() => cancel, [])
-  return {
-    onPointerDown: (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return
-      start.current = { x: e.clientX, y: e.clientY }
-      cancel()
-      timer.current = setTimeout(() => {
-        timer.current = null
-        navigator.vibrate?.(10)
-        onPress()
-      }, LONG_PRESS_MS)
-    },
-    onPointerMove: (e) => {
-      if (!timer.current || !start.current) return
-      if (Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > MOVE_TOLERANCE) cancel()
-    },
-    onPointerUp: cancel,
-    onPointerLeave: cancel,
-    onPointerCancel: cancel,
-    onContextMenu: (e) => {
-      e.preventDefault()
-      cancel()
-      onPress()
-    },
-  }
-}
-
 function Bubble({ message, other, viewerRole, byId, onAction }) {
   const press = useLongPress(() => onAction(message))
   if (message.deletedAt) {
@@ -176,8 +138,8 @@ export default function MessageList({ thread, header, empty, messages, pending, 
           const isMine = mine(m)
           // 룸메 신청(첫 메시지): 가운데 안내 줄 + (내용이 있으면) 말풍선
           const request = m.kind === 'request'
-          const groupStart = request || !sameGroup(prev, m) || prev?.kind === 'request' || newDay
-          const groupEnd = !sameGroup(m, next) || next?.kind === 'request'
+          const groupStart = request || !sameGroup(prev, m) || prev?.kind !== 'text' || newDay
+          const groupEnd = !sameGroup(m, next) || next?.kind !== 'text'
           // 상대가 아직 안 읽은 내 메시지
           const unread = isMine && !m.deletedAt && m.id > otherReadId
           return (
@@ -192,7 +154,13 @@ export default function MessageList({ thread, header, empty, messages, pending, 
                   {isMine ? '룸메 신청을 보냈어요' : `${other}가 룸메 신청을 보냈어요`}
                 </li>
               )}
-              {(!request || m.body || m.deletedAt) && (
+              {m.kind === 'left' && (
+                <li className="chat-note is-left">
+                  {isMine ? '채팅방을 나갔어요' : `${other}가 채팅방을 나갔어요`}
+                  <time dateTime={m.createdAt}> · {clockLabel(m.createdAt)}</time>
+                </li>
+              )}
+              {m.kind !== 'left' && (!request || m.body || m.deletedAt) && (
                 <li className={`chat-msg${isMine ? ' is-mine' : ''}${groupStart ? ' is-start' : ''}`}>
                   {!isMine && (
                     <span className="chat-msg-avatar" aria-hidden="true">

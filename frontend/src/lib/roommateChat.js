@@ -31,6 +31,7 @@ export const ERRORS = {
   too_fast: '메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.',
   reply_not_found: '답장할 메시지를 찾을 수 없어요.',
   deleted: '삭제된 메시지는 고칠 수 없어요.',
+  left: '상대가 채팅방을 나가서 메시지를 보낼 수 없어요.',
 }
 
 // ── 공통 ──
@@ -69,6 +70,7 @@ const fromThreadRow = (row) => ({
     : null,
   unread: row.unread ?? 0,
   otherReadId: Number(row.other_read_id ?? 0),
+  otherLeft: Boolean(row.other_left),
 })
 
 async function client() {
@@ -200,6 +202,8 @@ function localThreads(userId) {
       const post = posts.find((p) => p.id === r.postId) ?? { ...(r.post ?? {}), authorId: samplePostAuthor(r.postId) }
       const role = r.applicantId === userId ? 'applicant' : post.authorId === userId ? 'author' : null
       if (!role) return null
+      // 내가 나간 대화는 보이지 않는다
+      if ((role === 'applicant' ? r.applicantLeftAt : r.authorLeftAt) != null) return null
       if (role === 'author' && isLocallySuspended(r.applicantId)) return null
       const mine = messages.filter((m) => m.requestId === r.id)
       const lastRead = reads[r.id]?.[role] ?? 0
@@ -227,6 +231,7 @@ function localThreads(userId) {
         lastMessage: mine.at(-1) ?? null,
         unread: mine.filter((m) => m.senderRole !== role && m.id > lastRead).length,
         otherReadId: reads[r.id]?.[otherRole(role)] ?? 0,
+        otherLeft: (role === 'applicant' ? r.authorLeftAt : r.applicantLeftAt) != null,
         // 데모에서 글쓴이 차단에 쓴다 (Supabase 에서는 DB 가 글 id 로 찾는다)
         authorId: post.authorId,
       }
@@ -301,7 +306,9 @@ function checkText(text) {
 export async function sendMessage(thread, text, userId, replyToId = null) {
   const body = checkText(text)
   if (!isSupabaseConfigured) {
-    if (!localThreads(userId).some((t) => t.id === thread.id)) throw new Error(ERRORS.not_found)
+    const current = localThreads(userId).find((t) => t.id === thread.id)
+    if (!current) throw new Error(ERRORS.not_found)
+    if (current.otherLeft) throw new Error(ERRORS.left)
     if (isLocallySuspended(userId)) throw new Error(ERRORS.suspended)
     return appendLocalMessage({ requestId: thread.id, senderRole: thread.role, body, replyToId })
   }
@@ -342,6 +349,34 @@ export async function deleteMessage(thread, message) {
   if (!isSupabaseConfigured) return updateLocalMessage(message.id, { body: null, deletedAt: message.deletedAt ?? new Date().toISOString() })
   await rpc('delete_roommate_thread_message', { p_message_id: message.id }, '메시지를 삭제하지 못했어요.')
   return { ...message, body: null, deletedAt: message.deletedAt ?? new Date().toISOString() }
+}
+
+/**
+ * 채팅방 나가기: 나에게서만 대화가 사라지고, 상대에게는 "OO가 채팅방을 나갔어요" 가 보인다.
+ * 두 사람 모두 나가면 대화를 지운다. 신청자가 나가면 룸메 신청도 취소된 것으로 본다.
+ */
+export async function leaveThread(thread, userId) {
+  if (!isSupabaseConfigured) {
+    const requests = read(REQUESTS_KEY, [])
+    const target = requests.find((r) => r.id === thread.id)
+    if (!target || !localThreads(userId).some((t) => t.id === thread.id)) throw new Error(ERRORS.not_found)
+    const now = new Date().toISOString()
+    const next = { ...target, [thread.role === 'applicant' ? 'applicantLeftAt' : 'authorLeftAt']: now }
+    if (next.applicantLeftAt && next.authorLeftAt) {
+      write(
+        REQUESTS_KEY,
+        requests.filter((r) => r.id !== thread.id),
+      )
+      return
+    }
+    write(
+      REQUESTS_KEY,
+      requests.map((r) => (r.id === thread.id ? next : r)),
+    )
+    appendLocalMessage({ requestId: thread.id, senderRole: thread.role, kind: 'left', body: null })
+    return
+  }
+  await rpc('leave_roommate_thread', { p_request_id: thread.id }, '채팅방을 나가지 못했어요.')
 }
 
 /** 여기까지 읽음 (lastId 가 없으면 지금까지 전부) */

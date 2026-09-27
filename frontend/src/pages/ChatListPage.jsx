@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import BlocksModal from '../components/chat/BlocksModal.jsx'
+import LeaveConfirmModal from '../components/chat/LeaveConfirmModal.jsx'
+import { ThreadActions } from '../components/chat/MessageActions.jsx'
+import { useLongPress } from '../components/chat/useLongPress.js'
 import { previewText, threadTitle } from '../components/chat/chatFormat.js'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
 import { IconAlert, IconArrowLeft, IconChat, IconUser } from '../components/common/Icons.jsx'
 import { dormName, timeAgo } from '../components/roommates/postFormat.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { fetchThreads, subscribeMessages } from '../lib/roommateChat.js'
+import { fetchThreads, leaveThread, subscribeMessages } from '../lib/roommateChat.js'
 import { announceInboxCounts } from '../lib/roommateRequests.js'
 import './ChatPage.css'
 
@@ -31,11 +34,13 @@ export function ChatGate({ status }) {
   )
 }
 
-function ThreadRow({ thread }) {
+/** 대화방 한 줄. 누르면 대화방으로, 꾹 누르면(PC 는 오른쪽 클릭) 메뉴 (채팅방 나가기) */
+function ThreadRow({ thread, onPress }) {
   const closed = thread.postClosed
+  const press = useLongPress(() => onPress(thread))
   return (
     <li>
-      <Link to={`/chats/${thread.id}`} className={`chat-row${thread.unread > 0 ? ' is-unread' : ''}`}>
+      <Link to={`/chats/${thread.id}`} className={`chat-row${thread.unread > 0 ? ' is-unread' : ''}`} {...press}>
         <span className="chat-avatar" aria-hidden="true">
           <IconUser width={22} height={22} />
         </span>
@@ -45,6 +50,7 @@ function ThreadRow({ thread }) {
             <span className="chat-row-tag">
               {thread.role === 'author' ? `받은 신청 · ${dormName(thread.dormitory)}` : '보낸 신청'}
               {closed && ' · 모집완료'}
+              {thread.otherLeft && ' · 상대가 나감'}
             </span>
           </span>
           <span className="chat-row-preview">{previewText(thread)}</span>
@@ -79,6 +85,8 @@ export default function ChatListPage() {
   const [state, setState] = useState({ status: 'loading', items: [] })
   const [reloadKey, setReloadKey] = useState(0)
   const [blocksOpen, setBlocksOpen] = useState(false)
+  const [pressed, setPressed] = useState(null) // 꾹 누른 대화방 (메뉴)
+  const [leaving, setLeaving] = useState(null) // 나가기 확인 중인 대화방
   const signedIn = authStatus === 'signedIn'
   const timer = useRef(null)
 
@@ -161,7 +169,7 @@ export default function ChatListPage() {
             (shown.length ? (
               <ul className="chat-list">
                 {shown.map((t) => (
-                  <ThreadRow key={t.id} thread={t} />
+                  <ThreadRow key={t.id} thread={t} onPress={setPressed} />
                 ))}
               </ul>
             ) : (
@@ -174,6 +182,27 @@ export default function ChatListPage() {
               </p>
             ))}
           <BlocksModal open={blocksOpen} userId={user.id} onClose={() => setBlocksOpen(false)} />
+          {pressed && (
+            <ThreadActions
+              title={threadTitle(pressed)}
+              onLeave={() => {
+                setLeaving(pressed)
+                setPressed(null)
+              }}
+              onClose={() => setPressed(null)}
+            />
+          )}
+          <LeaveConfirmModal
+            key={leaving?.id ?? 'none'}
+            thread={leaving}
+            onClose={() => setLeaving(null)}
+            onConfirm={async () => {
+              await leaveThread(leaving, user.id)
+              setState((s) => ({ ...s, items: s.items.filter((x) => x.id !== leaving.id) }))
+              setLeaving(null)
+              setReloadKey((k) => k + 1)
+            }}
+          />
         </>
       )}
     </div>

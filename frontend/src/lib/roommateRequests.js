@@ -110,7 +110,8 @@ export async function startChat(post, text, userId, myGender) {
     if (post.gender !== myGender) throw new Error(ERRORS.gender)
     if (post.isClosed) throw new Error(ERRORS.closed)
     if (localBlocked(userId, post.authorId)) throw new Error(ERRORS.not_found)
-    const requests = read(REQUESTS_KEY, [])
+    // 내가 나갔던 예전 대화는 지우고 새로 시작 (DB 의 start_roommate_chat 과 같게)
+    const requests = read(REQUESTS_KEY, []).filter((r) => !(r.postId === post.id && r.applicantId === userId && r.applicantLeftAt))
     if (requests.some((r) => r.postId === post.id && r.applicantId === userId)) throw new Error(ERRORS.duplicate)
     const id = uid()
     requests.push({
@@ -156,23 +157,12 @@ export async function startChat(post, text, userId, myGender) {
   }
 }
 
-/** 보낸 신청 취소 */
-export async function cancelRequest(postId, userId) {
-  if (!isSupabaseConfigured) {
-    write(
-      REQUESTS_KEY,
-      read(REQUESTS_KEY, []).filter((r) => !(r.postId === postId && r.applicantId === userId)),
-    )
-    return
-  }
-  await rpc('cancel_roommate_request', { p_post_id: postId }, '신청을 취소하지 못했어요.')
-}
-
 /** 내가 신청한 글 id 목록 */
 export async function fetchSentPostIds(userId) {
   if (!isSupabaseConfigured) {
+    // 내가 나간 대화는 빼서 카드에 다시 [룸메 신청]이 보이게 (DB 의 my_roommate_requests 와 같게)
     return read(REQUESTS_KEY, [])
-      .filter((r) => r.applicantId === userId)
+      .filter((r) => r.applicantId === userId && !r.applicantLeftAt)
       .map((r) => r.postId)
   }
   return rpc('my_roommate_requests', {}, '채팅 목록을 불러오지 못했어요.')
@@ -186,7 +176,8 @@ export function announceInboxCounts(counts) {
 
 /** 로컬 모드의 글별 신청 수 (Supabase 에서는 roommate_posts.request_count) */
 export function localRequestCount(postId) {
-  return read(REQUESTS_KEY, []).filter((r) => r.postId === postId).length
+  // 두 사람 모두 대화 중인 신청만 (DB 의 sync_roommate_request_count 와 같게)
+  return read(REQUESTS_KEY, []).filter((r) => r.postId === postId && !r.applicantLeftAt && !r.authorLeftAt).length
 }
 
 // ── 차단 ──

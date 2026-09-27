@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { quoteText } from './chatFormat.js'
 
 /** 아래에서 올라오는 작은 창 (Esc · 바깥을 누르면 닫힘) */
-function Sheet({ label, onClose, children }) {
+export function Sheet({ label, onClose, children }) {
   const panelRef = useRef(null)
 
   useEffect(() => {
@@ -42,6 +42,25 @@ export function MessageActions({ message, mine, onPick, onClose }) {
             </button>
           </li>
         ))}
+      </ul>
+      <button type="button" className="chat-sheet-cancel" onClick={onClose}>
+        닫기
+      </button>
+    </Sheet>
+  )
+}
+
+/** 채팅 목록에서 대화방을 꾹 눌렀을 때: 채팅방 나가기 */
+export function ThreadActions({ title, onLeave, onClose }) {
+  return (
+    <Sheet label="채팅방 메뉴" onClose={onClose}>
+      <p className="chat-sheet-preview">{title}</p>
+      <ul className="chat-sheet-list">
+        <li>
+          <button type="button" className="is-danger" onClick={onLeave}>
+            채팅방 나가기
+          </button>
+        </li>
       </ul>
       <button type="button" className="chat-sheet-cancel" onClick={onClose}>
         닫기

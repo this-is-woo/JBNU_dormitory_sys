@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -216,7 +216,8 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
      답장은 말풍선 위에 인용이 붙고, 수정하면 "수정됨", 삭제하면 두 사람 모두 "삭제된 메시지입니다."로 봅니다(내용은 DB 에서도 지움).
    - **읽음 표시**: 상대가 아직 안 읽은 내 말풍선 옆에 작은 **1**, 상대가 읽으면 바로 사라집니다 (읽음 위치는 역할로만 저장, Realtime 으로 전달).
    - **거의 실시간**: Supabase Realtime 으로 새 메시지 · 고친/지운 메시지 · 읽음 위치를 바로 받습니다. 연결이 끊기면 화면이 보일 때만 4초마다 확인하고, 다른 탭에서 돌아오면 놓친 메시지를 채웁니다.
-   - [⋯] 메뉴: 신고(최근 메시지 30개가 신고 당시 내용으로 남음) · 차단 · (보낸 쪽이면) 채팅방 나가기 = 신청 취소. 차단·나가기를 하면 대화도 지워집니다.
+   - [⋯] 메뉴: 신고(최근 메시지 30개가 신고 당시 내용으로 남음) · 차단 · **채팅방 나가기**. 목록에서 대화방을 꾹 눌러도(PC 는 오른쪽 클릭) 나갈 수 있습니다.
+   - **나가기**: 나간 사람에게서만 대화가 사라지고, 상대에게는 "OO가 채팅방을 나갔어요"가 보이며 입력칸이 잠깁니다. 두 사람 모두 나가면 대화를 지웁니다. 신청자가 나가면 룸메 신청도 취소로 보고(받은 신청 수에서 빠짐), 그 글에 다시 채팅을 보내면 새 신청으로 시작합니다. 차단하면 대화는 바로 지워집니다.
    - 예전의 한마디 + 답장은 마이그레이션이 대화의 첫 메시지들로 옮깁니다.
 5. **차단**: 대화방의 [차단하기], 게시글 자세히 보기의 [차단]. 차단한 사이는 서로의 글이 안 보이고, 서로 신청할 수 없고, 두 사람의 대화는 지워집니다.
 6. **신고**: 카드의 [신고], 게시글 자세히 보기의 [신고], 대화방의 [신고하기]. 사유(필수)와 내용(기타는 필수, 500자)을 적고, 원하면 함께 차단합니다.

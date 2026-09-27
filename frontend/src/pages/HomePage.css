@@ -5,6 +5,92 @@
   gap: 0;
 }
 
+/* 룸메이트 찾기 소개: 모바일에서만 (PC 는 헤더 메뉴에 늘 보인다) */
+.home-promo-wrap {
+  display: none;
+}
+
+.home-promo {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 14px;
+  padding: 16px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.home-promo:active {
+  transform: scale(0.99);
+}
+
+.home-promo:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.home-promo-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary-text);
+}
+
+.home-promo-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.home-promo-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-primary-text);
+}
+
+.home-promo-text strong {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.home-promo-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-text-3);
+}
+
+/* 바로가기: 카드 아래 한 줄 전체 */
+.home-promo-go {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 40px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--c-text);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-bg);
+}
+
+@media (max-width: 760px) {
+  .home-promo-wrap {
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
 /* minmax(0, 1fr): 안쪽 요소가 길어도 화면 폭을 넘지 않게 */
 .home-block {
   display: grid;

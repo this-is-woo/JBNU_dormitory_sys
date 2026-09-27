@@ -86,6 +86,10 @@
   grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px;
+  /* 꾹 누르면 우리 메뉴가 뜨도록 휴대폰 기본 링크 미리보기·선택은 끈다 */
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
   padding: 14px 12px;
   border-radius: var(--radius-lg);
   color: inherit;
@@ -428,6 +432,10 @@
   background: var(--c-surface);
   font-size: 12px;
   font-weight: 500;
+  color: var(--c-text-2);
+}
+
+.chat-note.is-left {
   color: var(--c-text-2);
 }
 
