@@ -1,4 +1,4 @@
-import { CHECKLIST_ITEMS, isAnswered } from '../../data/roommateChecklist.js'
+import { CHECKLIST_ITEMS, normalizeChecklist, sameAnswer } from '../../data/roommateChecklist.js'
 import { findCollege } from '../../data/colleges.js'
 import { DORMITORIES } from '../../data/dormitories.js'
 
@@ -19,8 +19,10 @@ export const dormName = (code) => DORMITORIES.find((d) => d.code === code)?.name
 export const collegeName = (code) => findCollege(code)?.name ?? ''
 export const genderLabel = (gender) => (gender === '여' ? '여자' : '남자')
 
-/** 내 체크리스트와 같은 답의 수 (예: 12 → "나와 12/18 일치") */
+/** 내 정보와 같은 답의 수 (예: 12 → "나와 12/15 일치") */
 export function matchCount(mine, theirs) {
   if (!mine || !theirs) return null
-  return CHECKLIST_ITEMS.filter((i) => isAnswered(mine[i.key]) && mine[i.key] === theirs[i.key]).length
+  const a = normalizeChecklist(mine)
+  const b = normalizeChecklist(theirs)
+  return CHECKLIST_ITEMS.filter((i) => sameAnswer(a[i.key], b[i.key])).length
 }

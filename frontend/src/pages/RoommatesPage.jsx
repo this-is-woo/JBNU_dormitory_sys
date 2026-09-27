@@ -49,7 +49,7 @@ const LOGIN_REASONS = {
   write: '글을 쓰려면 로그인이 필요해요.',
   myPosts: '내가 쓴 글을 보려면 로그인이 필요해요.',
   requests: '신청 내역을 보려면 로그인이 필요해요.',
-  profile: '내 체크리스트를 보려면 로그인이 필요해요.',
+  profile: '내 정보를 보려면 로그인이 필요해요.',
   unlock: '로그인하고 체크리스트를 등록하면 글을 볼 수 있어요.',
 }
 const NEEDS_PROFILE = ['write', 'unlock', 'requests']
@@ -70,7 +70,7 @@ function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) 
     <div className="rm-account-wrap">
       {hasProfile && (
         <button type="button" className="btn btn-ghost rm-login" onClick={onProfile}>
-          내 체크리스트
+          내 정보
         </button>
       )}
       <div className="rm-account">
@@ -89,7 +89,7 @@ function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) 
 
 export default function RoommatesPage() {
   const { status: authStatus, user, signIn, signInWithIdToken, signOut, isAdmin } = useAdmin()
-  // 내 체크리스트(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready' | 'error'(불러오지 못함)
+  // 내 정보(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready' | 'error'(불러오지 못함)
   const [profile, setProfile] = useState({ status: 'idle', data: null })
   const [profileRetry, setProfileRetry] = useState(0)
   // 지금 페이지의 글만 들고 있는다. status: 'loading'(처음) | 'ready' | 'error', loading: 페이지 넘기는 중
@@ -135,7 +135,7 @@ export default function RoommatesPage() {
           ? 'signedOut'
           : 'noProfile'
 
-  // 로그인하면 내 체크리스트를 불러온다
+  // 로그인하면 내 정보를 불러온다
   useEffect(() => {
     if (!signedIn) {
       setProfile({ status: 'idle', data: null })
@@ -187,7 +187,7 @@ export default function RoommatesPage() {
     finishPending(pending)
   }, [pending, signedIn, profile.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 모바일 메뉴의 바로가기(내 체크리스트·내가 쓴 글·신청 내역·로그인)로 들어온 경우
+  // 모바일 메뉴의 바로가기(내 정보·내가 쓴 글·신청 내역·로그인)로 들어온 경우
   useEffect(() => {
     const action = location.state?.action
     if (!action || authStatus === 'loading') return
@@ -490,7 +490,7 @@ export default function RoommatesPage() {
           // 잠긴 동안에는 실제 글 대신 예시 글을 흐리게 보여 준다
           <div className="rm-grid">
             {SAMPLE_POSTS.map((post) => (
-              <RoommateCard key={post.id} post={post} mine={false} onOpen={() => {}} onRequest={() => {}} onEdit={() => {}} />
+              <RoommateCard key={post.id} post={post} mine={false} onOpen={() => {}} onEdit={() => {}} />
             ))}
           </div>
         ) : (
@@ -520,10 +520,8 @@ export default function RoommatesPage() {
                         post={post}
                         mine={isMine(post)}
                         sent={sentIds.has(post.id)}
-                        myGender={profile.data.gender}
                         match={isMine(post) ? null : matchCount(profile.data.checklist, post.checklist)}
                         onOpen={setDetail}
-                        onRequest={handleRequest}
                         onEdit={openEditor}
                         onDelete={setDeletingPost}
                         adminLink={isAdmin}

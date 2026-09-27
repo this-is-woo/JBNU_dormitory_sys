@@ -22,7 +22,7 @@ const ERRORS = {
   own: '내 글에는 신청할 수 없어요.',
   gender: '같은 성별의 글에만 신청할 수 있어요.',
   not_found: '글을 찾을 수 없어요. 삭제되었거나 볼 수 없는 글이에요.',
-  profile: '내 체크리스트를 먼저 등록해 주세요.',
+  profile: '내 정보를 먼저 등록해 주세요.',
   duplicate: '이미 신청한 글이에요.',
   too_long: '입력한 글이 너무 길어요.',
   forbidden: '차단할 수 없는 사용자예요.',
@@ -116,7 +116,7 @@ const samplePostAuthor = (postId) => (postId?.startsWith('sample-') ? `${postId}
 
 // ── 신청 ──
 
-/** 이 글에 신청 보내기. message 는 선택 (글쓴이만 본다). myGender: 내 체크리스트의 성별 */
+/** 이 글에 신청 보내기. message 는 선택 (글쓴이만 본다). myGender: 내 정보의 성별 */
 export async function sendRequest(post, message, userId, myGender) {
   const text = message.trim()
   if (text.length > MESSAGE_MAX) throw new Error(`한마디는 ${MESSAGE_MAX}자까지 남길 수 있어요.`)

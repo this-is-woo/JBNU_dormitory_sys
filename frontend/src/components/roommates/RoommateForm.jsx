@@ -11,7 +11,7 @@ const EMPTY = { semester: SEMESTERS[0], content: '' }
 const fromPost = (post) => ({ semester: post.semester ?? SEMESTERS[0], content: post.content ?? '' })
 
 /**
- * 글쓰기: 기본 정보·체크리스트는 내 체크리스트(프로필)에서 가져오고, 소개만 적는다. 연락은 룸메 신청으로 한다.
+ * 글쓰기: 기본 정보·체크리스트는 내 정보(프로필)에서 가져오고, 소개만 적는다. 연락은 룸메 신청으로 한다.
  * initial 이 있으면 그 글을 수정한다.
  */
 export default function RoommateForm({ open, initial = null, profile, onEditProfile, onClose, onSubmit }) {
@@ -52,7 +52,7 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
       onClose={close}
       size="lg"
       title={isEdit ? '글 수정' : '글쓰기'}
-      subtitle="기본 정보와 체크리스트는 등록해 둔 내 체크리스트가 그대로 들어가요. 다른 사람이 보낸 룸메 신청은 [받은 신청]에서 볼 수 있어요."
+      subtitle="기본 정보와 체크리스트는 등록해 둔 내 정보가 그대로 들어가요. 다른 사람이 보낸 룸메 신청은 [받은 신청]에서 볼 수 있어요."
       as="form"
       wrapperProps={{ onSubmit: handleSubmit, noValidate: true }}
       footer={
@@ -81,7 +81,7 @@ export default function RoommateForm({ open, initial = null, profile, onEditProf
               </span>
             </div>
             <button type="button" className="btn btn-ghost btn-sm" onClick={onEditProfile}>
-              내 체크리스트 수정
+              내 정보 수정
             </button>
           </div>
         )}

@@ -24,7 +24,7 @@ const SUPPORT_PATH = '/support'
 
 // 룸메이트 찾기 바로가기: /roommates 로 이동하면서 열 창을 알려 준다 (RoommatesPage 가 location.state 로 받는다)
 const ROOMMATE_ACTIONS = [
-  { action: 'profile', label: '내 체크리스트', Icon: IconClipboard },
+  { action: 'profile', label: '내 정보', Icon: IconClipboard },
   { action: 'myPosts', label: '내가 쓴 글', Icon: IconPencil },
   { action: 'requests', label: '신청 내역', Icon: IconBell },
 ]

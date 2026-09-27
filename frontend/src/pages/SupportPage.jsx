@@ -2,6 +2,8 @@ import kakaopayQr from '../assets/kakaopay-qr.png'
 import { IconExternal } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import { KAKAOPAY_DONATE_URL } from '../config.js'
+import { useSiteSettings } from '../lib/siteSettings.js'
+import NotFoundPage from './NotFoundPage.jsx'
 import './SupportPage.css'
 
 const USES = [
@@ -14,6 +16,10 @@ const USES = [
 ]
 
 export default function SupportPage() {
+  const { supportEnabled } = useSiteSettings()
+  // 관리자가 후원을 끄면(관리자 [설정]) 메뉴에서 빠지고, 주소로 들어와도 없는 페이지처럼 보인다
+  if (!supportEnabled) return <NotFoundPage />
+
   return (
     <>
       <title>개발자 삼각김밥 사주기 | JBNU Dormi</title>

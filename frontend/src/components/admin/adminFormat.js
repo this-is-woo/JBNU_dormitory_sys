@@ -80,6 +80,8 @@ export const ACTION_LABEL = {
   exclude_admission: '제보 학습 제외',
   include_admission: '제보 학습 포함',
   note_admission: '제보 메모',
+  enable_support: '후원 메뉴 켜기',
+  disable_support: '후원 메뉴 끄기',
 }
 
 /** 정지 기한 안내: "2026. 10. 4. 14:00까지" / "무기한" */

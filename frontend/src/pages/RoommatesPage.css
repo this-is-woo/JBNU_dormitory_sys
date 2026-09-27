@@ -484,6 +484,12 @@
   font-weight: 600;
 }
 
+.cl-multi-hint {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-3);
+}
+
 .cl-no {
   flex-shrink: 0;
   min-width: 22px;
@@ -850,7 +856,7 @@
   background: var(--c-primary);
 }
 
-/* ── 글쓰기: 내 체크리스트 요약 ── */
+/* ── 글쓰기: 내 정보 요약 ── */
 .rm-profile-summary {
   display: flex;
   flex-wrap: wrap;

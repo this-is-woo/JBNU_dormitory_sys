@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { NavLink } from 'react-router'
 import { useAdmin } from '../../hooks/useAdmin.js'
+import { useSiteSettings } from '../../lib/siteSettings.js'
 import { IconMenu, IconShield } from '../common/Icons.jsx'
 import Logo from '../common/Logo.jsx'
 import MobileDrawer from './MobileDrawer.jsx'
@@ -17,6 +18,9 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = useCallback(() => setMenuOpen(false), [])
   const auth = useAdmin()
+  const { supportEnabled } = useSiteSettings()
+  // 후원을 끄면(관리자 [설정]) 메뉴에서 뺀다
+  const navItems = supportEnabled ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.to !== '/support')
 
   return (
     <header className="site-header">
@@ -26,7 +30,7 @@ export default function Header() {
         {/* 넓은 화면: 헤더 메뉴 */}
         <nav className="site-nav" aria-label="주요 메뉴">
           <ul>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <li key={item.to}>
                 <NavLink to={item.to} end={item.end}>
                   {item.label}
@@ -55,7 +59,7 @@ export default function Header() {
           {auth.status === 'signedIn' && <span className="nav-toggle-dot" aria-hidden="true" />}
         </button>
       </div>
-      <MobileDrawer open={menuOpen} onClose={closeMenu} items={NAV_ITEMS} auth={auth} />
+      <MobileDrawer open={menuOpen} onClose={closeMenu} items={navItems} auth={auth} />
     </header>
   )
 }

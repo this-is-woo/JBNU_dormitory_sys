@@ -28,6 +28,7 @@ const roomName = (code) => {
 
 function logTarget(item) {
   const d = item.detail ?? {}
+  if (item.target_type === 'setting') return item.target_id === 'support_enabled' ? '후원 메뉴' : item.target_id
   return d.author ?? d.email ?? (item.target_id ? `${item.target_type} ${String(item.target_id).slice(0, 8)}` : '—')
 }
 

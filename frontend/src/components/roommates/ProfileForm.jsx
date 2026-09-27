@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { COLLEGES_SORTED } from '../../data/colleges.js'
 import { DORMITORIES } from '../../data/dormitories.js'
-import { CHECKLIST_ITEMS, CHECKLIST_SECTIONS, isAnswered, itemNumber } from '../../data/roommateChecklist.js'
+import {
+  CHECKLIST_ITEMS,
+  CHECKLIST_SECTIONS,
+  isAnswered,
+  itemNumber,
+  normalizeChecklist,
+  toggleMulti,
+} from '../../data/roommateChecklist.js'
 import { AGE_MAX, AGE_MIN, GENDERS, MBTI_AXES } from '../../data/roommateOptions.js'
 import ChoiceGroup from '../common/ChoiceGroup.jsx'
 import Modal from '../common/Modal.jsx'
@@ -29,7 +36,8 @@ const fromProfile = (p) => ({
   collegeCode: p.collegeCode,
   mbti: p.mbti ? p.mbti.split('') : ['', '', '', ''],
   mbtiUnknown: !p.mbti,
-  checklist: { ...p.checklist },
+  // 예전 형식의 답(잠버릇 O/X 등)은 새 형식으로, 옮길 수 없는 답은 비워 다시 고르게 한다
+  checklist: normalizeChecklist(p.checklist),
 })
 
 function validateStep(step, f) {
@@ -51,19 +59,34 @@ function validateStep(step, f) {
 }
 
 function ChecklistQuestion({ item, value, onChange }) {
+  const multi = item.type === 'multi'
+  const options =
+    item.type === 'ox'
+      ? OX
+      : [...item.options, ...(multi ? [item.none] : [])].map((o) => ({ value: o, label: o }))
+  // 복수 선택: 누른 선택지를 찾아 '없음'과 다른 선택지가 함께 골라지지 않게 한다
+  function changeMulti(next) {
+    const current = Array.isArray(value) ? value : []
+    const clicked = next.find((v) => !current.includes(v)) ?? current.find((v) => !next.includes(v))
+    if (clicked) onChange(toggleMulti(item, current, clicked))
+  }
   return (
     <div className={`cl-question${isAnswered(value) ? ' is-answered' : ''}`}>
       <div className="cl-question-label">
         <span className="cl-no tabular">{itemNumber(item.key)}</span>
-        <span>{item.label}</span>
+        <span>
+          {item.label}
+          {multi && <small className="cl-multi-hint"> (여러 개 선택 가능)</small>}
+        </span>
       </div>
       <ChoiceGroup
         label={item.label}
         size="sm"
         variant={item.type === 'ox' ? 'ox' : undefined}
-        options={item.type === 'ox' ? OX : item.options.map((o) => ({ value: o, label: o }))}
-        value={value}
-        onChange={onChange}
+        multiple={multi}
+        options={options}
+        value={multi ? (Array.isArray(value) ? value : []) : value}
+        onChange={multi ? changeMulti : onChange}
       />
     </div>
   )
@@ -144,7 +167,7 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
       open={open}
       onClose={close}
       size="lg"
-      title={isEdit ? '내 체크리스트 수정' : '내 체크리스트 등록'}
+      title={isEdit ? '내 정보 수정' : '내 정보 등록'}
       as="form"
       wrapperProps={{ onSubmit: handleSubmit, noValidate: true }}
       subtitle={

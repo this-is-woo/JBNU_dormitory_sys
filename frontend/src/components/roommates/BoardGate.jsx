@@ -1,6 +1,6 @@
 /**
- * 잠긴 게시판 위에 띄우는 안내. 로그인 → 내 체크리스트 등록을 마쳐야 글을 볼 수 있다.
- * @param {'loading'|'signedOut'|'noProfile'|'error'} stage  error: 내 체크리스트를 불러오지 못함
+ * 잠긴 게시판 위에 띄우는 안내. 로그인 → 내 정보 등록을 마쳐야 글을 볼 수 있다.
+ * @param {'loading'|'signedOut'|'noProfile'|'error'} stage  error: 내 정보를 불러오지 못함
  */
 export default function BoardGate({ stage, onLogin, onRegister, onRetry }) {
   const steps = [
@@ -37,7 +37,7 @@ export default function BoardGate({ stage, onLogin, onRegister, onRetry }) {
       {stage === 'error' && (
         <>
           <p className="board-gate-loading" role="alert">
-            내 체크리스트를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.
+            내 정보를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.
           </p>
           <button type="button" className="btn btn-primary btn-lg" onClick={onRetry}>
             다시 시도
@@ -46,7 +46,7 @@ export default function BoardGate({ stage, onLogin, onRegister, onRetry }) {
       )}
       {stage === 'noProfile' && (
         <button type="button" className="btn btn-primary btn-lg" onClick={onRegister}>
-          내 체크리스트 등록하기
+          내 정보 등록하기
         </button>
       )}
       <small>1분이면 끝나요 · 이메일과 이름은 어디에도 표시되지 않아요</small>

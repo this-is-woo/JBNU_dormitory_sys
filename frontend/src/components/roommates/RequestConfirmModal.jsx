@@ -81,9 +81,9 @@ export default function RequestConfirmModal({ target, match = null, onClose, onC
                 <div>
                   <strong>글쓴이에게 알림이 가요</strong>
                   <ul>
-                    <li>글쓴이의 [받은 신청] 목록에 내 기본 정보와 체크리스트 18개 답이 전달돼요.</li>
+                    <li>글쓴이의 [받은 신청] 목록에 내 기본 정보와 체크리스트 {CHECKLIST_ITEMS.length}개 답이 전달돼요.</li>
                     <li>이메일·이름은 전달되지 않아요.</li>
-                    <li>보낸 신청은 카드의 [신청함] 버튼으로 언제든 취소할 수 있어요.</li>
+                    <li>보낸 신청은 [자세히 보기]의 [신청함] 버튼이나 [신청 내역]에서 언제든 취소할 수 있어요.</li>
                   </ul>
                 </div>
               </div>

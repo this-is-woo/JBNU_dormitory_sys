@@ -27,9 +27,9 @@ const SAMPLES = [
     collegeCode: 'engineering',
     mbti: 'ISTJ',
     checklist: {
-      smoking: false, sleepHabit: false, deepSleeper: true, mealPlan: true, lateSnack: false, earphones: true,
-      bedtime: '11-12시', wakeup: '7-8시', lampOff: '11-12시',
-      roomCleaning: '일주일에 2-3번', bathroomCleaning: '일주일에 한 번', sharedTrash: true, recycling: '분리수거함을 놓고 한 번에 버린다',
+      smoking: false, sleepHabit: ['없음'], deepSleeper: true, lateSnack: false,
+      bedtime: '23-24시', wakeup: '7-8시', lampOff: '11-12시',
+      roomCleaning: '일주일에 2-3번', bathroomCleaning: '일주일에 한 번', recycling: '분리수거함을 놓고 한 번에 버린다',
       relationship: '중간', phoneCalls: '짧은 전화만', sharing: '허락 맡고 가능', friendsOver: false, seat: '상관 없음',
     },
     content: '평일엔 7시에 일어나서 12시 전에 자요. 방은 깔끔하게 쓰는 편이고 통화는 밖에서 합니다. 서로 생활 패턴만 존중하면 좋겠어요!',
@@ -45,9 +45,9 @@ const SAMPLES = [
     collegeCode: 'arts',
     mbti: 'ENFP',
     checklist: {
-      smoking: false, sleepHabit: true, deepSleeper: false, mealPlan: false, lateSnack: true, earphones: true,
+      smoking: false, sleepHabit: ['코골이', '잠꼬대'], deepSleeper: false, lateSnack: true,
       bedtime: '1시 이후', wakeup: '9-10시', lampOff: '12-1시',
-      roomCleaning: '일주일에 한 번', bathroomCleaning: '일주일에 한 번', sharedTrash: true, recycling: '생길 때마다 각자 치운다',
+      roomCleaning: '일주일에 한 번', bathroomCleaning: '일주일에 한 번', recycling: '생길 때마다 각자 치운다',
       relationship: '베스트 프렌드', phoneCalls: '상관 없음', sharing: '상관 없음', friendsOver: true, seat: '상관 없음',
     },
     content: '과제 때문에 새벽까지 깨어 있는 날이 많아요. 스탠드만 켜고 조용히 작업합니다. 같이 야식 먹을 룸메이트 환영해요 :)',
@@ -63,10 +63,10 @@ const SAMPLES = [
     collegeCode: 'business',
     mbti: null,
     checklist: {
-      smoking: false, sleepHabit: true, deepSleeper: true, mealPlan: true, lateSnack: false, earphones: true,
-      bedtime: '10-11시', wakeup: '6시 이전', lampOff: '11시 이전',
-      roomCleaning: '매일', bathroomCleaning: '일주일에 2-3번', sharedTrash: false, recycling: '생길 때마다 각자 치운다',
-      relationship: '비즈니스 관계', phoneCalls: '무조건 밖에서', sharing: '절대 안 돼', friendsOver: false, seat: '문과 마주보지 않는, 에어컨 직방 자리',
+      smoking: false, sleepHabit: ['이갈이'], deepSleeper: true, lateSnack: false,
+      bedtime: '22-23시', wakeup: '6시 이전', lampOff: '11시 이전',
+      roomCleaning: '매일', bathroomCleaning: '일주일에 2-3번', recycling: '생길 때마다 각자 치운다',
+      relationship: '비즈니스', phoneCalls: '무조건 밖에서', sharing: '절대 안 돼', friendsOver: false, seat: '문과 마주보지 않는, 에어컨 직방 자리',
     },
     content: '아침 운동하고 수업 가요. 코골이가 조금 있어서 귀마개 쓰시는 분이면 좋겠습니다.',
     isClosed: true,
@@ -143,7 +143,7 @@ async function client() {
 
 // 글쓰기·수정 오류를 알아들을 수 있는 말로 (DB 의 트리거·정책이 막은 이유)
 function postError(error, fallback) {
-  if (error?.hint === 'dorm_gender') return new Error('고른 호관은 다른 성별 전용이에요. 내 체크리스트에서 호관을 다시 골라 주세요.')
+  if (error?.hint === 'dorm_gender') return new Error('고른 호관은 다른 성별 전용이에요. 내 정보에서 호관을 다시 골라 주세요.')
   // 행 수준 보안 정책 위반: 글쓴이 본인인데 막혔다면 이용 정지 때문이다
   if (error?.code === '42501') return new Error('이용이 정지된 계정이라 글을 쓰거나 고칠 수 없어요.')
   return new Error(fallback)

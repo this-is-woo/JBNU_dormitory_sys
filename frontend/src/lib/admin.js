@@ -3,6 +3,7 @@ import { DEMO_USER } from '../hooks/useAuth.js'
 import { isLocallySuspended, readModeration, writeModeration } from './localModeration.js'
 import { SAMPLE_POSTS } from './roommates.js'
 import { readLocalScores } from './scoreLog.js'
+import { applySiteSettings } from './siteSettings.js'
 import { currentSemester } from './semester.js'
 
 // 관리자 페이지 (supabase/migrations/20261010000000_admin.sql)
@@ -260,6 +261,14 @@ export async function fetchActivity(kind, page = 1) {
     '기록을 불러오지 못했어요.',
   )
   return { items: data.items ?? [], total: num(data.total) }
+}
+
+// ── 사이트 설정 ──
+
+/** 후원(개발자 삼각김밥 사주기) 메뉴·페이지 켜기/끄기. 성공하면 이 화면의 메뉴에도 바로 반영 */
+export async function setSupportEnabled(enabled) {
+  await call('admin_set_setting', { p_key: 'support_enabled', p_value: enabled }, '설정을 바꾸지 못했어요.')
+  applySiteSettings({ supportEnabled: enabled })
 }
 
 // ── 학점 통계 (점수 계산 기록으로) ──
@@ -693,6 +702,12 @@ const LOCAL = {
     if (p_kind !== 'admin' && p_kind !== 'scores') fail('invalid')
     const rows = p_kind === 'scores' ? readLocalScores() : read(KEYS.logs, [])
     return { total: rows.length, items: rows.slice(p_offset, p_offset + p_limit) }
+  },
+
+  // 데모: 설정은 이 브라우저에 저장된 값이 곧 설정이라(lib/siteSettings.js) 기록만 남긴다
+  admin_set_setting({ p_key, p_value }) {
+    if (p_key !== 'support_enabled' || typeof p_value !== 'boolean') fail('invalid')
+    localLog(p_value ? 'enable_support' : 'disable_support', 'setting', p_key, { value: p_value })
   },
 
   admin_gpa_stats({ p_days = null, p_gender = null }) {

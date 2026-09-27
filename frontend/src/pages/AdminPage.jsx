@@ -6,6 +6,7 @@ import AdminGpaStats from '../components/admin/AdminGpaStats.jsx'
 import AdminOverview from '../components/admin/AdminOverview.jsx'
 import AdminPosts from '../components/admin/AdminPosts.jsx'
 import AdminReports from '../components/admin/AdminReports.jsx'
+import AdminSettings from '../components/admin/AdminSettings.jsx'
 import AdminUsers from '../components/admin/AdminUsers.jsx'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import { IconAlert, IconInfo } from '../components/common/Icons.jsx'
@@ -25,6 +26,7 @@ const TABS = [
   { id: 'admissions', label: '합격 제보' },
   { id: 'gpa', label: '학점 통계' },
   { id: 'activity', label: '기록' },
+  { id: 'settings', label: '설정' },
 ]
 
 const LOGIN_POINTS = ['관리자 구글 계정으로 로그인해 주세요.', '관리 권한은 서버에서 한 번 더 확인해요.']
@@ -191,6 +193,7 @@ export default function AdminPage() {
           {tab === 'admissions' && <AdminAdmissions notify={notify} onChanged={loadOverview} />}
           {tab === 'gpa' && <AdminGpaStats />}
           {tab === 'activity' && <AdminActivity initial={initial} />}
+          {tab === 'settings' && <AdminSettings notify={notify} />}
         </div>
       </div>
 

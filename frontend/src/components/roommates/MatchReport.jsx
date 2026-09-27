@@ -1,9 +1,9 @@
-import { CHECKLIST_SECTIONS, answerLabel, isAnswered, itemNumber } from '../../data/roommateChecklist.js'
+import { CHECKLIST_SECTIONS, answerLabel, itemNumber, normalizeChecklist, sameAnswer } from '../../data/roommateChecklist.js'
 
-const same = (mine, theirs, key) => isAnswered(mine?.[key]) && mine[key] === theirs?.[key]
-
-/** 18개 항목을 나 / 상대 로 나란히 비교 */
-export function CompareTable({ mine, theirs, theirLabel = '신청자' }) {
+/** 체크리스트 항목을 나 / 상대 로 나란히 비교 */
+export function CompareTable({ mine: myRaw, theirs: theirRaw, theirLabel = '신청자' }) {
+  const mine = normalizeChecklist(myRaw)
+  const theirs = normalizeChecklist(theirRaw)
   return (
     <div className="mr-compare">
       <div className="mr-compare-head" aria-hidden="true">
@@ -16,7 +16,7 @@ export function CompareTable({ mine, theirs, theirLabel = '신청자' }) {
           <h4>{section.title}</h4>
           <dl>
             {section.items.map((item) => {
-              const ok = same(mine, theirs, item.key)
+              const ok = sameAnswer(mine[item.key], theirs[item.key])
               return (
                 <div key={item.key} className={`mr-compare-row${ok ? ' is-same' : ''}`}>
                   <dt>
@@ -26,8 +26,8 @@ export function CompareTable({ mine, theirs, theirLabel = '신청자' }) {
                     <span className="cl-no tabular">{itemNumber(item.key)}</span>
                     {item.label}
                   </dt>
-                  <dd>{answerLabel(item, mine?.[item.key])}</dd>
-                  <dd>{answerLabel(item, theirs?.[item.key])}</dd>
+                  <dd>{answerLabel(item, mine[item.key])}</dd>
+                  <dd>{answerLabel(item, theirs[item.key])}</dd>
                 </div>
               )
             })}

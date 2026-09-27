@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { JBNU_URL, OFFICIAL_DORM_URL } from '../../config.js'
 import { IconExternal } from '../common/Icons.jsx'
 import Logo from '../common/Logo.jsx'
+import { useSiteSettings } from '../../lib/siteSettings.js'
 import { NAV_ITEMS } from './Header.jsx'
 import './Footer.css'
 
@@ -11,6 +12,8 @@ const EXTERNAL_LINKS = [
 ]
 
 export default function Footer() {
+  const { supportEnabled } = useSiteSettings()
+  const navItems = supportEnabled ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.to !== '/support')
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
@@ -25,7 +28,7 @@ export default function Footer() {
         <nav className="footer-col" aria-label="서비스 메뉴">
           <h2>서비스</h2>
           <ul>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <li key={item.to}>
                 <Link to={item.to}>{item.label}</Link>
               </li>
