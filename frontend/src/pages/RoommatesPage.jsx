@@ -13,7 +13,6 @@ import { matchCount } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
 import BlockConfirmModal from '../components/roommates/BlockConfirmModal.jsx'
 import ReportModal from '../components/roommates/ReportModal.jsx'
-import RequestConfirmModal from '../components/roommates/RequestConfirmModal.jsx'
 import RoommateCard from '../components/roommates/RoommateCard.jsx'
 import RoommateForm from '../components/roommates/RoommateForm.jsx'
 import { DORMITORIES } from '../data/dormitories.js'
@@ -26,10 +25,8 @@ import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import {
   announceInboxCounts,
   blockAuthor,
-  cancelRequest,
   fetchInboxCounts,
   fetchSentPostIds,
-  sendRequest,
 } from '../lib/roommateRequests.js'
 import { semesterLabel } from '../lib/semester.js'
 import { useSiteSettings } from '../lib/siteSettings.js'
@@ -59,7 +56,7 @@ const AFTER_LOGIN_KEY = 'jbnu-dorm:after-login'
 const LOGIN_REASONS = {
   write: '글을 쓰려면 로그인이 필요해요.',
   myPosts: '내가 쓴 글을 보려면 로그인이 필요해요.',
-  requests: '신청 내역을 보려면 로그인이 필요해요.',
+  requests: '채팅을 보려면 로그인이 필요해요.',
   profile: '내 정보를 보려면 로그인이 필요해요.',
   unlock: '로그인하고 체크리스트를 등록하면 글을 볼 수 있어요.',
   archive: '지난 학기 글을 보려면 로그인이 필요해요.',
@@ -133,8 +130,6 @@ export default function RoommatesPage() {
   const [suspension, setSuspension] = useState({ suspended: false, until: null })
   // 모바일에서 필터 펼침
   const [filtersOpen, setFiltersOpen] = useState(false)
-  // 룸메 신청 확인 창. { post, mode: 'send' | 'cancel' }
-  const [confirm, setConfirm] = useState(null)
   const [sentIds, setSentIds] = useState(() => new Set())
   const [counts, setCounts] = useState({ requests: 0, replies: 0 })
   const [loginOpen, setLoginOpen] = useState(false)
@@ -146,7 +141,7 @@ export default function RoommatesPage() {
   const asked = searchParams.get(SEMESTER_PARAM)
   const archived = SEMESTER_RE.test(asked ?? '') && asked !== recruit ? asked : null
   const viewSemester = archived ?? recruit
-  // 신청 내역 대화방의 [게시물 바로가기]: /roommates?post=글id 로 들어오면 그 글을 자세히 보기로 연다
+  // 채팅 대화방의 [게시물 바로가기]: /roommates?post=글id 로 들어오면 그 글을 자세히 보기로 연다
   const linkedPost = searchParams.get('post')
   const [linkError, setLinkError] = useState('')
 
@@ -273,7 +268,7 @@ export default function RoommatesPage() {
     finishPending(pending)
   }, [pending, signedIn, profile.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 모바일 메뉴의 바로가기(내 정보·내가 쓴 글·신청 내역·로그인)로 들어온 경우
+  // 모바일 메뉴의 바로가기(내 정보·내가 쓴 글·채팅·로그인)로 들어온 경우
   useEffect(() => {
     const action = location.state?.action
     if (!action || authStatus === 'loading') return
@@ -287,8 +282,8 @@ export default function RoommatesPage() {
     if (action === 'profile') setProfileOpen(true)
     if (action === 'write') setEditor({ post: null })
     if (action === 'myPosts') setMyPostsOpen(true)
-    // 신청 내역은 따로 된 페이지 (대화 목록)
-    if (action === 'requests') navigate('/roommates/requests')
+    // 채팅은 따로 된 페이지 (대화 목록)
+    if (action === 'requests') navigate('/chats')
     if (action === 'archive') setArchiveOpen(true)
   }
 
@@ -424,26 +419,14 @@ export default function RoommatesPage() {
     setEditor(null)
   }
 
-  // 내 글이면 그 글에 온 신청(신청 내역 페이지의 그 글 대화), 남의 글이면 신청 보내기(이미 보냈으면 취소) 확인 창
+  // 내 글이면 그 글에 온 채팅 목록, 남의 글이면 [채팅 보내기]: 대화창을 바로 연다.
+  // 대화창만 열면 아무것도 저장하지 않고, 첫 메시지를 보낼 때 룸메 신청이 된다 (이미 대화 중이면 그 대화로)
   function handleRequest(post) {
     if (isMine(post)) {
-      navigate(`/roommates/requests?post=${post.id}`)
+      navigate(`/chats?post=${post.id}`)
       return
     }
-    setConfirm({ post, mode: sentIds.has(post.id) ? 'cancel' : 'send' })
-  }
-
-  async function confirmRequest(message) {
-    const { post, mode } = confirm
-    if (mode === 'send') await sendRequest(post, message, user.id, profile.data?.gender)
-    else await cancelRequest(post.id, user.id)
-    setSentIds((prev) => {
-      const next = new Set(prev)
-      if (mode === 'send') next.add(post.id)
-      else next.delete(post.id)
-      return next
-    })
-    setConfirm(null)
+    navigate(`/chats/new/${post.id}`, { state: { post } })
   }
 
   function openBlockAuthor(post) {
@@ -490,7 +473,6 @@ export default function RoommatesPage() {
     await signOut()
     setEditor(null)
     setMyPostsOpen(false)
-    setConfirm(null)
     setBlockPost(null)
     setReportTarget(null)
     setDetail(null)
@@ -698,7 +680,7 @@ export default function RoommatesPage() {
             내가 쓴 글
           </button>
           <button type="button" className="btn btn-secondary btn-lg rm-inbox-btn" onClick={() => requireAccess('requests')}>
-            신청 내역
+            채팅
             {newTotal > 0 && (
               <span className="rm-unread tabular" aria-label={`안 읽은 대화 ${newTotal}개`}>
                 {newTotal > 99 ? '99+' : newTotal}
@@ -739,7 +721,7 @@ export default function RoommatesPage() {
         </div>
       )}
 
-      {/* 모바일: 글쓰기는 화면 아래에 고정된 버튼으로 (내가 쓴 글·신청 내역은 햄버거 메뉴에서).
+      {/* 모바일: 글쓰기는 화면 아래에 고정된 버튼으로 (내가 쓴 글·채팅은 햄버거 메뉴에서).
           모바일에서는 이 페이지의 푸터를 숨기므로 버튼이 가릴 것이 없다 */}
       {signedIn && (
         <div className="rm-fab-dock">
@@ -818,13 +800,6 @@ export default function RoommatesPage() {
       />
       {user && (
         <>
-          <RequestConfirmModal
-            key={confirm ? `${confirm.mode}-${confirm.post.id}` : 'confirm'}
-            target={confirm}
-            match={confirm && profile.data ? matchCount(profile.data.checklist, confirm.post.checklist) : null}
-            onClose={() => setConfirm(null)}
-            onConfirm={confirmRequest}
-          />
           <DeletePostModal
             key={`delete-${deletingPost?.id ?? 'none'}`}
             post={deletingPost}

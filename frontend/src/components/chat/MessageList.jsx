@@ -1,6 +1,6 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { IconUser } from '../common/Icons.jsx'
-import { clockLabel, counterpartRole, dayLabel } from './chatFormat.js'
+import { DELETED_TEXT, clockLabel, counterpartRole, dayLabel, quoteText } from './chatFormat.js'
 
 // 같은 사람이 같은 분에 이어 보낸 메시지는 한 묶음: 이름은 첫 메시지에, 시각은 마지막 메시지에만
 const sameGroup = (a, b) =>
@@ -8,13 +8,82 @@ const sameGroup = (a, b) =>
 
 // 화면 맨 아래에서 이만큼 안이면 "맨 아래를 보고 있다"고 본다 (새 메시지가 오면 따라 내려간다)
 const NEAR_BOTTOM = 120
+// 꾹 누르기: 이만큼 누르고 있으면 메뉴 (손가락이 이만큼 움직이면 스크롤로 보고 취소)
+const LONG_PRESS_MS = 450
+const MOVE_TOLERANCE = 10
+
+/** 말풍선을 꾹 누르거나(휴대폰) 오른쪽 클릭하면(PC) onPress */
+function useLongPress(onPress) {
+  const timer = useRef(null)
+  const start = useRef(null)
+  const cancel = () => {
+    clearTimeout(timer.current)
+    timer.current = null
+  }
+  useEffect(() => cancel, [])
+  return {
+    onPointerDown: (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      start.current = { x: e.clientX, y: e.clientY }
+      cancel()
+      timer.current = setTimeout(() => {
+        timer.current = null
+        navigator.vibrate?.(10)
+        onPress()
+      }, LONG_PRESS_MS)
+    },
+    onPointerMove: (e) => {
+      if (!timer.current || !start.current) return
+      if (Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > MOVE_TOLERANCE) cancel()
+    },
+    onPointerUp: cancel,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (e) => {
+      e.preventDefault()
+      cancel()
+      onPress()
+    },
+  }
+}
+
+function Bubble({ message, other, viewerRole, byId, onAction }) {
+  const press = useLongPress(() => onAction(message))
+  if (message.deletedAt) {
+    return <p className="chat-bubble is-deleted">{DELETED_TEXT}</p>
+  }
+  // 답장 인용: 누구의 메시지에 답했는지 (보는 사람 기준 "나" 또는 상대). 불러오지 않은 앞 메시지면 "답장"
+  const target = message.replyToId ? byId.get(message.replyToId) : null
+  const replyLabel = target ? `${target.senderRole === viewerRole ? '나' : other}에게 답장` : '답장'
+  return (
+    <div
+      className="chat-bubble is-pressable"
+      role="button"
+      tabIndex={0}
+      aria-haspopup="menu"
+      aria-label={`${message.body} (꾹 누르면 메뉴)`}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onAction(message))}
+      {...press}
+    >
+      {message.replyToId && (
+        <span className="chat-quote">
+          <b>{replyLabel}</b>
+          <span>{quoteText(target)}</span>
+        </span>
+      )}
+      <span className="chat-bubble-text">{message.body}</span>
+    </div>
+  )
+}
 
 /**
  * 대화 메시지 목록 (스크롤 영역).
  * header: 맨 위에 둘 내용 (게시물 카드) · messages: 저장된 메시지 · pending: 보내는 중/실패한 내 메시지
+ * otherReadId: 상대가 어디까지 읽었는지 → 그보다 뒤의 내 말풍선에 "1"
+ * onAction(message): 말풍선을 꾹 눌렀을 때 (메뉴) · empty: 메시지가 없을 때 보여 줄 내용
  * hasMore + onLoadOlder: 맨 위에 닿으면 앞의 메시지를 더 불러온다
  */
-export default function MessageList({ thread, header, messages, pending, hasMore, onLoadOlder, onRetry, onDiscard }) {
+export default function MessageList({ thread, header, empty, messages, pending, otherReadId = 0, hasMore, onLoadOlder, onRetry, onDiscard, onAction }) {
   const scrollRef = useRef(null)
   const topRef = useRef(null)
   const atBottom = useRef(true)
@@ -23,6 +92,7 @@ export default function MessageList({ thread, header, messages, pending, hasMore
   const lastId = messages.at(-1)?.id ?? null
   const seenLast = useRef(lastId)
   const [newBelow, setNewBelow] = useState(false)
+  const byId = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages])
   const mine = (m) => m.senderRole === thread.role
 
   function scrollToBottom(smooth = false) {
@@ -97,16 +167,19 @@ export default function MessageList({ thread, header, messages, pending, hasMore
           이전 메시지 불러오는 중…
         </div>
       )}
+      {!messages.length && !pending.length && empty}
       <ol className="chat-messages" aria-label="메시지">
         {messages.map((m, i) => {
           const prev = messages[i - 1]
           const next = messages[i + 1]
           const newDay = !prev || dayLabel(prev.createdAt) !== dayLabel(m.createdAt)
           const isMine = mine(m)
-          // 룸메 신청: 가운데 안내 줄 + (한마디가 있으면) 말풍선
+          // 룸메 신청(첫 메시지): 가운데 안내 줄 + (내용이 있으면) 말풍선
           const request = m.kind === 'request'
           const groupStart = request || !sameGroup(prev, m) || prev?.kind === 'request' || newDay
           const groupEnd = !sameGroup(m, next) || next?.kind === 'request'
+          // 상대가 아직 안 읽은 내 메시지
+          const unread = isMine && !m.deletedAt && m.id > otherReadId
           return (
             <Fragment key={m.id}>
               {newDay && (
@@ -117,10 +190,9 @@ export default function MessageList({ thread, header, messages, pending, hasMore
               {request && (
                 <li className="chat-note">
                   {isMine ? '룸메 신청을 보냈어요' : `${other}가 룸메 신청을 보냈어요`}
-                  <time dateTime={m.createdAt}> · {clockLabel(m.createdAt)}</time>
                 </li>
               )}
-              {(!request || m.body) && (
+              {(!request || m.body || m.deletedAt) && (
                 <li className={`chat-msg${isMine ? ' is-mine' : ''}${groupStart ? ' is-start' : ''}`}>
                   {!isMine && (
                     <span className="chat-msg-avatar" aria-hidden="true">
@@ -130,11 +202,21 @@ export default function MessageList({ thread, header, messages, pending, hasMore
                   <div className="chat-msg-body">
                     {!isMine && groupStart && <span className="chat-msg-name">{other}</span>}
                     <div className="chat-msg-line">
-                      <p className="chat-bubble">{m.body}</p>
-                      {(groupEnd || request) && (
-                        <time className="chat-time tabular" dateTime={m.createdAt}>
-                          {clockLabel(m.createdAt)}
-                        </time>
+                      <Bubble message={m} other={other} viewerRole={thread.role} byId={byId} onAction={onAction} />
+                      {(unread || groupEnd || request || m.editedAt) && (
+                        <span className="chat-meta">
+                          {unread && (
+                            <span className="chat-read" aria-label="상대가 아직 읽지 않음">
+                              1
+                            </span>
+                          )}
+                          {m.editedAt && !m.deletedAt && <span className="chat-edited">수정됨</span>}
+                          {(groupEnd || request) && (
+                            <time className="chat-time tabular" dateTime={m.createdAt}>
+                              {clockLabel(m.createdAt)}
+                            </time>
+                          )}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -148,7 +230,11 @@ export default function MessageList({ thread, header, messages, pending, hasMore
             <div className="chat-msg-body">
               <div className="chat-msg-line">
                 <p className="chat-bubble">{p.body}</p>
-                {p.status === 'sending' && <span className="chat-time">보내는 중</span>}
+                {p.status === 'sending' && (
+                  <span className="chat-meta">
+                    <span className="chat-time">보내는 중</span>
+                  </span>
+                )}
               </div>
               {p.status === 'failed' && (
                 <p className="chat-failed">

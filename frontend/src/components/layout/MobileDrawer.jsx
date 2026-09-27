@@ -27,7 +27,7 @@ const SUPPORT_PATH = '/support'
 const ROOMMATE_ACTIONS = [
   { action: 'profile', label: '내 정보', Icon: IconClipboard },
   { action: 'myPosts', label: '내가 쓴 글', Icon: IconFile },
-  { action: 'requests', label: '신청 내역', Icon: IconChat },
+  { action: 'requests', label: '채팅', Icon: IconChat },
   { action: 'archive', label: '지난 학기 글', Icon: IconArchive },
 ]
 
@@ -59,8 +59,8 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth, inb
 
   function go(action) {
     onClose()
-    // 신청 내역은 따로 된 페이지 (로그인 전이면 그 페이지가 로그인으로 안내한다)
-    if (action === 'requests') return navigate('/roommates/requests')
+    // 채팅은 따로 된 페이지 (로그인 전이면 그 페이지가 로그인으로 안내한다)
+    if (action === 'requests') return navigate('/chats')
     navigate('/roommates', { state: { action } })
   }
 

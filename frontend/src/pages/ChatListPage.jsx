@@ -35,7 +35,7 @@ function ThreadRow({ thread }) {
   const closed = thread.postClosed
   return (
     <li>
-      <Link to={`/roommates/requests/${thread.id}`} className={`chat-row${thread.unread > 0 ? ' is-unread' : ''}`}>
+      <Link to={`/chats/${thread.id}`} className={`chat-row${thread.unread > 0 ? ' is-unread' : ''}`}>
         <span className="chat-avatar" aria-hidden="true">
           <IconUser width={22} height={22} />
         </span>
@@ -67,7 +67,7 @@ function ThreadRow({ thread }) {
 }
 
 /**
- * 신청 내역: 룸메 신청으로 시작된 대화 목록 (받은 신청 · 보낸 신청).
+ * 채팅: 룸메 신청으로 시작된 대화 목록 (받은 신청 · 보낸 신청).
  * ?post=글id 이면 그 글의 대화만 (카드의 [받은 신청]에서 들어온 경우)
  * 새 메시지는 실시간으로 받아 목록을 다시 불러온다.
  */
@@ -123,12 +123,12 @@ export default function ChatListPage() {
 
   return (
     <div className="container chat-list-page">
-      <title>신청 내역 | JBNU Dormi</title>
+      <title>채팅 | JBNU Dormi</title>
       <div className="chat-list-head">
         <Link to="/roommates" className="chat-back" aria-label="룸메이트 찾기로">
           <IconArrowLeft width={20} height={20} />
         </Link>
-        <h1>신청 내역</h1>
+        <h1>채팅</h1>
         {signedIn && (
           <button type="button" className="btn btn-ghost btn-sm chat-blocks-btn" onClick={() => setBlocksOpen(true)}>
             차단 관리
@@ -167,10 +167,10 @@ export default function ChatListPage() {
             ) : (
               <p className="chat-empty">
                 {tab === 'applicant'
-                  ? '아직 보낸 신청이 없어요. 마음에 드는 글에서 [룸메 신청]을 보내 보세요.'
+                  ? '아직 보낸 채팅이 없어요. 마음에 드는 글에서 [룸메 신청] → [채팅 보내기]로 대화를 시작해 보세요.'
                   : tab === 'author'
-                    ? '아직 받은 신청이 없어요. 다른 사람이 내 글에 신청하면 여기에서 대화할 수 있어요.'
-                    : '아직 대화가 없어요. 룸메 신청을 보내거나 받으면 여기에 대화가 생겨요.'}
+                    ? '아직 받은 채팅이 없어요. 다른 사람이 내 글에 채팅을 보내면 여기에 모여요.'
+                    : '아직 채팅이 없어요. 마음에 드는 글에 채팅을 보내 보세요.'}
               </p>
             ))}
           <BlocksModal open={blocksOpen} userId={user.id} onClose={() => setBlocksOpen(false)} />

@@ -74,7 +74,7 @@ export default function ReportModal({ target, onClose, onSubmit }) {
               신고해 주셔서 고마워요.
               {outcome?.blocked && (
                 <>
-                  <br />이 사용자는 차단했어요. [신청 내역 → 차단 목록]에서 해제할 수 있어요.
+                  <br />이 사용자는 차단했어요. [채팅 → 차단 관리]에서 해제할 수 있어요.
                 </>
               )}
               {outcome?.blockFailed && (

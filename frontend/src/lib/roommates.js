@@ -263,7 +263,7 @@ export async function fetchPostSemesters(userId = null) {
   return data.map((r) => ({ semester: r.semester, count: Number(r.post_count) }))
 }
 
-/** 글 하나 (없거나 볼 수 없으면 null). 신청 내역 대화방의 [게시물 바로가기] */
+/** 글 하나 (없거나 볼 수 없으면 null). 채팅 대화방의 [게시물 바로가기] */
 export async function fetchRoommatePost(id, userId = null) {
   if (!isSupabaseConfigured) {
     const post = [...readLocal(), ...SAMPLE_POSTS].find((p) => p.id === id)

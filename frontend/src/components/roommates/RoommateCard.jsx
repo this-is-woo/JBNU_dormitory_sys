@@ -34,38 +34,40 @@ function Intro({ text }) {
   )
 }
 
-/** 카드·자세히 보기 공통: 룸메 신청 버튼의 문구와 모양 */
+/**
+ * 자세히 보기 창의 버튼: [채팅 보내기]를 누르면 대화창이 바로 열린다 (첫 메시지를 보내야 룸메 신청이 된다)
+ * 내 글이면 [받은 신청 N](그 글의 채팅), 이미 대화 중이면 [채팅 이어 가기]
+ */
 export function requestButton(post, mine, sent, myGender) {
   if (mine) return { label: '받은 신청', tone: 'btn-secondary', count: post.requestCount }
-  if (sent) return { label: '신청함 ✓', tone: 'btn-secondary is-sent' }
+  if (sent) return { label: '채팅 이어 가기', tone: 'btn-primary' }
   // 룸메이트는 같은 성별끼리만
-  if (myGender && post.gender !== myGender) return { label: '같은 성별만 신청 가능', tone: 'btn-secondary', disabled: true }
+  if (myGender && post.gender !== myGender) return { label: '같은 성별만 신청할 수 있어요', tone: 'btn-secondary', disabled: true }
+  if (post.isClosed) return { label: '모집 마감', tone: 'btn-secondary', disabled: true }
+  return { label: '채팅 보내기', tone: 'btn-primary' }
+}
+
+/**
+ * 카드 버튼: 남의 글은 [룸메 신청] → 체크리스트 창(그 창의 [채팅 보내기]로 대화 시작).
+ *   대화 중이면 [채팅 중], 마감이면 [모집 마감] · 다른 성별이면 [같은 성별만 신청할 수 있어요] 비활성
+ * 내 글은 [받은 신청 N] → 그 글의 채팅 목록 (onRequest). 지난 학기 글 보기 중이면 [자세히 보기] (읽기 전용)
+ */
+function cardButton(post, mine, sent, myGender, archived) {
+  if (archived && !mine) return { label: '자세히 보기', tone: 'btn-secondary' }
+  if (mine) return requestButton(post, mine, sent, myGender)
+  if (sent) return { label: '채팅 중', tone: 'btn-secondary is-sent' }
+  if (myGender && post.gender !== myGender) return { label: '같은 성별만 신청할 수 있어요', tone: 'btn-secondary', disabled: true }
   if (post.isClosed) return { label: '모집 마감', tone: 'btn-secondary', disabled: true }
   return { label: '룸메 신청', tone: 'btn-primary' }
 }
 
 /**
  * match: 내 정보와 맞는 항목 수 (내 글이거나 모르면 null)
- * sent: 내가 이 글에 룸메 신청을 보냈는지 (버튼이 [신청함 ✓])
- * myGender: 내 성별. 다른 성별의 글이면 [룸메 신청]을 처음부터 누를 수 없다
- * archived: 지난 학기 글 보기 중이면 신청 대신 [자세히 보기] (읽기 전용)
- * 카드 버튼 (cardButton):
- *   · 남의 글: [룸메 신청] → 체크리스트 창을 열고, 그 창 아래 [룸메 신청]으로 보낸다 (체크리스트를 보고 신청하도록)
- *     보낸 글은 [신청함 ✓] (창에서 취소 가능), 마감이면 [모집 마감] · 다른 성별이면 [같은 성별만 신청할 수 있어요] 비활성
- *   · 내 글: [받은 신청 N] → 신청 내역 (onRequest)
+ * sent: 이 글의 글쓴이와 대화 중인지 (내가 첫 메시지를 보내 룸메 신청을 했는지)
+ * myGender: 내 성별 · archived: 지난 학기 글 보기 중
  * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
  */
-function cardButton(post, mine, sent, myGender, archived) {
-  if (archived && !mine) return { label: '자세히 보기', tone: 'btn-secondary' }
-  const base = requestButton(post, mine, sent, myGender)
-  // 다른 성별의 글: 처음부터 누를 수 없고, 이유를 버튼 문구로
-  if (!mine && !sent && myGender && post.gender !== myGender) {
-    return { label: '같은 성별만 신청할 수 있어요', tone: 'btn-secondary', disabled: true }
-  }
-  return base
-}
-
 export default function RoommateCard({ post, mine, sent = false, match = null, myGender = null, archived = false, onOpen, onRequest, onEdit, onReport, onDelete, adminLink = false }) {
   const action = cardButton(post, mine, sent, myGender, archived)
   return (

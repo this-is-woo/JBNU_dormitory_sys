@@ -1,7 +1,7 @@
 import { semesterLabel } from '../../lib/semester.js'
 import { collegeName, dormName } from '../roommates/postFormat.js'
 
-// 신청 내역(대화) 화면 공통 표기. 시각은 모두 한국 시간
+// 채팅 화면 공통 표기. 시각은 모두 한국 시간
 const KST_PARTS = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
   year: 'numeric',
@@ -42,10 +42,10 @@ export function threadTitle(thread) {
   return [collegeName(c.collegeCode), c.age && `${c.age}세`].filter(Boolean).join(' · ')
 }
 
-/** 대화방 부제: "받은 신청 · 대동관 · 2027년 1학기" */
+/** 대화방 부제: "받은 신청 · 대동관 · 2027년 1학기" (첫 메시지를 보내기 전이면 "새 채팅") */
 export function threadContext(thread) {
   return [
-    thread.role === 'author' ? '받은 신청' : '보낸 신청',
+    thread.draft ? '새 채팅' : thread.role === 'author' ? '받은 신청' : '보낸 신청',
     dormName(thread.dormitory),
     thread.semester && semesterLabel(thread.semester),
   ]
@@ -53,13 +53,24 @@ export function threadContext(thread) {
     .join(' · ')
 }
 
+export const DELETED_TEXT = '삭제된 메시지입니다.'
+
 /** 목록의 마지막 메시지 미리보기 */
 export function previewText(thread) {
   const m = thread.lastMessage
   if (!m) return '아직 메시지가 없어요.'
+  if (m.deletedAt) return DELETED_TEXT
   if (m.kind === 'request') {
     if (m.body) return m.body
     return thread.role === 'applicant' ? '룸메 신청을 보냈어요.' : '룸메 신청이 왔어요.'
   }
   return m.body
+}
+
+/** 답장 인용 한 줄 (길면 자른다) */
+export function quoteText(message) {
+  if (!message) return '이전 메시지'
+  if (message.deletedAt) return DELETED_TEXT
+  const text = (message.body ?? '룸메 신청').replace(/\s+/g, ' ').trim()
+  return text.length > 60 ? `${text.slice(0, 60)}…` : text
 }

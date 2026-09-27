@@ -512,8 +512,80 @@
   background: var(--c-bg);
 }
 
-.chat-time {
+.chat-bubble.is-pressable {
+  cursor: default;
+  /* 꾹 누르면 우리 메뉴가 뜨도록 휴대폰 기본 선택·메뉴는 끈다 (선택 복사는 메뉴에서) */
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chat-bubble.is-pressable:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.chat-bubble-text {
+  display: block;
+}
+
+.chat-bubble.is-deleted {
+  border-style: dashed;
+  border-color: var(--c-border-strong);
+  background: transparent;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.chat-msg.is-mine .chat-bubble.is-deleted {
+  background: transparent;
+}
+
+/* 답장 인용 */
+.chat-quote {
+  display: grid;
+  gap: 1px;
+  margin-bottom: 6px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--c-border-strong);
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.chat-quote b {
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.chat-quote span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 말풍선 옆: 1(상대가 안 읽음) · 수정됨 · 시각 */
+.chat-meta {
+  display: grid;
   flex: none;
+  gap: 1px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--c-text-3);
+  white-space: nowrap;
+}
+
+.chat-msg.is-mine .chat-meta {
+  justify-items: end;
+  text-align: right;
+}
+
+.chat-read {
+  font-weight: 700;
+  color: var(--c-primary-text);
+}
+
+.chat-time {
   font-size: 11px;
   color: var(--c-text-3);
   white-space: nowrap;
@@ -567,13 +639,210 @@
 
 /* 입력칸 */
 .chat-composer {
-  display: flex;
   flex: none;
-  align-items: flex-end;
-  gap: 8px;
   padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--c-border);
   background: var(--c-bg);
+}
+
+.chat-composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* 답장 · 수정 중 표시 */
+.chat-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 8px 8px 12px;
+  border-left: 3px solid var(--c-text-3);
+  border-radius: 6px;
+  background: var(--c-surface);
+}
+
+.chat-mode-text {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.chat-mode-text b {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.chat-mode-text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-mode-cancel {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.chat-mode-cancel:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.chat-start-hint {
+  margin: 8px 0 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+/* 말풍선 메뉴 · 선택 복사: 아래에서 올라오는 창 (PC 에서는 가운데) */
+.chat-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.35);
+  animation: chat-fade 0.15s ease;
+}
+
+.chat-sheet {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 420px);
+  max-height: 80dvh;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: var(--c-bg);
+  box-shadow: var(--shadow-lg);
+  animation: chat-rise 0.18s ease;
+}
+
+.chat-sheet-preview,
+.chat-sheet-title {
+  overflow: hidden;
+  padding: 0 4px 4px;
+  font-size: 13px;
+  color: var(--c-text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-sheet-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-radius: 14px;
+  background: var(--c-surface);
+  list-style: none;
+  overflow: hidden;
+}
+
+.chat-sheet-list li + li {
+  border-top: 1px solid var(--c-border);
+}
+
+.chat-sheet-list button,
+.chat-sheet-cancel {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: center;
+  cursor: pointer;
+}
+
+.chat-sheet-list button:hover,
+.chat-sheet-cancel:hover {
+  background: var(--c-surface-2);
+}
+
+.chat-sheet-list button.is-danger {
+  color: var(--c-danger);
+}
+
+.chat-sheet-cancel {
+  border-radius: 14px;
+  background: var(--c-surface);
+  font-weight: 600;
+}
+
+.chat-select-text {
+  max-height: 50dvh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.chat-sheet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.chat-toast {
+  position: fixed;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 130;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--c-text);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-bg);
+  transform: translateX(-50%);
+  animation: chat-fade 0.15s ease;
+}
+
+@keyframes chat-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes chat-rise {
+  from {
+    transform: translateY(24px);
+  }
+}
+
+@media (min-width: 761px) {
+  .chat-sheet-root {
+    align-items: center;
+  }
+
+  .chat-sheet {
+    border-radius: 20px;
+  }
 }
 
 .chat-input-wrap {
