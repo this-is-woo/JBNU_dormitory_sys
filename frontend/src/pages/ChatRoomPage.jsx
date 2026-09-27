@@ -68,7 +68,9 @@ function PostCard({ thread, myChecklist }) {
   const [open, setOpen] = useState(false)
   const c = thread.counterpart
   const facts = c && [collegeName(c.collegeCode), c.age && `${c.age}세`, genderLabel(c.gender), c.mbti ?? 'MBTI 비공개']
-  const state = !thread.postOpen ? '숨겨진 글' : thread.postClosed ? '모집완료' : '모집 중'
+  // 글이 지워져도 대화는 남는다: 카드에만 "삭제된 글"로 표시하고 바로가기는 잠근다 (대화 안에 따로 안내하지 않음)
+  const state = thread.postDeleted ? '삭제된 글' : !thread.postOpen ? '숨겨진 글' : thread.postClosed ? '모집완료' : '모집 중'
+  const off = thread.postDeleted || thread.postClosed || !thread.postOpen
   return (
     <section className="chat-post">
       <p className="chat-post-kicker">
@@ -76,12 +78,18 @@ function PostCard({ thread, myChecklist }) {
       </p>
       <p className="chat-post-title">
         {thread.role === 'author' ? '내 글' : thread.draft ? '채팅할 글' : '신청한 글'} · {dormName(thread.dormitory)} 룸메이트
-        <span className={`chat-post-state${thread.postClosed || !thread.postOpen ? ' is-off' : ''}`}>{state}</span>
+        <span className={`chat-post-state${off ? ' is-off' : ''}`}>{state}</span>
       </p>
       <div className="chat-post-actions">
-        <Link to={`/roommates?post=${thread.postId}`} className="btn btn-secondary btn-sm">
-          게시물 바로가기
-        </Link>
+        {thread.postDeleted ? (
+          <button type="button" className="btn btn-secondary btn-sm" disabled>
+            게시물 바로가기
+          </button>
+        ) : (
+          <Link to={`/roommates?post=${thread.postId}`} className="btn btn-secondary btn-sm">
+            게시물 바로가기
+          </Link>
+        )}
         {c && (
           <button
             type="button"

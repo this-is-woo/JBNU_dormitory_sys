@@ -71,6 +71,8 @@ const fromThreadRow = (row) => ({
   unread: row.unread ?? 0,
   otherReadId: Number(row.other_read_id ?? 0),
   otherLeft: Boolean(row.other_left),
+  // 글이 지워졌어도 대화는 남는다 (20261023). 호관·학기·상대 정보는 남겨 둔 글 정보
+  postDeleted: Boolean(row.post_deleted),
 })
 
 async function client() {
@@ -199,7 +201,9 @@ function localThreads(userId) {
   const messages = localMessages()
   return read(REQUESTS_KEY, [])
     .map((r) => {
-      const post = posts.find((p) => p.id === r.postId) ?? { ...(r.post ?? {}), authorId: samplePostAuthor(r.postId) }
+      // 글이 지워졌으면 신청에 남겨 둔 글 정보로 (lib/roommates.js 의 detachLocalChats)
+      const live = r.postDeleted ? null : posts.find((p) => p.id === r.postId)
+      const post = live ?? { ...(r.post ?? {}), authorId: r.authorId ?? samplePostAuthor(r.postId) }
       const role = r.applicantId === userId ? 'applicant' : post.authorId === userId ? 'author' : null
       if (!role) return null
       // 내가 나간 대화는 보이지 않는다
@@ -222,7 +226,8 @@ function localThreads(userId) {
         id: r.id,
         role,
         createdAt: r.createdAt,
-        postId: r.postId,
+        postId: r.postDeleted ? null : r.postId,
+        postDeleted: Boolean(r.postDeleted),
         dormitory: post.dormitory,
         semester: post.semester,
         postClosed: Boolean(post.isClosed),

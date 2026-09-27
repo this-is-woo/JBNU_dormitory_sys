@@ -9,6 +9,7 @@ import { uid } from './uid.js'
 // 글쓰기·수정·삭제 권한은 roommate_posts.user_id = auth.uid() 인 행에만 주는 RLS 정책으로 지킨다.
 // Supabase 가 연결되지 않았을 때는 이 브라우저의 localStorage 에만 저장한다 (데모 계정).
 const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
+const LOCAL_REQUESTS_KEY = 'jbnu-dorm:roommate-requests' // lib/roommateRequests.js
 
 const COLUMNS =
   'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, semester, is_closed, is_open, request_count'
@@ -337,14 +338,39 @@ export async function setRoommatePostClosed(id, closed, userId) {
   return fromRow(data)
 }
 
+/**
+ * 데모: 글을 지워도 그 글로 시작된 채팅은 남긴다 (DB 의 roommate_posts_snapshot_chats 트리거와 같은 일).
+ * 대화방에 보여 줄 글 정보와 글쓴이를 신청에 남기고 글과의 연결만 끊는다.
+ */
+export function detachLocalChats(post) {
+  const requests = readJson(LOCAL_REQUESTS_KEY, [])
+  if (!requests.some((r) => r.postId === post.id)) return
+  const snapshot = {
+    dormitory: post.dormitory,
+    semester: post.semester,
+    gender: post.gender,
+    age: post.age,
+    collegeCode: post.collegeCode,
+    mbti: post.mbti ?? null,
+    checklist: post.checklist ?? {},
+    isClosed: Boolean(post.isClosed),
+  }
+  writeJson(
+    LOCAL_REQUESTS_KEY,
+    requests.map((r) => (r.postId === post.id ? { ...r, post: snapshot, authorId: post.authorId, postDeleted: true } : r)),
+  )
+}
+
 export async function deleteRoommatePost(id, userId) {
   if (!isSupabaseConfigured) {
     const posts = readLocal()
-    if (posts.find((p) => p.id === id)?.authorId !== userId) throw new Error('내가 쓴 글만 삭제할 수 있어요.')
+    const post = posts.find((p) => p.id === id)
+    if (post?.authorId !== userId) throw new Error('내가 쓴 글만 삭제할 수 있어요.')
     writeJson(
       LOCAL_POSTS_KEY,
       posts.filter((p) => p.id !== id),
     )
+    detachLocalChats(post)
     return
   }
   const supabase = await client()

@@ -47,7 +47,7 @@ export default function BlockConfirmModal({ target, onClose, onConfirm }) {
         <div className="rq-confirm">
           <ul className="rq-block-effects">
             <li>서로의 글이 목록에 보이지 않아요.</li>
-            <li>서로 룸메 신청을 보낼 수 없고, 두 사람 사이의 신청과 답장은 지워져요.</li>
+            <li>서로 룸메 신청을 보낼 수 없고, 두 사람 사이의 채팅은 지워져요.</li>
             <li>상대에게 차단 사실은 알리지 않아요.</li>
             <li>[채팅 → 차단 관리]에서 언제든 해제할 수 있어요.</li>
           </ul>

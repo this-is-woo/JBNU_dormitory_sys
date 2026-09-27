@@ -1,7 +1,7 @@
 import { isSupabaseConfigured } from '../config.js'
 import { DEMO_USER } from '../hooks/useAuth.js'
 import { isLocallySuspended, readModeration, writeModeration } from './localModeration.js'
-import { SAMPLE_POSTS } from './roommates.js'
+import { SAMPLE_POSTS, detachLocalChats } from './roommates.js'
 import { readLocalScores } from './scoreLog.js'
 import { applySiteSettings } from './siteSettings.js'
 import { currentSemester } from './semester.js'
@@ -540,10 +540,8 @@ const LOCAL = {
       KEYS.posts,
       posts.filter((p) => p.id !== p_post_id),
     )
-    write(
-      KEYS.requests,
-      read(KEYS.requests, []).filter((r) => r.postId !== p_post_id),
-    )
+    // 글을 지워도 그 글로 시작된 채팅은 남긴다 (DB 와 같게)
+    detachLocalChats(post)
     localLog('delete_post', 'post', p_post_id, {
       author: emailOf(post.authorId),
       dormitory: post.dormitory,

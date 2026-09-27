@@ -49,11 +49,7 @@ export default function DeletePostModal({ post, onClose, onConfirm }) {
         <div className="rq-confirm">
           <ul className="rq-block-effects">
             <li>삭제한 글은 되돌릴 수 없어요.</li>
-            {post.requestCount > 0 ? (
-              <li>이 글에 온 룸메 신청 {post.requestCount}건과 답장도 함께 지워져요.</li>
-            ) : (
-              <li>이 글에 온 룸메 신청과 답장도 함께 지워져요.</li>
-            )}
+            <li>이 글로 시작된 채팅은 지워지지 않아요. 채팅 목록에서 계속 이어 갈 수 있어요.</li>
             <li>모집만 멈추고 싶다면 [내가 쓴 글]에서 모집완료로 바꿀 수 있어요.</li>
           </ul>
           {error && (

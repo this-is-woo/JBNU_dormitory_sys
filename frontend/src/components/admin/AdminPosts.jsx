@@ -350,7 +350,7 @@ export default function AdminPosts({ initial, notify, onChanged, onOpenUser }) {
       >
         <ul className="rq-block-effects">
           <li>삭제한 글은 되돌릴 수 없어요. 잠시 가리기만 하려면 [숨기기]를 쓰세요.</li>
-          <li>이 글에 온 룸메 신청 {deleting?.requestCount ?? 0}건과 답장도 함께 지워져요.</li>
+          <li>이 글로 시작된 채팅(받은 신청 {deleting?.requestCount ?? 0}건)은 지워지지 않고 두 사람 사이에 남아요.</li>
           <li>신고 기록은 신고 당시 내용과 함께 남고, 관리 기록에 글의 요약이 남아요.</li>
         </ul>
       </ConfirmModal>

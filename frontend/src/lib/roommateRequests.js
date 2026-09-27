@@ -83,7 +83,8 @@ function localBlock(userId, blockedId, context) {
   write(
     REQUESTS_KEY,
     read(REQUESTS_KEY, []).filter((r) => {
-      const author = authorOf(r.postId)
+      // 글이 지워진 대화는 신청에 남겨 둔 글쓴이로
+      const author = r.authorId ?? authorOf(r.postId)
       return !((author === userId && r.applicantId === blockedId) || (author === blockedId && r.applicantId === userId))
     }),
   )
@@ -122,6 +123,7 @@ export async function startChat(post, text, userId, myGender) {
       message: null,
       seenAt: null,
       chat: true,
+      authorId: post.authorId,
       // 데모: 대화방에 보여 줄 글 정보 (예시 글은 로컬 글 목록에 없으므로)
       post: {
         dormitory: post.dormitory,
@@ -162,7 +164,7 @@ export async function fetchSentPostIds(userId) {
   if (!isSupabaseConfigured) {
     // 내가 나간 대화는 빼서 카드에 다시 [룸메 신청]이 보이게 (DB 의 my_roommate_requests 와 같게)
     return read(REQUESTS_KEY, [])
-      .filter((r) => r.applicantId === userId && !r.applicantLeftAt)
+      .filter((r) => r.applicantId === userId && !r.applicantLeftAt && !r.postDeleted)
       .map((r) => r.postId)
   }
   return rpc('my_roommate_requests', {}, '채팅 목록을 불러오지 못했어요.')
@@ -199,6 +201,8 @@ export async function blockAuthor(post, userId) {
 
 /** 대화 상대 차단: 받은 신청이면 신청자, 보낸 신청이면 글쓴이 (thread: lib/roommateChat.js 의 대화방) */
 export async function blockCounterpart(thread, userId) {
+  // 글이 지워진 대화도 차단할 수 있게 대화방 기준으로 (20261023)
+  if (isSupabaseConfigured) return rpc('block_roommate_thread', { p_request_id: thread.id }, '차단하지 못했어요.')
   const context = { id: thread.id, dormitory: thread.dormitory, semester: thread.semester }
   if (thread.role === 'author') return blockApplicant(context, userId)
   return blockAuthor({ ...context, id: thread.postId, authorId: thread.authorId }, userId)
