@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
-import { IconAlert, IconArchive, IconInfo, IconPencil } from '../components/common/Icons.jsx'
+import { IconAlert, IconInfo, IconPencil } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import ArchiveModal from '../components/roommates/ArchiveModal.jsx'
 import BoardGate from '../components/roommates/BoardGate.jsx'
@@ -13,7 +13,6 @@ import { matchCount } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
 import BlockConfirmModal from '../components/roommates/BlockConfirmModal.jsx'
 import ReportModal from '../components/roommates/ReportModal.jsx'
-import RequestsInboxModal from '../components/roommates/RequestsInboxModal.jsx'
 import RequestConfirmModal from '../components/roommates/RequestConfirmModal.jsx'
 import RoommateCard from '../components/roommates/RoommateCard.jsx'
 import RoommateForm from '../components/roommates/RoommateForm.jsx'
@@ -39,6 +38,7 @@ import {
   SAMPLE_POSTS,
   createRoommatePost,
   deleteRoommatePost,
+  fetchRoommatePost,
   fetchRoommatePosts,
   SORTS,
   roommateStorage,
@@ -123,8 +123,6 @@ export default function RoommatesPage() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [myPostsOpen, setMyPostsOpen] = useState(false)
   const [detail, setDetail] = useState(null)
-  // 신청 내역 창. null: 닫힘 / { tab }: 전체 / { postId }: 그 글에 온 신청만
-  const [inbox, setInbox] = useState(null)
   // 글쓴이 차단 확인 창 (게시글)
   const [blockPost, setBlockPost] = useState(null)
   // 카드의 [삭제]로 지우려는 내 글
@@ -148,6 +146,9 @@ export default function RoommatesPage() {
   const asked = searchParams.get(SEMESTER_PARAM)
   const archived = SEMESTER_RE.test(asked ?? '') && asked !== recruit ? asked : null
   const viewSemester = archived ?? recruit
+  // 신청 내역 대화방의 [게시물 바로가기]: /roommates?post=글id 로 들어오면 그 글을 자세히 보기로 연다
+  const linkedPost = searchParams.get('post')
+  const [linkError, setLinkError] = useState('')
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -178,6 +179,29 @@ export default function RoommatesPage() {
       active = false
     }
   }, [signedIn, user?.id, profileRetry]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!linkedPost || !unlocked) return
+    let active = true
+    setLinkError('')
+    fetchRoommatePost(linkedPost, user.id).then((post) => {
+      if (!active) return
+      if (post) setDetail(post)
+      else setLinkError('글을 볼 수 없어요. 삭제되었거나 숨겨진 글이에요.')
+      // 주소에서 지운다 (새로고침하거나 창을 닫은 뒤 다시 열리지 않게)
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('post')
+          return next
+        },
+        { replace: true },
+      )
+    })
+    return () => {
+      active = false
+    }
+  }, [linkedPost, unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const boardQuery = () => ({
     sort,
@@ -263,7 +287,8 @@ export default function RoommatesPage() {
     if (action === 'profile') setProfileOpen(true)
     if (action === 'write') setEditor({ post: null })
     if (action === 'myPosts') setMyPostsOpen(true)
-    if (action === 'requests') setInbox({ tab: counts.replies > 0 && !counts.requests ? 'sent' : 'received' })
+    // 신청 내역은 따로 된 페이지 (대화 목록)
+    if (action === 'requests') navigate('/roommates/requests')
     if (action === 'archive') setArchiveOpen(true)
   }
 
@@ -276,7 +301,7 @@ export default function RoommatesPage() {
     window.scrollTo({ top: 0 })
   }
 
-  // 새 신청·답장 수(툴바 배지)와 내가 신청한 글. 주기적으로 확인하지 않고,
+  // 안 읽은 대화 수(툴바 배지)와 내가 신청한 글. 주기적으로 확인하지 않고,
   // 게시판을 열 때와 다른 탭에 갔다가 돌아올 때만 불러온다 (서버 요청 절약)
   async function refreshRequests() {
     if (!unlocked) {
@@ -399,11 +424,10 @@ export default function RoommatesPage() {
     setEditor(null)
   }
 
-  // 내 글이면 그 글에 온 신청, 남의 글이면 신청 보내기(이미 보냈으면 취소) 확인 창
+  // 내 글이면 그 글에 온 신청(신청 내역 페이지의 그 글 대화), 남의 글이면 신청 보내기(이미 보냈으면 취소) 확인 창
   function handleRequest(post) {
-    // 여는 창(자세히 보기·내가 쓴 글)은 그대로 두고 위에 띄운다: 닫으면 그 창으로 돌아간다
     if (isMine(post)) {
-      setInbox({ postId: post.id })
+      navigate(`/roommates/requests?post=${post.id}`)
       return
     }
     setConfirm({ post, mode: sentIds.has(post.id) ? 'cancel' : 'send' })
@@ -420,22 +444,6 @@ export default function RoommatesPage() {
       return next
     })
     setConfirm(null)
-  }
-
-  function closeInbox() {
-    setInbox(null)
-    refreshRequests()
-    // 카드의 받은 신청 수를 맞춘다
-    reload()
-  }
-
-  // 보낸 신청 탭에서 취소하면 카드의 "신청함" 표시도 지운다
-  function handleCanceled(postId) {
-    setSentIds((prev) => {
-      const next = new Set(prev)
-      next.delete(postId)
-      return next
-    })
   }
 
   function openBlockAuthor(post) {
@@ -482,7 +490,6 @@ export default function RoommatesPage() {
     await signOut()
     setEditor(null)
     setMyPostsOpen(false)
-    setInbox(null)
     setConfirm(null)
     setBlockPost(null)
     setReportTarget(null)
@@ -536,12 +543,6 @@ export default function RoommatesPage() {
             필터 초기화
           </button>
         )}
-        <div className="rm-archive-entry">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => requireAccess('archive')}>
-            <IconArchive width={16} height={16} />
-            지난 학기 글 보기
-          </button>
-        </div>
       </aside>
 
       <section ref={feedRef} className="rm-feed" aria-label="룸메이트 찾기 게시글">
@@ -555,6 +556,15 @@ export default function RoommatesPage() {
                 : ''}
               . 글쓰기·룸메 신청·답장을 할 수 없고, 내 글은 다른 사람에게 보이지 않아요.
             </p>
+          </div>
+        )}
+        {linkError && (
+          <div className="notice notice-danger" role="alert">
+            <IconAlert width={18} height={18} />
+            <p>{linkError}</p>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setLinkError('')}>
+              닫기
+            </button>
           </div>
         )}
         {unlocked && archived && (
@@ -690,10 +700,14 @@ export default function RoommatesPage() {
           <button type="button" className="btn btn-secondary btn-lg rm-inbox-btn" onClick={() => requireAccess('requests')}>
             신청 내역
             {newTotal > 0 && (
-              <span className="rm-unread tabular" aria-label={`새 신청·답장 ${newTotal}건`}>
+              <span className="rm-unread tabular" aria-label={`안 읽은 대화 ${newTotal}개`}>
                 {newTotal > 99 ? '99+' : newTotal}
               </span>
             )}
+          </button>
+          {/* PC 전용 (툴바는 모바일에서 숨김 · 모바일은 햄버거 메뉴의 [지난 학기 글]) */}
+          <button type="button" className="btn btn-secondary btn-lg" onClick={() => requireAccess('archive')}>
+            지난 학기 글
           </button>
         </div>
         <div className="rm-toolbar-meta">
@@ -810,15 +824,6 @@ export default function RoommatesPage() {
             match={confirm && profile.data ? matchCount(profile.data.checklist, confirm.post.checklist) : null}
             onClose={() => setConfirm(null)}
             onConfirm={confirmRequest}
-          />
-          <RequestsInboxModal
-            request={inbox}
-            user={user}
-            myChecklist={profile.data?.checklist ?? null}
-            counts={counts}
-            onClose={closeInbox}
-            onChanged={reload}
-            onCanceled={handleCanceled}
           />
           <DeletePostModal
             key={`delete-${deletingPost?.id ?? 'none'}`}

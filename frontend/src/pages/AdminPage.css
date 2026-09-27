@@ -861,6 +861,42 @@
   color: var(--c-text-3);
 }
 
+/* 신고 당시 대화 */
+.adm-chat {
+  display: grid;
+  gap: 4px;
+  max-height: 280px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 13px;
+}
+
+.adm-chat li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.adm-chat li.is-target {
+  background: var(--c-warning-soft);
+}
+
+.adm-chat b {
+  flex: none;
+  font-weight: 600;
+}
+
+.adm-chat time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--c-text-3);
+}
+
 /* 점수 계산 기록: 같은 IP 키 */
 .adm-client {
   display: inline-flex;

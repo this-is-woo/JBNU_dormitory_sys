@@ -85,23 +85,30 @@ export async function reportPost(post, reason, detail, userId) {
   await rpc('report_roommate_post', { p_post_id: post.id, p_reason: reason, p_detail: text || null })
 }
 
-/** 받은 신청 신고 */
-export async function reportRequest(request, reason, detail, userId) {
+/**
+ * 대화 상대 신고 (받은 신청이면 신청자, 보낸 신청이면 글쓴이). 최근 메시지 30개가 신고 당시 내용으로 남는다.
+ * thread: lib/roommateChat.js 의 대화방 · messages: 데모에서 남길 최근 메시지 (Supabase 에서는 DB 가 고른다)
+ */
+export async function reportThread(thread, reason, detail, userId, messages = []) {
   const text = detail.trim()
   validate(reason, text)
   if (!isSupabaseConfigured) {
-    const target = read(REQUESTS_KEY, []).find((r) => r.id === request.id)
+    const request = read(REQUESTS_KEY, []).find((r) => r.id === thread.id)
     return saveLocal({
       reporterId: userId,
-      reportedId: target?.applicantId ?? null,
+      reportedId: thread.role === 'author' ? request?.applicantId ?? null : thread.authorId ?? null,
       targetType: 'request',
-      targetId: request.id,
+      targetId: thread.id,
       reason,
       detail: text || null,
-      snapshot: { message: request.message, reply: request.reply },
+      snapshot: {
+        message: request?.message ?? null,
+        reporterRole: thread.role,
+        messages: messages.slice(-30).map((m) => ({ role: m.senderRole, kind: m.kind, body: m.body, at: m.createdAt })),
+      },
     })
   }
-  await rpc('report_roommate_request', { p_request_id: request.id, p_reason: reason, p_detail: text || null })
+  await rpc('report_roommate_thread', { p_request_id: thread.id, p_reason: reason, p_detail: text || null })
 }
 
 /** 내 이용 정지 상태 { suspended, until }. userId 는 데모에서만 쓴다 */

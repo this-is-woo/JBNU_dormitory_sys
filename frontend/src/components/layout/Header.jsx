@@ -16,7 +16,7 @@ export const NAV_ITEMS = [
 ]
 
 /**
- * 새 신청·답장 수 (모바일 메뉴 표시용). 로그인했을 때 한 번, 메뉴를 열 때, 다른 탭에서 돌아올 때 확인하고,
+ * 안 읽은 대화 수 (모바일 메뉴 표시용). 로그인했을 때 한 번, 메뉴를 열 때, 다른 탭에서 돌아올 때 확인하고,
  * 룸메이트 페이지가 새로 센 값을 알려 주면(INBOX_EVENT) 그대로 쓴다. 주기적으로 묻지 않는다.
  */
 function useInboxCounts(userId, menuOpen) {
@@ -93,11 +93,11 @@ export default function Header() {
           type="button"
           className="nav-toggle"
           aria-expanded={menuOpen}
-          aria-label={inboxNew > 0 ? `메뉴 열기 (새 신청·답장 ${inboxNew}건)` : '메뉴 열기'}
+          aria-label={inboxNew > 0 ? `메뉴 열기 (안 읽은 대화 ${inboxNew}개)` : '메뉴 열기'}
           onClick={() => setMenuOpen(true)}
         >
           <IconMenu width={22} height={22} />
-          {/* 새 신청·답장이 있으면 빨간 점, 아니면 로그인 상태(초록 점) */}
+          {/* 안 읽은 대화가 있으면 빨간 점, 아니면 로그인 상태(초록 점) */}
           {auth.status === 'signedIn' && (
             <span className={`nav-toggle-dot${inboxNew > 0 ? ' is-new' : ''}`} aria-hidden="true" />
           )}

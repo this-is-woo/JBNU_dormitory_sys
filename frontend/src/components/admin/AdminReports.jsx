@@ -23,6 +23,27 @@ const STATUS_CHIP = { pending: 'chip-warning', reviewed: 'chip-success', dismiss
 function Snapshot({ report }) {
   // 신고 당시 내용은 모양을 보장할 수 없어(예전에는 지어낸 내용도 들어올 수 있었다) 모두 글자로 바꿔 보여 준다
   const raw = report.snapshot && typeof report.snapshot === 'object' ? report.snapshot : {}
+  // 대화 신고 (20261020): 최근 메시지 목록. 신고한 사람 쪽이 "신고자", 상대가 "신고 대상"
+  if (report.targetType === 'request' && Array.isArray(raw.messages)) {
+    const reporter = raw.reporterRole === 'author' ? 'author' : 'applicant'
+    return (
+      <div className="adm-snapshot">
+        <span className="adm-snapshot-label">신고 당시 대화 (최근 {raw.messages.length}개)</span>
+        <ol className="adm-chat">
+          {raw.messages.map((m, i) => {
+            const by = m?.role === reporter ? '신고자' : '신고 대상'
+            const body = m?.kind === 'request' ? `[룸메 신청] ${asText(m?.body) || ''}`.trim() : asText(m?.body)
+            return (
+              <li key={i} className={m?.role === reporter ? '' : 'is-target'}>
+                <b>{by}</b> {body}
+                <time>{formatKst(asText(m?.at))}</time>
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    )
+  }
   const s = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, asText(v)]))
   if (report.targetType === 'request') {
     return (
@@ -66,7 +87,8 @@ function ReportCard({ report, busy, onAction }) {
         <div className="adm-card-title">
           <strong>{reasonLabel(report.reason)}</strong>
           <span>
-            {isPost ? '게시글 신고' : '받은 신청 신고'} · {formatKst(report.createdAt)}
+            {isPost ? '게시글 신고' : Array.isArray(report.snapshot?.messages) ? '대화 신고' : '받은 신청 신고'} ·{' '}
+            {formatKst(report.createdAt)}
           </span>
         </div>
         <div className="adm-badges">

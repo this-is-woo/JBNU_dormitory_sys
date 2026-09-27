@@ -51,7 +51,7 @@ export function requestButton(post, mine, sent, myGender) {
  * archived: 지난 학기 글 보기 중이면 신청 대신 [자세히 보기] (읽기 전용)
  * 카드 버튼 (cardButton):
  *   · 남의 글: [룸메 신청] → 체크리스트 창을 열고, 그 창 아래 [룸메 신청]으로 보낸다 (체크리스트를 보고 신청하도록)
- *     보낸 글은 [신청함 ✓] (창에서 취소 가능), 마감이면 [모집 마감] · 다른 성별이면 [룸메 신청] 비활성
+ *     보낸 글은 [신청함 ✓] (창에서 취소 가능), 마감이면 [모집 마감] · 다른 성별이면 [같은 성별만 신청할 수 있어요] 비활성
  *   · 내 글: [받은 신청 N] → 신청 내역 (onRequest)
  * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
@@ -59,9 +59,9 @@ export function requestButton(post, mine, sent, myGender) {
 function cardButton(post, mine, sent, myGender, archived) {
   if (archived && !mine) return { label: '자세히 보기', tone: 'btn-secondary' }
   const base = requestButton(post, mine, sent, myGender)
-  // 카드에서는 문구를 짧게: 다른 성별이면 [룸메 신청]을 비활성으로 (이유는 마우스를 올리면)
+  // 다른 성별의 글: 처음부터 누를 수 없고, 이유를 버튼 문구로
   if (!mine && !sent && myGender && post.gender !== myGender) {
-    return { label: '룸메 신청', tone: 'btn-primary', disabled: true, title: '룸메이트는 같은 성별끼리만 신청할 수 있어요.' }
+    return { label: '같은 성별만 신청할 수 있어요', tone: 'btn-secondary', disabled: true }
   }
   return base
 }

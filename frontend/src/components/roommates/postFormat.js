@@ -2,17 +2,26 @@ import { CHECKLIST_ITEMS, answersMatch, normalizeChecklist } from '../../data/ro
 import { findCollege } from '../../data/colleges.js'
 import { DORMITORIES } from '../../data/dormitories.js'
 
-const rtf = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' })
+// 한국 시간 기준 시:분 · 월/일 (두 자리)
+const KST_TIME = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const KST_DAY = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit' })
+const part = (fmt, date, type) => fmt.formatToParts(date).find((p) => p.type === type)?.value ?? ''
 
+/**
+ * 글·신청을 올린 시각
+ *   · 1분 전까지: "방금 전" · 1시간 전까지: "12분 전"
+ *   · 24시간 전까지: 올린 시각 "14:05" · 그보다 전: 올린 날짜 "05/12"
+ */
 export function timeAgo(iso) {
-  const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000)
-  // 시각이 없거나 잘못됐으면 비워 둔다 (Intl.RelativeTimeFormat 은 NaN 이면 오류를 내 화면 전체가 멈춘다)
+  // 시각이 없거나 잘못됐으면 비워 둔다 (Intl 은 잘못된 날짜면 오류를 낸다)
+  if (!iso) return ''
+  const date = new Date(iso)
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000)
   if (!Number.isFinite(minutes)) return ''
-  if (minutes > -1) return '방금 전'
-  if (minutes > -60) return rtf.format(minutes, 'minute')
-  const hours = Math.round(minutes / 60)
-  if (hours > -24) return rtf.format(hours, 'hour')
-  return rtf.format(Math.round(hours / 24), 'day')
+  if (minutes < 1) return '방금 전'
+  if (minutes < 60) return `${minutes}분 전`
+  if (minutes <= 24 * 60) return `${part(KST_TIME, date, 'hour')}:${part(KST_TIME, date, 'minute')}`
+  return `${part(KST_DAY, date, 'month')}/${part(KST_DAY, date, 'day')}`
 }
 
 export const dormName = (code) => DORMITORIES.find((d) => d.code === code)?.name ?? code

@@ -115,22 +115,6 @@
   justify-self: start;
 }
 
-/* 지난 학기 글 보기 (필터 맨 아래) */
-.rm-archive-entry {
-  padding-top: 16px;
-  border-top: 1px solid var(--c-border);
-}
-
-.rm-archive-entry .btn {
-  gap: 6px;
-  padding-inline: 0;
-  color: var(--c-text-2);
-}
-
-.rm-archive-entry .btn:hover {
-  color: var(--c-text);
-}
-
 /* 지난 학기 글을 보는 중 */
 .rm-archive-banner {
   display: flex;
@@ -1178,85 +1162,6 @@
   line-height: 1.5;
 }
 
-/* ── 받은 신청 창 ── */
-.rq {
-  display: grid;
-  gap: 14px;
-}
-
-.rq-empty {
-  padding: 48px 12px;
-  text-align: center;
-  line-height: 1.7;
-  color: var(--c-text-3);
-}
-
-.rq-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--c-text-2);
-}
-
-.rq-bar strong {
-  color: var(--c-text);
-}
-
-.rq-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.rq-card {
-  display: grid;
-  gap: 12px;
-  padding: 18px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg);
-  background: var(--c-surface);
-}
-
-.rq-card.is-new {
-  border-color: color-mix(in srgb, var(--c-primary) 55%, var(--c-border));
-}
-
-.rq-card.is-gone {
-  font-size: 14px;
-  color: var(--c-text-3);
-}
-
-.rq-card-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rq-card-top strong {
-  font-size: 16px;
-}
-
-.rq-card-top time {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--c-text-3);
-}
-
-.rq-new {
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--c-danger);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #fff;
-}
-
 .rq-facts {
   display: flex;
   flex-wrap: wrap;
@@ -1269,63 +1174,6 @@
   background: var(--c-surface-2);
   font-size: 13px;
   color: var(--c-text-2);
-}
-
-.rq-match-line {
-  font-size: 14px;
-  color: var(--c-text-2);
-}
-
-.rq-match-line strong {
-  color: var(--c-text);
-}
-
-.rq-post {
-  font-size: 13px;
-  color: var(--c-text-3);
-}
-
-.rq-quote {
-  margin: 0;
-  padding: 10px 14px;
-  border-left: 3px solid var(--c-primary);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: var(--c-bg);
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.rq-quote span {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--c-primary-text);
-}
-
-.rq-detail {
-  display: grid;
-  gap: 12px;
-}
-
-.rq-toggle {
-  justify-self: start;
-  padding: 6px 14px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: 999px;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-text-2);
-  cursor: pointer;
-}
-
-.rq-toggle:hover,
-.rq-toggle.is-open {
-  border-color: var(--c-primary);
-  color: var(--c-primary-text);
 }
 
 .mr-compare {
@@ -1397,26 +1245,12 @@
 }
 
 @media (max-width: 560px) {
-  .rq-card {
-    padding: 14px;
-  }
 
   .mr-compare-head,
   .mr-compare-row {
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
     gap: 6px;
   }
-}
-
-.rq-card-top {
-  flex-wrap: wrap;
-}
-
-.rq-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
 }
 
 .rq-block {
@@ -1435,131 +1269,6 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--c-text-2);
-}
-
-/* 답장 */
-.rq-reply {
-  display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  background: var(--c-primary-soft);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.rq-reply p {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.rq-reply-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--c-text-3);
-}
-
-.rq-reply-head > span:first-child {
-  font-weight: 700;
-  color: var(--c-primary-text);
-}
-
-.rq-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-text-2);
-  cursor: pointer;
-}
-
-.rq-reply-head .rq-link:first-of-type {
-  margin-left: auto;
-}
-
-.rq-link:hover {
-  color: var(--c-text);
-  text-decoration: underline;
-}
-
-.rq-reply-edit {
-  display: grid;
-  gap: 8px;
-}
-
-.rq-reply-edit textarea {
-  height: auto;
-  padding: 11px 14px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.rq-reply-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.rq-reply-actions .tabular {
-  margin-right: auto;
-  font-size: 12px;
-  color: var(--c-text-3);
-}
-
-.rq-waiting {
-  padding: 10px 14px;
-  border: 1px dashed var(--c-border-strong);
-  border-radius: var(--radius);
-  font-size: 13px;
-  color: var(--c-text-3);
-}
-
-.rq-hint {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--c-text-3);
-}
-
-/* 차단 목록 */
-.rq-blocks {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-}
-
-.rq-blocks li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-}
-
-.rq-blocks li + li {
-  border-top: 1px solid var(--c-border);
-}
-
-.rq-blocks div {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.rq-blocks strong {
-  font-size: 14px;
-}
-
-.rq-blocks time {
-  font-size: 12px;
-  color: var(--c-text-3);
 }
 
 /* ── 모바일 필터 접기 ── */
@@ -1662,14 +1371,6 @@
 
 .rq-danger {
   color: var(--c-text-3);
-}
-
-.rq-card-actions .rq-block {
-  margin-left: auto;
-}
-
-.rq-card-actions .rq-block + .rq-danger {
-  margin-left: 0;
 }
 
 .rp {

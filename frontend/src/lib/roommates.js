@@ -263,6 +263,22 @@ export async function fetchPostSemesters(userId = null) {
   return data.map((r) => ({ semester: r.semester, count: Number(r.post_count) }))
 }
 
+/** 글 하나 (없거나 볼 수 없으면 null). 신청 내역 대화방의 [게시물 바로가기] */
+export async function fetchRoommatePost(id, userId = null) {
+  if (!isSupabaseConfigured) {
+    const post = [...readLocal(), ...SAMPLE_POSTS].find((p) => p.id === id)
+    if (!post) return null
+    const hidden = post.isOpen === false || isLocallySuspended(post.authorId) || isLocallyBlocked(userId, post.authorId)
+    if (post.authorId !== userId && hidden) return null
+    return { ...post, semester: post.semester ?? roommateSemester(), requestCount: localRequestCount(post.id) }
+  }
+  const supabase = await client()
+  // 볼 수 없는 글(차단·정지·숨김)은 게시글 읽기 정책(RLS)이 0행으로 돌려준다
+  const { data, error } = await supabase.from('roommate_posts').select(COLUMNS).eq('id', id).maybeSingle()
+  if (error) return null
+  return data ? fromRow(data) : null
+}
+
 /** 로그인한 계정으로 쓴 글 */
 export async function fetchMyPosts(userId) {
   if (!isSupabaseConfigured) {

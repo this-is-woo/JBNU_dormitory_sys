@@ -142,6 +142,43 @@ export const IconFile = (p) => (
   </svg>
 )
 
+export const IconArrowLeft = (p) => (
+  <svg {...base} {...p}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+)
+
+// 보내기 (위쪽 화살표)
+export const IconSend = (p) => (
+  <svg {...base} {...p}>
+    <path d="M12 19V5M6 11l6-6 6 6" />
+  </svg>
+)
+
+// 더 보기 (가로 점 세 개)
+export const IconMore = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="5" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.2" fill="currentColor" />
+  </svg>
+)
+
+// 사람 (대화 상대 프로필 자리)
+export const IconUser = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>
+)
+
+// 말풍선 (신청 내역)
+export const IconChat = (p) => (
+  <svg {...base} {...p}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
+  </svg>
+)
+
 // 보관함 (지난 학기 글)
 export const IconArchive = (p) => (
   <svg {...base} {...p}>

@@ -22,6 +22,12 @@ export const router = createBrowserRouter([
           // 예전 주소 호환: 합격률 예측은 홈으로 합쳐졌다
           { path: '/predict', element: <Navigate to="/" replace /> },
           { path: '/roommates', element: <RoommatesPage /> },
+          // 신청 내역: 룸메 신청으로 시작된 대화 (로그인한 사용자만 쓰므로 열 때 코드를 받는다)
+          { path: '/roommates/requests', lazy: () => import('./pages/ChatListPage.jsx').then((m) => ({ Component: m.default })) },
+          {
+            path: '/roommates/requests/:requestId',
+            lazy: () => import('./pages/ChatRoomPage.jsx').then((m) => ({ Component: m.default })),
+          },
           { path: '/dorms', element: <DormsPage /> },
           { path: '/support', element: <SupportPage /> },
           // 관리자만 (권한은 DB 가 확인하고, 다른 사용자에게는 없는 페이지로 보인다).

@@ -102,7 +102,7 @@
   box-sizing: content-box;
 }
 
-/* 새 신청·답장이 있으면 빨간 점 */
+/* 안 읽은 대화가 있으면 빨간 점 */
 .nav-toggle-dot.is-new {
   background: var(--c-danger);
 }

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import Modal from '../common/Modal.jsx'
 import ChecklistView from './ChecklistView.jsx'
 import { requestButton } from './RoommateCard.jsx'
@@ -50,11 +51,11 @@ export default function PostDetailModal({ post, mine = false, sent = false, arch
               {archived && !mine
                 ? '지난 학기 글이라 룸메 신청은 할 수 없어요.'
                 : mine
-                ? '신청한 사람들의 체크리스트를 나와 비교해 볼 수 있어요.'
+                ? '[받은 신청]에서 신청한 사람과 대화하고 체크리스트를 나와 비교해 볼 수 있어요.'
                 : action.disabled && !post.isClosed
                   ? '룸메이트는 같은 성별끼리만 신청할 수 있어요.'
                   : sent
-                    ? '신청을 보냈어요. 글쓴이의 답장은 [신청 내역 → 보낸 신청]에서 볼 수 있어요.'
+                    ? '신청을 보냈어요. 글쓴이와의 대화는 [신청 내역]에서 이어 갈 수 있어요.'
                     : '마음에 들면 룸메 신청을 보내 보세요.'}
             </p>
             {(!archived || mine) && (
@@ -67,6 +68,11 @@ export default function PostDetailModal({ post, mine = false, sent = false, arch
                 {action.label}
                 {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
               </button>
+            )}
+            {!mine && sent && (
+              <Link to={`/roommates/requests?post=${post.id}`} className="btn btn-secondary">
+                대화 보기
+              </Link>
             )}
             {mine && (
               <button type="button" className="btn btn-secondary" onClick={() => onEdit(post)}>

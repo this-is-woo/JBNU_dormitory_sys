@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
 import {
   IconArchive,
-  IconBell,
+  IconChat,
   IconBuilding,
   IconChevronRight,
   IconClipboard,
@@ -27,7 +27,7 @@ const SUPPORT_PATH = '/support'
 const ROOMMATE_ACTIONS = [
   { action: 'profile', label: '내 정보', Icon: IconClipboard },
   { action: 'myPosts', label: '내가 쓴 글', Icon: IconFile },
-  { action: 'requests', label: '신청 내역', Icon: IconBell },
+  { action: 'requests', label: '신청 내역', Icon: IconChat },
   { action: 'archive', label: '지난 학기 글', Icon: IconArchive },
 ]
 
@@ -59,6 +59,8 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth, inb
 
   function go(action) {
     onClose()
+    // 신청 내역은 따로 된 페이지 (로그인 전이면 그 페이지가 로그인으로 안내한다)
+    if (action === 'requests') return navigate('/roommates/requests')
     navigate('/roommates', { state: { action } })
   }
 
@@ -157,7 +159,7 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth, inb
                       </span>
                       <span className="drawer-item-label">{label}</span>
                       {action === 'requests' && inboxNew > 0 && (
-                        <span className="drawer-badge tabular" aria-label={`새 신청·답장 ${inboxNew}건`}>
+                        <span className="drawer-badge tabular" aria-label={`안 읽은 대화 ${inboxNew}개`}>
                           {inboxNew > 99 ? '99+' : inboxNew}
                         </span>
                       )}
