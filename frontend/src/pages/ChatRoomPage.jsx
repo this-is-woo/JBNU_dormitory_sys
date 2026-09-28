@@ -4,6 +4,7 @@ import Composer from '../components/chat/Composer.jsx'
 import LeaveConfirmModal from '../components/chat/LeaveConfirmModal.jsx'
 import { MessageActions, SelectCopySheet, copyText } from '../components/chat/MessageActions.jsx'
 import MessageList from '../components/chat/MessageList.jsx'
+import PushPrompt from '../components/chat/PushPrompt.jsx'
 import { counterpartRole, threadContext, threadTitle } from '../components/chat/chatFormat.js'
 import { IconAlert, IconArrowLeft, IconChevronRight, IconMore } from '../components/common/Icons.jsx'
 import Modal from '../components/common/Modal.jsx'
@@ -536,6 +537,7 @@ export default function ChatRoomPage() {
 
       {ready && (
         <>
+          <PushPrompt userId={user.id} />
           <MessageList
             key={requestId ?? `new-${postId}`}
             thread={t}

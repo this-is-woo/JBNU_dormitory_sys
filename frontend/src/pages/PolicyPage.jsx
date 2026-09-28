@@ -3,7 +3,7 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import { CONTACT_EMAIL } from '../config.js'
 import './PolicyPage.css'
 
-const EFFECTIVE_DATE = '2026년 9월 27일'
+const EFFECTIVE_DATE = '2026년 9월 28일'
 
 function Contact() {
   return <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
@@ -49,6 +49,11 @@ export function PrivacyPage() {
               <td>룸메 신청 · 대화</td>
               <td>신청한 글, 신청자와 글쓴이가 주고받은 메시지(답장 대상·고친 시각 포함)와 보낸 시각, 어디까지 읽었는지</td>
               <td>게시글에 첫 채팅을 보내면 룸메 신청과 함께 두 사람의 대화방이 생기고, 메시지는 그 두 사람에게만 보임 (글쓴이는 신청자의 체크리스트도 봄). 삭제한 메시지는 내용을 바로 지움</td>
+            </tr>
+            <tr>
+              <td>채팅 알림 (선택)</td>
+              <td>알림을 허용한 기기의 브라우저 푸시 주소와 암호화 키, 등록 시각</td>
+              <td>채팅 화면에서 [알림 받기]를 눌러 허용할 때 (새 채팅 알림을 보내는 데만 사용, [알림 꺼짐]·로그아웃하면 바로 삭제)</td>
             </tr>
             <tr>
               <td>차단 목록</td>

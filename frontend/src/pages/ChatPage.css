@@ -60,9 +60,89 @@
   color: var(--c-text);
 }
 
-.chat-blocks-btn {
+.chat-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   margin-left: auto;
+}
+
+.chat-blocks-btn {
   color: var(--c-text-3);
+}
+
+/* 이 기기 알림 켜기/끄기 */
+.push-toggle {
+  gap: 4px;
+  color: var(--c-text-3);
+}
+
+.push-toggle.is-on {
+  color: var(--c-text);
+}
+
+/* 알림 안내 띠 (채팅 목록 · 대화방 위) */
+.push-prompt {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+}
+
+.chat-room .push-prompt {
+  margin: 8px 12px 0;
+}
+
+.push-prompt-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary-text);
+}
+
+.push-prompt-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-text-2);
+}
+
+.push-prompt-text b {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.push-prompt .btn {
+  flex: none;
+}
+
+.push-prompt-close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.push-prompt-close:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
 }
 
 .chat-filter {

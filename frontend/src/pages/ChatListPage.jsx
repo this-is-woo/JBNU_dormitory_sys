@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import BlocksModal from '../components/chat/BlocksModal.jsx'
 import LeaveConfirmModal from '../components/chat/LeaveConfirmModal.jsx'
 import { ThreadActions } from '../components/chat/MessageActions.jsx'
+import PushPrompt, { PushToggle } from '../components/chat/PushPrompt.jsx'
 import { useLongPress } from '../components/chat/useLongPress.js'
 import { previewText, threadTitle } from '../components/chat/chatFormat.js'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
@@ -138,9 +139,12 @@ export default function ChatListPage() {
         </Link>
         <h1>채팅</h1>
         {signedIn && (
-          <button type="button" className="btn btn-ghost btn-sm chat-blocks-btn" onClick={() => setBlocksOpen(true)}>
-            차단 관리
-          </button>
+          <div className="chat-head-actions">
+            <PushToggle userId={user.id} />
+            <button type="button" className="btn btn-ghost btn-sm chat-blocks-btn" onClick={() => setBlocksOpen(true)}>
+              차단 관리
+            </button>
+          </div>
         )}
       </div>
 
@@ -148,6 +152,7 @@ export default function ChatListPage() {
         <ChatGate status={authStatus} />
       ) : (
         <>
+          <PushPrompt userId={user.id} />
           <ChoiceGroup label="대화 보기" size="sm" options={TABS} value={tab} onChange={setTab} />
           {postFilter && (
             <p className="chat-filter">

@@ -9,6 +9,10 @@ export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE
 // 있으면 구글 공식 로그인 버튼을, 없으면 Supabase 로그인 페이지로 이동하는 방식을 쓴다.
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
+// 채팅 푸시 알림용 VAPID 공개 키 (`npx web-push generate-vapid-keys` 의 Public Key). 공개해도 되는 값이다.
+// 비밀 키(Private Key)는 여기 두지 않고 Supabase Edge Function 비밀 값에만 넣는다. 없으면 알림 기능을 숨긴다.
+export const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
+
 export const OFFICIAL_DORM_URL = 'https://likehome.jbnu.ac.kr'
 export const JBNU_URL = 'https://www.jbnu.ac.kr'
 
