@@ -238,3 +238,14 @@
     width: 100%;
   }
 }
+
+/* 모바일: 페이지 제목("내 점수로 보는 생활관 합격 가능성") · 소개 없이 환산점수 계산부터 */
+@media (max-width: 760px) {
+  .home-header {
+    display: none;
+  }
+
+  .home-blocks {
+    padding-top: 24px;
+  }
+}

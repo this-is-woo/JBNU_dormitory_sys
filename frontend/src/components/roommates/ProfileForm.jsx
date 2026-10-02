@@ -200,7 +200,7 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
           <p className="rm-profile-note">
             {isEdit
               ? '수정하면 내가 쓴 글에도 함께 반영돼요.'
-              : '한 번만 등록하면 돼요. 등록하면 다른 사람의 글과 체크리스트를 볼 수 있고, 글쓰기는 소개만 적으면 끝나요. 마음에 드는 글에는 룸메 신청을 보낼 수 있어요.'}
+              : '한 번만 등록하면 돼요. 등록하면 다른 사람의 글과 체크리스트를 볼 수 있고, 글쓰기는 룸메이트에게 한마디만 적으면 끝나요. 마음에 드는 글에는 룸메 신청을 보낼 수 있어요.'}
           </p>
         </>
       }

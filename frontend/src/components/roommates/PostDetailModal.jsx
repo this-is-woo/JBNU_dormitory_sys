@@ -19,7 +19,7 @@ function ChecklistSection({ checklist, myChecklist }) {
 }
 
 /**
- * 자세히 보기: 체크리스트 (자기소개는 카드에서 본다). 연락은 [채팅 보내기]로 대화창을 열어서
+ * 자세히 보기: 체크리스트 (룸메이트에게 한마디는 카드에서 본다). 연락은 [채팅 보내기]로 대화창을 열어서
  * archived: 지난 학기 글이면 읽기만 (채팅 버튼 없음). 신고 · 차단은 카드의 ⋯ 메뉴에서
  */
 export default function PostDetailModal({ post, mine = false, sent = false, archived = false, myGender = null, myChecklist = null, onClose, onEdit, onRequest }) {

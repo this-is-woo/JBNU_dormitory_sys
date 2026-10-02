@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { GOOGLE_CLIENT_ID, isSupabaseConfigured } from '../config.js'
+import { useCallback, useSyncExternalStore } from 'react'
+import { GOOGLE_CLIENT_ID, SUPABASE_URL, isSupabaseConfigured } from '../config.js'
 
 // Supabase 가 연결되지 않은 개발 환경에서는 실제 구글 로그인 대신 이 브라우저에만 저장되는 데모 계정을 쓴다.
 const DEMO_USER_KEY = 'jbnu-dorm:demo-user'
@@ -26,42 +26,74 @@ function readDemoUser() {
 }
 
 /**
+ * Supabase 가 이 브라우저에 저장해 둔 로그인 정보를 바로 읽는다 (supabase-js 를 받기 전에 화면을 그리려고).
+ * undefined: 모름(확인 중) · null: 로그아웃 · 객체: 로그인. 진짜 상태는 곧 getSession 으로 맞춘다.
+ */
+function readStoredUser() {
+  try {
+    // 구글 로그인에서 막 돌아온 경우: supabase-js 가 주소의 값을 처리할 때까지 기다린다
+    if (/[?&#](code|access_token|error)=/.test(window.location.search + window.location.hash)) return undefined
+    const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
+    const raw = localStorage.getItem(`sb-${ref}-auth-token`)
+    if (!raw) return null
+    const session = JSON.parse(raw)
+    return toUser(session?.user ?? session?.currentSession?.user) ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+// ── 로그인 상태 저장소: 앱 전체에서 하나 ──
+// 예전에는 이 훅을 쓰는 화면마다 따로 확인해서, 페이지를 옮길 때마다 "확인하는 중"으로 돌아갔다.
+let current = isSupabaseConfigured ? readStoredUser() : readDemoUser()
+let started = false
+const listeners = new Set()
+
+// 같은 사람이면 같은 객체를 유지한다 (토큰 갱신마다 화면 전체가 다시 그려지지 않게)
+function emit(next) {
+  const same = current && next && current.id === next.id && current.email === next.email && current.name === next.name
+  if (same || current === next) return
+  current = next
+  listeners.forEach((fn) => fn())
+}
+
+function start() {
+  if (started) return
+  started = true
+  if (!isSupabaseConfigured) {
+    window.addEventListener(DEMO_AUTH_EVENT, () => emit(readDemoUser()))
+    return
+  }
+  // 불러오지 못하면(네트워크·저장소 오류) 로그아웃 상태로 둔다. "확인하는 중"에 머물러 화면이 멈추지 않게.
+  const signedOut = (err) => {
+    console.warn('[auth] 로그인 상태를 확인하지 못했습니다.', err)
+    emit(null)
+  }
+  import('../lib/supabase.js')
+    .then(({ supabase }) => {
+      supabase.auth
+        .getSession()
+        .then(({ data }) => emit(toUser(data.session?.user) ?? null))
+        .catch(signedOut)
+      supabase.auth.onAuthStateChange((_event, session) => emit(toUser(session?.user) ?? null))
+    })
+    .catch(signedOut)
+}
+
+function subscribe(fn) {
+  start()
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+const snapshot = () => current
+
+/**
  * 구글 로그인 상태.
  * status: 'loading' | 'signedOut' | 'signedIn'
  */
 export function useAuth() {
-  const [user, setUser] = useState(() => (isSupabaseConfigured ? undefined : readDemoUser()))
-
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      const sync = () => setUser(readDemoUser())
-      window.addEventListener(DEMO_AUTH_EVENT, sync)
-      return () => window.removeEventListener(DEMO_AUTH_EVENT, sync)
-    }
-    let active = true
-    let subscription
-    // 불러오지 못하면(네트워크·저장소 오류) 로그아웃 상태로 둔다. "확인하는 중"에 머물러 화면이 멈추지 않게.
-    const signedOut = (err) => {
-      console.warn('[auth] 로그인 상태를 확인하지 못했습니다.', err)
-      if (active) setUser(null)
-    }
-    import('../lib/supabase.js')
-      .then(({ supabase }) => {
-        if (!active) return
-        supabase.auth
-          .getSession()
-          .then(({ data }) => active && setUser(toUser(data.session?.user) ?? null))
-          .catch(signedOut)
-        ;({ data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          setUser(toUser(session?.user) ?? null)
-        }))
-      })
-      .catch(signedOut)
-    return () => {
-      active = false
-      subscription?.unsubscribe()
-    }
-  }, [])
+  const user = useSyncExternalStore(subscribe, snapshot, snapshot)
 
   const signIn = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -70,7 +102,7 @@ export function useAuth() {
       } catch {
         // 저장하지 못해도 이번 화면에서는 로그인 상태를 유지
       }
-      setUser(DEMO_USER)
+      emit(DEMO_USER)
       window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
@@ -101,7 +133,7 @@ export function useAuth() {
       } catch {
         // 무시
       }
-      setUser(null)
+      emit(null)
       window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
@@ -119,7 +151,7 @@ export function useAuth() {
     }
     // 구글 원탭 자동 로그인이 바로 다시 로그인시키지 않도록
     window.google?.accounts?.id?.disableAutoSelect()
-    setUser(null)
+    emit(null)
   }, [])
 
   const status = user === undefined ? 'loading' : user ? 'signedIn' : 'signedOut'

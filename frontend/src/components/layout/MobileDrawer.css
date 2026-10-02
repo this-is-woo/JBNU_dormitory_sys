@@ -309,3 +309,11 @@
     transition-delay: 0s !important;
   }
 }
+
+/* 모바일 성능: 서랍 뒤 흐림 없이 어둡게만 */
+@media (max-width: 760px) {
+  .drawer-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

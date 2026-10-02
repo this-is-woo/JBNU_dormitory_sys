@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
-import { IconMore } from '../common/Icons.jsx'
+import { IconMoreVertical } from '../common/Icons.jsx'
 import { collegeName, dormTitle, genderLabel, timeAgo } from './postFormat.js'
 
 /** 카드 오른쪽 위 ⋯ 메뉴: 신고 · 차단 (Esc · 바깥을 누르면 닫힘) */
@@ -37,7 +37,7 @@ function CardMenu({ post, onReport, onBlock }) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <IconMore width={18} height={18} />
+        <IconMoreVertical width={18} height={18} />
       </button>
       {open && (
         <ul className="rm-card-menu-list" role="menu">
@@ -61,7 +61,7 @@ function CardMenu({ post, onReport, onBlock }) {
   )
 }
 
-/** 자기소개: 5줄까지만 보여 주고, 넘치면 [더보기]로 펼친다 */
+/** 룸메이트에게 한마디: 5줄까지만 보여 주고, 넘치면 [더보기]로 펼친다 */
 function Intro({ text }) {
   const ref = useRef(null)
   const [open, setOpen] = useState(false)
@@ -126,7 +126,7 @@ function cardButton(post, mine, sent, myGender, archived) {
  * onReport · onBlock: 남의 글 ⋯ 메뉴의 신고 · 차단 (둘 다 없으면 ⋯ 메뉴를 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
  */
-export default function RoommateCard({ post, mine, sent = false, match = null, myGender = null, archived = false, onOpen, onRequest, onEdit, onReport, onBlock, onDelete, adminLink = false }) {
+export default memo(function RoommateCard({ post, mine, sent = false, match = null, myGender = null, archived = false, onOpen, onRequest, onEdit, onReport, onBlock, onDelete, adminLink = false }) {
   const action = cardButton(post, mine, sent, myGender, archived)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
@@ -202,4 +202,4 @@ export default function RoommateCard({ post, mine, sent = false, match = null, m
       </footer>
     </article>
   )
-}
+})

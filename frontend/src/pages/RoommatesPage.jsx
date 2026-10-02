@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
@@ -19,7 +19,7 @@ import { GENDERS } from '../data/roommateOptions.js'
 import { useAdmin } from '../hooks/useAdmin.js'
 import { authMode } from '../hooks/useAuth.js'
 import { recallAfterLogin, rememberAfterLogin } from '../lib/afterLogin.js'
-import { fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
+import { cachedProfile, fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import {
   announceInboxCounts,
@@ -66,6 +66,19 @@ const loginReason = (action) =>
 // 내 정보(성별 · 체크리스트)가 있어야 하는 동작: 없으면 로그인 뒤 내 정보 등록 창을 먼저 띄운다
 const needsProfile = (action) => ['write', 'requests'].includes(action) || action.startsWith(APPLY_PREFIX)
 
+// 이번 방문 동안 마지막으로 본 게시판 (다시 들어오면 기다리지 않고 바로 보여 주고, 뒤에서 새로 받는다)
+let lastBoard = null // { key, items, total, isDefault, userId }
+const boardKey = (q) => JSON.stringify([q.sort, q.userId ?? null, q.semester, q.dormitory, q.gender])
+
+// 늘 같은 함수(카드가 다시 그려지지 않게)인데, 부르면 최신 코드를 실행한다
+function useStableCallback(fn) {
+  const ref = useRef(fn)
+  useLayoutEffect(() => {
+    ref.current = fn
+  })
+  return useCallback((...args) => ref.current(...args), [])
+}
+
 const readAfterLogin = () => recallAfterLogin(AFTER_LOGIN_KEY)
 const writeAfterLogin = (action) => rememberAfterLogin(AFTER_LOGIN_KEY, action)
 
@@ -102,11 +115,19 @@ function AccountBar({ status, user, hasProfile, onLogin, onLogout, onProfile }) 
 export default function RoommatesPage() {
   const { status: authStatus, user, signIn, signInWithIdToken, signOut, isAdmin } = useAdmin()
   // 내 정보(프로필). status: 'idle'(로그인 전) | 'loading' | 'ready' | 'error'(불러오지 못함)
-  const [profile, setProfile] = useState({ status: 'idle', data: null })
+  const [profile, setProfile] = useState(() => {
+    const cached = cachedProfile(user?.id)
+    return cached === undefined ? { status: 'idle', data: null } : { status: 'ready', data: cached }
+  })
   const [profileRetry, setProfileRetry] = useState(0)
   // 지금까지 불러온 글 (무한 스크롤). status: 'loading'(처음) | 'ready' | 'error'
   // loading: 처음부터 다시 불러오는 중 · more: 이어서 불러오는 중 · moreError: 이어서 불러오기 실패
-  const [board, setBoard] = useState({ status: 'loading', items: [], total: 0, loading: true, more: false, moreError: false })
+  // 지난번에 본 기본 게시판(필터 없음)이 있으면 처음부터 그 글들을 보여 주고 뒤에서 새로 받는다
+  const [board, setBoard] = useState(() =>
+    lastBoard?.isDefault && lastBoard.userId === (user?.id ?? null)
+      ? { status: 'ready', items: lastBoard.items, total: lastBoard.total, loading: true, more: false, moreError: false }
+      : { status: 'loading', items: [], total: 0, loading: true, more: false, moreError: false },
+  )
   // 다시 불러올 때 받을 글 수 (이어서 불러온 만큼 유지해, 글을 고치거나 지워도 보던 자리가 줄지 않게)
   const wantRef = useRef(PAGE_SIZE)
   // 필터가 바뀌면 늘어나는 번호: 그 전에 보낸 요청의 결과는 버린다
@@ -152,9 +173,9 @@ export default function RoommatesPage() {
   const navigate = useNavigate()
   const signedIn = authStatus === 'signedIn'
   const unlocked = signedIn && Boolean(profile.data)
-  // 게시판을 불러와도 되는지: 로그인 여부 확인이 끝났고, 로그인했다면 내 정보 확인도 끝났을 때
-  // (내 체크리스트로 일치 수를 계산하므로 내 정보를 기다린다. 불러오지 못했어도 게시판은 보여 준다)
-  const canLoad = authStatus !== 'loading' && (!signedIn || profile.status === 'ready' || profile.status === 'error')
+  // 게시판을 불러와도 되는지: 로그인 여부만 알면 된다. 내 정보는 함께(동시에) 불러오고,
+  // 일치 수는 내 정보가 오는 대로 화면에서 계산한다 (일치 많은 순만 내 정보가 있어야 고를 수 있다)
+  const canLoad = authStatus !== 'loading'
   // 일치 많은 순은 내 체크리스트가 있어야 계산할 수 있다
   const sortOptions = profile.data ? SORTS : SORTS.filter((o) => o.value !== 'match')
   const activeSort = sort === 'match' && !profile.data ? 'newest' : sort
@@ -166,7 +187,9 @@ export default function RoommatesPage() {
       return
     }
     let active = true
-    setProfile({ status: 'loading', data: null })
+    // 받아 둔 내 정보가 있으면 그대로 두고 뒤에서 새로 받는다 (다시 들어올 때 기다리지 않게)
+    const cached = cachedProfile(user.id)
+    setProfile(cached === undefined ? { status: 'loading', data: null } : { status: 'ready', data: cached })
     fetchMyProfile(user.id)
       .then((data) => active && setProfile({ status: 'ready', data }))
       // 불러오지 못한 것을 "체크리스트 없음"으로 보면, 등록 창이 떠서 이미 있는 체크리스트를 다시 만들려다 실패한다
@@ -213,14 +236,24 @@ export default function RoommatesPage() {
   useEffect(() => {
     if (!canLoad) return
     const gen = ++genRef.current
-    setBoard((b) => ({ ...b, loading: true, more: false, moreError: false }))
-    fetchRoommatePosts({ ...boardQuery(), offset: 0, limit: wantRef.current })
+    const query = boardQuery()
+    const key = boardKey(query)
+    // 같은 조건으로 본 적이 있으면 그 목록을 먼저 보여 주고, 새 목록이 오면 바꾼다
+    const cached = lastBoard?.key === key ? lastBoard : null
+    setBoard((b) =>
+      cached && b.status !== 'ready'
+        ? { status: 'ready', items: cached.items, total: cached.total, loading: true, more: false, moreError: false }
+        : { ...b, loading: true, more: false, moreError: false },
+    )
+    fetchRoommatePosts({ ...query, offset: 0, limit: wantRef.current })
       .then(({ items, total }) => {
         if (gen !== genRef.current) return
+        const isDefault = filters.dormitory === ALL && filters.gender === ALL && !archived && activeSort === 'newest'
+        lastBoard = { key, items, total, isDefault, userId: user?.id ?? null }
         setBoard({ status: 'ready', items, total, loading: false, more: false, moreError: false })
       })
       .catch(() => gen === genRef.current && setBoard((b) => ({ ...b, status: 'error', loading: false })))
-  }, [canLoad, user?.id, Boolean(profile.data), viewSemester, filters.dormitory, filters.gender, activeSort, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [canLoad, user?.id, viewSemester, filters.dormitory, filters.gender, activeSort, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasMore = board.status === 'ready' && board.items.length < board.total
 
@@ -430,7 +463,7 @@ export default function RoommatesPage() {
 
   // 내 글이면 그 글에 온 채팅 목록, 남의 글이면 [채팅 보내기]: 대화창을 바로 연다.
   // 대화창만 열면 아무것도 저장하지 않고, 첫 메시지를 보낼 때 룸메 신청이 된다 (이미 대화 중이면 그 대화로)
-  function handleRequest(post) {
+  const handleRequest = useStableCallback((post) => {
     if (isMine(post)) {
       navigate(`/chats?post=${post.id}`)
       return
@@ -441,11 +474,9 @@ export default function RoommatesPage() {
       return
     }
     navigate(`/chats/new/${post.id}`, { state: { post } })
-  }
+  })
 
-  function openBlockAuthor(post) {
-    setBlockPost(post)
-  }
+  const openBlockAuthor = setBlockPost
 
   // 게시글 신고 (+ 원하면 글쓴이 차단). 신고는 됐는데 차단만 실패하면 신고 창이 그 사실을 알린다
   async function submitReport({ reason, detail, block }) {
@@ -479,9 +510,7 @@ export default function RoommatesPage() {
   }
 
   // 자세히 보기·내가 쓴 글 창에서 [수정]을 눌러도 그 창은 닫지 않는다: 글쓰기 창을 닫으면 그 창으로 돌아간다
-  function openEditor(post) {
-    setEditor({ post })
-  }
+  const openEditor = useStableCallback((post) => setEditor({ post }))
 
   async function handleLogout() {
     await signOut()

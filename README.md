@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` → `20261026000000_roommate_posts_public_read.sql` → `20261027000000_roommate_room_type.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` → `20261026000000_roommate_posts_public_read.sql` → `20261027000000_roommate_room_type.sql` → `20261028000000_roommate_chat_quiet_leave.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -241,7 +241,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
    - 기본 정보: 성별, 호관, 호실(1인실·2인실·4인실 — 하나뿐인 호관은 자동), 나이, 단과대학, MBTI. 카드 제목은 "창의관 1인실"처럼 호관 + 호실
    - 룸메이트 체크리스트: 「전북대 룸메이트 체크리스트 ver.4」를 고친 15개 항목 (잠버릇은 복수 선택, 취침 시간은 24시 형태) (`frontend/src/data/roommateChecklist.js`)
    - 수정하면 내가 쓴 글에도 자동으로 반영됩니다 (DB 트리거).
-2. **글쓰기**: 소개(선택)만 적습니다. 기본 정보·체크리스트는 내 정보 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.
+2. **글쓰기**: 룸메이트에게 한마디(선택)만 적습니다. 기본 정보·체크리스트는 내 정보 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.
 - **모집 학기**: 게시판에는 관리자가 정한 **모집 학기**(관리자 페이지 [설정] → 룸메이트 모집 학기, `site_settings.roommate_semester`, 기본 2027년 1학기) 글만 보입니다. 글쓰기에서 학기를 고르지 않고, 새 글은 DB 트리거가 모집 학기로 채웁니다(글을 고쳐도 학기는 그대로).
 - **지난 학기 글**: 툴바(PC)·모바일 메뉴(햄버거)의 [지난 학기 글]에서 학기를 고르면 게시판이 그 학기 글을 **읽기 전용**으로 보여 줍니다(`/roommates?semester=2026-2`). 지난 학기 글에는 룸메 신청을 보낼 수 없습니다(DB 함수가 막음).
 3. **룸메 신청 = 채팅 시작**: 남의 글 카드의 [룸메 신청] → 체크리스트 창의 **[채팅 보내기]** → 대화창(`/chats/new/:postId`)이 바로 열립니다.
@@ -256,6 +256,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
    - **읽음 표시**: 상대가 아직 안 읽은 내 말풍선 옆에 작은 **1**, 상대가 읽으면 바로 사라집니다 (읽음 위치는 역할로만 저장, Realtime 으로 전달).
    - **거의 실시간**: Supabase Realtime 으로 새 메시지 · 고친/지운 메시지 · 읽음 위치를 바로 받습니다. 연결이 끊기면 화면이 보일 때만 4초마다 확인하고, 다른 탭에서 돌아오면 놓친 메시지를 채웁니다.
    - [⋯] 메뉴: 신고(최근 메시지 30개가 신고 당시 내용으로 남음) · 차단 · **채팅방 나가기**. 목록에서 대화방을 꾹 눌러도(PC 는 오른쪽 클릭) 나갈 수 있습니다.
+   - **조용히 나가기**: 나간 사람에게서만 대화가 사라지고 상대에게는 아무것도 알리지 않습니다("나갔어요" 없음, 상대 입력칸도 그대로, 보낸 메시지는 나간 사람에게 가지 않음). 두 사람 모두 나가면 대화를 지웁니다.
    - **나가기**: 나간 사람에게서만 대화가 사라지고, 상대에게는 "OO가 채팅방을 나갔어요"가 보이며 입력칸이 잠깁니다. 두 사람 모두 나가면 대화를 지웁니다. 신청자가 나가면 룸메 신청도 취소로 보고(받은 신청 수에서 빠짐), 그 글에 다시 채팅을 보내면 새 신청으로 시작합니다. 차단하면 대화는 바로 지워집니다.
    - **글이 지워져도 채팅은 남습니다**(글쓴이·관리자 삭제 모두): 글을 지우기 직전에 글의 호관·학기·기본 정보·체크리스트를 신청에 남기고(`post_snapshot`) 글과의 연결만 끊습니다. 게시물 카드에 "삭제된 글"로 표시되고 [게시물 바로가기]만 잠기며, 대화 안에 따로 안내 줄은 넣지 않습니다. 메시지·수정·삭제·신고·차단·나가기는 그대로 됩니다.
    - 예전의 한마디 + 답장은 마이그레이션이 대화의 첫 메시지들로 옮깁니다.

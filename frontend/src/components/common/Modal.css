@@ -22,6 +22,14 @@
   backdrop-filter: blur(3px);
 }
 
+/* 모바일: 뒤 화면 흐림 없이 어둡게만 (흐림은 창을 열고 스크롤할 때 버벅인다) */
+@media (max-width: 760px) {
+  .modal::backdrop {
+    background: rgb(0 0 0 / 0.6);
+    backdrop-filter: none;
+  }
+}
+
 /* 모달이 열려 있는 동안 뒤 페이지는 스크롤되지 않는다.
    모달이 여러 개 겹쳐도 하나라도 열려 있으면 잠기고, 모두 닫히면 저절로 풀린다.
    (스크롤바 자리는 global.css 의 html scrollbar-gutter 로 남겨 두어 페이지가 옆으로 밀리지 않는다) */

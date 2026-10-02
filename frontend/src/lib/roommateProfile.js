@@ -61,13 +61,21 @@ async function client() {
   return supabase
 }
 
+// 이번 방문 동안 받아 둔 내 정보 (페이지를 다시 열 때 기다리지 않고 바로 보여 주고, 뒤에서 새로 받는다)
+const memory = new Map() // userId → profile | null
+
+/** 받아 둔 내 정보. 아직 받은 적 없으면 undefined */
+export const cachedProfile = (userId) => (userId ? memory.get(userId) : undefined)
+
 /** 내 프로필. 없으면 null */
 export async function fetchMyProfile(userId) {
   if (!isSupabaseConfigured) return readJson(LOCAL_KEY, {})[userId] ?? null
   const supabase = await client()
   const { data, error } = await supabase.from('roommate_profiles').select(COLUMNS).maybeSingle()
   if (error) throw new Error('내 정보를 불러오지 못했어요.')
-  return data ? fromRow(data) : null
+  const profile = data ? fromRow(data) : null
+  memory.set(userId, profile)
+  return profile
 }
 
 /** 등록 또는 수정. 내가 쓴 글에도 반영된다 (Supabase 는 DB 트리거가 처리) */
@@ -90,5 +98,7 @@ export async function saveProfile(profile, userId, exists) {
   if (error?.code === '23505') ({ data, error } = await update())
   if (error?.hint === 'dorm_gender') throw new Error('고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.')
   if (error) throw new Error('내 정보를 저장하지 못했어요. 입력값을 확인해 주세요.')
-  return fromRow(data)
+  const saved = fromRow(data)
+  memory.set(userId, saved)
+  return saved
 }

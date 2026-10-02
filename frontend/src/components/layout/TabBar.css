@@ -17,9 +17,8 @@
     display: block;
     padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid var(--c-border);
-    background: color-mix(in srgb, var(--c-bg) 92%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    /* 반투명 흐림은 스크롤을 버벅이게 해서 쓰지 않는다 */
+    background: var(--c-bg);
   }
 
   .tabbar ul {

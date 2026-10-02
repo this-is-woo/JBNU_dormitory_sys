@@ -4,6 +4,7 @@ import {
   dismissPushPrompt,
   enablePush,
   hasPushSubscription,
+  PUSH_EVENT,
   pushPermission,
   pushPromptDismissed,
   pushSupport,
@@ -31,6 +32,13 @@ export default function PushPrompt({ userId }) {
     return pushPermission() === 'default' ? 'ask' : 'hidden'
   })
   const [error, setError] = useState('')
+
+  // 스위치로 켜면 안내 띠는 바로 닫는다
+  useEffect(() => {
+    const sync = (e) => e.detail?.on && setStatus((s) => (s === 'ask' ? 'hidden' : s))
+    window.addEventListener(PUSH_EVENT, sync)
+    return () => window.removeEventListener(PUSH_EVENT, sync)
+  }, [])
 
   // 이미 허용한 기기는 로그인한 계정으로 다시 등록
   useEffect(() => {
@@ -109,8 +117,12 @@ export function PushToggle({ userId }) {
     hasPushSubscription()
       .then((has) => active && setOn(has && pushPermission() === 'granted'))
       .catch(() => {})
+    // 안내 띠의 [알림 받기] 등 다른 곳에서 켜고 끈 것도 바로 반영한다
+    const sync = (e) => setOn(Boolean(e.detail?.on))
+    window.addEventListener(PUSH_EVENT, sync)
     return () => {
       active = false
+      window.removeEventListener(PUSH_EVENT, sync)
     }
   }, [support, userId])
 

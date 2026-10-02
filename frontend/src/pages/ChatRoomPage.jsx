@@ -31,6 +31,8 @@ import { fetchRoommatePost } from '../lib/roommates.js'
 import { semesterLabel } from '../lib/semester.js'
 import { useSiteSettings } from '../lib/siteSettings.js'
 import { ChatGate } from './ChatListPage.jsx'
+// 신고 · 차단 창, 체크리스트 비교표 등 룸메이트 화면과 같은 스타일 (룸메이트 페이지 코드를 따로 받게 되어 직접 불러온다)
+import './RoommatesPage.css'
 import './ChatPage.css'
 
 // 실시간 연결이 끊겼을 때만, 화면이 보이는 동안 이 간격으로 새 메시지를 확인한다
@@ -460,8 +462,8 @@ export default function ChatRoomPage() {
     navigate('/chats', { replace: true })
   }
 
-  async function confirmLeave() {
-    await leaveThread({ ...t, otherLeft }, user.id)
+  async function confirmLeave(quiet = false) {
+    await leaveThread({ ...t, otherLeft }, user.id, { quiet })
     fetchInboxCounts(user.id).then(announceInboxCounts).catch(() => {})
     navigate('/chats', { replace: true })
   }

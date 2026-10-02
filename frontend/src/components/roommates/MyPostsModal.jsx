@@ -100,7 +100,7 @@ export default function MyPostsModal({ open, reloadKey = 0, userId, onClose, onV
                   )}
                   <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
                 </div>
-                <p>{post.content || '자기소개 없음'}</p>
+                <p>{post.content || '한마디 없음'}</p>
               </div>
               <div className="my-post-actions">
                 {confirmId === post.id ? (

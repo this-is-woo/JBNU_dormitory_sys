@@ -17,7 +17,7 @@ const LONG_CONTENT = 140
 
 function PostContent({ text }) {
   const [open, setOpen] = useState(false)
-  if (!text) return <p className="adm-content is-empty">자기소개 없음</p>
+  if (!text) return <p className="adm-content is-empty">한마디 없음</p>
   const long = text.length > LONG_CONTENT || text.split('\n').length > 4
   return (
     <div>

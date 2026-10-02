@@ -9,6 +9,15 @@
   border-bottom: 1px solid var(--c-border);
 }
 
+/* 모바일에서는 반투명 흐림(backdrop-filter)을 쓰지 않는다: 스크롤할 때마다 뒤를 다시 흐리게 그려 버벅인다 */
+@media (max-width: 760px) {
+  .site-header {
+    background: var(--c-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 .header-inner {
   height: 100%;
   display: flex;

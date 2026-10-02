@@ -221,14 +221,16 @@ export default function HomePage() {
   return (
     <>
       <title>JBNU Dormi | 생활관 합격 예측</title>
+      {/* 모바일에서는 제목 · 소개를 숨기고 바로 환산점수 계산부터 (HomePage.css) */}
       <PageHeader
+        className="home-header"
         title="내 점수로 보는 생활관 합격 가능성"
-        lead="입력하면 환산점수와 호관별 예상 합격률이 바로 나와요. 주소지는 JUMP에 등록된 주소 기준이에요."
+        lead="입력하면 환산점수와 호관별 예상 합격률이 바로 나와요."
       />
 
       <div className="container home-blocks">
         <section className="home-block" aria-labelledby="block-score">
-          <BlockHead id="block-score" title="환산점수 계산" />
+          <BlockHead id="block-score" title="환산점수 계산" desc="주소지는 JUMP에 등록된 주소 기준이에요." />
           {regionsError && (
             <div className="notice notice-danger" role="alert">
               <IconAlert width={18} height={18} />

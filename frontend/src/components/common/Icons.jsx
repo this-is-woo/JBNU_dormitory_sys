@@ -164,6 +164,23 @@ export const IconMore = (p) => (
   </svg>
 )
 
+// 차단 (동그라미에 사선)
+export const IconBlock = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M5.7 5.7l12.6 12.6" />
+  </svg>
+)
+
+// 세로 점 세 개 (카드 메뉴)
+export const IconMoreVertical = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="5" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="19" r="1.2" fill="currentColor" />
+  </svg>
+)
+
 // 사람 (대화 상대 프로필 자리)
 export const IconUser = (p) => (
   <svg {...base} {...p}>

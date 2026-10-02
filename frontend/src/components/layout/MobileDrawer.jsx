@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from 'react-router'
 import { authMode } from '../../hooks/useAuth.js'
 import {
   IconArchive,
+  IconBlock,
   IconChat,
   IconBuilding,
   IconChevronRight,
@@ -28,6 +29,7 @@ const ROOMMATE_ACTIONS = [
   { action: 'profile', label: '내 정보', Icon: IconClipboard },
   { action: 'myPosts', label: '내가 쓴 글', Icon: IconFile },
   { action: 'requests', label: '채팅', Icon: IconChat },
+  { action: 'blocks', label: '차단 관리', Icon: IconBlock },
   { action: 'archive', label: '지난 학기 글', Icon: IconArchive },
 ]
 
@@ -61,6 +63,9 @@ export default function MobileDrawer({ open, onClose, items: allItems, auth, inb
     onClose()
     // 채팅은 따로 된 페이지 (로그인 전이면 그 페이지가 로그인으로 안내한다)
     if (action === 'requests') return navigate('/chats')
+    // 차단 관리는 채팅 페이지의 차단 관리 창 · 내 정보는 내 정보 페이지
+    if (action === 'blocks') return navigate('/chats', { state: { action: 'blocks' } })
+    if (action === 'profile') return navigate('/me')
     navigate('/roommates', { state: { action } })
   }
 

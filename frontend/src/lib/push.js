@@ -12,6 +12,10 @@ const DISMISS_DAYS = 7
 
 export const pushConfigured = Boolean(VAPID_PUBLIC_KEY)
 
+// 이 기기의 알림을 켜거나 끄면 알린다 → 같은 화면의 [알림 받기] 안내 띠와 [채팅 알림] 스위치가 서로 맞춘다
+export const PUSH_EVENT = 'jbnu-dorm:push-changed'
+const announce = (on) => window.dispatchEvent(new CustomEvent(PUSH_EVENT, { detail: { on } }))
+
 const isIos = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true
@@ -55,7 +59,13 @@ async function rpc(name, args) {
 
 /** 이 기기를 등록한다 (권한은 이미 허용된 상태) */
 export async function registerPush() {
-  return register()
+  announce(true)
+  try {
+    await register()
+  } catch (err) {
+    announce(false)
+    throw err
+  }
 }
 
 /** 알림 권한만 묻는다 (버튼을 누른 순간에만 부를 것). 이미 정해졌으면 창 없이 바로 결과 */
@@ -92,7 +102,16 @@ async function register() {
  */
 export async function enablePush() {
   const result = await Notification.requestPermission()
-  if (result === 'granted') await register()
+  if (result === 'granted') {
+    // 허용하는 즉시 켠 것으로 알린다 (등록은 이어서 하고, 실패하면 다시 끈 것으로 알린다)
+    announce(true)
+    try {
+      await register()
+    } catch (err) {
+      announce(false)
+      throw err
+    }
+  }
   return result
 }
 
@@ -118,13 +137,17 @@ export async function disablePush() {
   if (pushSupport() !== 'supported') return
   const registration = await navigator.serviceWorker.getRegistration('/')
   const subscription = registration && (await registration.pushManager.getSubscription())
-  if (!subscription) return
+  if (!subscription) return announce(false)
+  announce(false)
   // 브라우저 구독 해지와 서버 삭제를 함께 (하나씩 기다리지 않게). 해지만 되면 알림은 더 오지 않는다
   const [unsubscribed] = await Promise.allSettled([
     subscription.unsubscribe(),
     rpc('delete_push_subscription', { p_endpoint: subscription.endpoint }),
   ])
-  if (unsubscribed.status === 'rejected') throw unsubscribed.reason
+  if (unsubscribed.status === 'rejected') {
+    announce(true)
+    throw unsubscribed.reason
+  }
 }
 
 /** [알림 받기] 안내를 닫으면 며칠 동안은 다시 띄우지 않는다 */

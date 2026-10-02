@@ -71,6 +71,13 @@
   color: var(--c-text-3);
 }
 
+/* 모바일: 차단 관리는 햄버거 메뉴 · 내 정보에서 */
+@media (max-width: 760px) {
+  .chat-blocks-btn {
+    display: none;
+  }
+}
+
 /* 이 기기 알림 켜기/끄기 */
 /* 채팅 알림 토글 스위치 (채팅 목록 위) */
 .push-switch-wrap {

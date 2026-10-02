@@ -72,7 +72,7 @@ function Snapshot({ report }) {
     <div className="adm-snapshot">
       <span className="adm-snapshot-label">신고 당시 글</span>
       {facts.length > 0 && <p className="adm-snapshot-facts">{facts.join(' · ')}</p>}
-      <p className="adm-content">{s.content || '자기소개 없음'}</p>
+      <p className="adm-content">{s.content || '한마디 없음'}</p>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import BlocksModal from '../components/chat/BlocksModal.jsx'
 import LeaveConfirmModal from '../components/chat/LeaveConfirmModal.jsx'
 import { ThreadActions } from '../components/chat/MessageActions.jsx'
@@ -12,6 +12,8 @@ import { dormName, timeAgo } from '../components/roommates/postFormat.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { fetchThreads, leaveThread, subscribeMessages } from '../lib/roommateChat.js'
 import { announceInboxCounts } from '../lib/roommateRequests.js'
+// 신고 · 차단 창, 체크리스트 비교표 등 룸메이트 화면과 같은 스타일 (룸메이트 페이지 코드를 따로 받게 되어 직접 불러온다)
+import './RoommatesPage.css'
 import './ChatPage.css'
 
 const TABS = [
@@ -90,6 +92,15 @@ export default function ChatListPage() {
   const [leaving, setLeaving] = useState(null) // 나가기 확인 중인 대화방
   const signedIn = authStatus === 'signedIn'
   const timer = useRef(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // 모바일 메뉴(햄버거) · 내 정보의 [차단 관리]로 들어온 경우: 차단 관리 창을 연다
+  useEffect(() => {
+    if (location.state?.action !== 'blocks' || !signedIn) return
+    navigate(location.pathname + location.search, { replace: true, state: null })
+    setBlocksOpen(true)
+  }, [location.key, signedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!signedIn) return
@@ -141,6 +152,7 @@ export default function ChatListPage() {
         {signedIn && (
           <div className="chat-head-actions">
             <PushToggle userId={user.id} />
+            {/* PC 만 (모바일은 햄버거 메뉴 · 내 정보의 [차단 관리]) */}
             <button type="button" className="btn btn-ghost btn-sm chat-blocks-btn" onClick={() => setBlocksOpen(true)}>
               차단 관리
             </button>
@@ -201,8 +213,8 @@ export default function ChatListPage() {
             key={leaving?.id ?? 'none'}
             thread={leaving}
             onClose={() => setLeaving(null)}
-            onConfirm={async () => {
-              await leaveThread(leaving, user.id)
+            onConfirm={async (quiet) => {
+              await leaveThread(leaving, user.id, { quiet })
               setState((s) => ({ ...s, items: s.items.filter((x) => x.id !== leaving.id) }))
               setLeaving(null)
               setReloadKey((k) => k + 1)

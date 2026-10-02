@@ -78,6 +78,9 @@ grant select (room_type) on public.roommate_profiles to authenticated;
 grant insert (room_type) on public.roommate_profiles to authenticated;
 grant update (room_type) on public.roommate_profiles to authenticated;
 grant select (room_type) on public.roommate_posts to anon;
+-- 글은 열마다 쓰기 권한을 따로 준다 (20260927 · 20261005): 글쓰기 · 수정에서 호실도 저장할 수 있게
+grant insert (room_type) on public.roommate_posts to authenticated;
+grant update (room_type) on public.roommate_posts to authenticated;
 
 -- ── 일치 많은 순 목록: room_type 추가 (돌려주는 열이 바뀌어 지우고 다시 만든다) ──
 drop function if exists public.list_roommate_posts_by_match(text, text, text, integer, integer);

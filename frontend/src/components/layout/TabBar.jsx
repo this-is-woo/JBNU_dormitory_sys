@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { NavLink, useLocation, useNavigate } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
 import { IconBuilding, IconChat, IconHome, IconUser, IconUsers } from '../common/Icons.jsx'
 import './TabBar.css'
 
@@ -12,16 +12,16 @@ const TABS = [
   { to: '/roommates', label: '룸메이트 찾기', Icon: IconUsers },
   { to: '/dorms', label: '생활관 안내', Icon: IconBuilding },
   { to: '/chats', label: '채팅', Icon: IconChat },
+  { to: '/me', label: '내 정보', Icon: IconUser },
 ]
 
 /**
  * 모바일 하단 탭 바: 홈 · 룸메이트 찾기 · 생활관 안내 · 채팅 · 내 정보 (760px 이하에서만 보인다)
- * 내 정보는 룸메이트 찾기의 내 정보 창을 연다 (로그인 전이면 그 페이지가 로그인부터 받는다)
+ * 내 정보는 /me 페이지 (로그인 전이면 그 페이지가 로그인을 안내한다)
  * 헤더는 backdrop-filter 때문에 fixed 위치의 기준이 되므로, body 에 따로 그린다.
  */
 export default function TabBar({ inboxNew = 0 }) {
   const { pathname } = useLocation()
-  const navigate = useNavigate()
   const hidden = HIDDEN.test(pathname)
 
   // 탭 바가 있는 동안: 페이지 맨 아래 내용이 가리지 않게 여백을 준다 (TabBar.css 의 body.has-tabbar)
@@ -51,18 +51,6 @@ export default function TabBar({ inboxNew = 0 }) {
             </NavLink>
           </li>
         ))}
-        <li>
-          <button
-            type="button"
-            className="tabbar-item"
-            onClick={() => navigate('/roommates', { state: { action: 'profile' } })}
-          >
-            <span className="tabbar-icon">
-              <IconUser width={22} height={22} />
-            </span>
-            <span className="tabbar-label">내 정보</span>
-          </button>
-        </li>
       </ul>
     </nav>,
     document.body,

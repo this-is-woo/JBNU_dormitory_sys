@@ -236,7 +236,8 @@ function localThreads(userId) {
         lastMessage: mine.at(-1) ?? null,
         unread: mine.filter((m) => m.senderRole !== role && m.id > lastRead).length,
         otherReadId: reads[r.id]?.[otherRole(role)] ?? 0,
-        otherLeft: (role === 'applicant' ? r.authorLeftAt : r.applicantLeftAt) != null,
+        // 상대가 조용히 나갔으면 나간 것으로 보이지 않는다 (DB 의 list_roommate_threads 와 같게)
+        otherLeft: role === 'applicant' ? r.authorLeftAt != null && !r.authorLeftQuiet : r.applicantLeftAt != null && !r.applicantLeftQuiet,
         // 데모에서 글쓴이 차단에 쓴다 (Supabase 에서는 DB 가 글 id 로 찾는다)
         authorId: post.authorId,
       }
@@ -360,13 +361,15 @@ export async function deleteMessage(thread, message) {
  * 채팅방 나가기: 나에게서만 대화가 사라지고, 상대에게는 "OO가 채팅방을 나갔어요" 가 보인다.
  * 두 사람 모두 나가면 대화를 지운다. 신청자가 나가면 룸메 신청도 취소된 것으로 본다.
  */
-export async function leaveThread(thread, userId) {
+/** 채팅방 나가기. quiet: 조용히 나가기 (상대에게 "나갔어요"를 알리지 않는다) */
+export async function leaveThread(thread, userId, { quiet = false } = {}) {
   if (!isSupabaseConfigured) {
     const requests = read(REQUESTS_KEY, [])
     const target = requests.find((r) => r.id === thread.id)
     if (!target || !localThreads(userId).some((t) => t.id === thread.id)) throw new Error(ERRORS.not_found)
     const now = new Date().toISOString()
-    const next = { ...target, [thread.role === 'applicant' ? 'applicantLeftAt' : 'authorLeftAt']: now }
+    const mine = thread.role === 'applicant' ? 'applicant' : 'author'
+    const next = { ...target, [`${mine}LeftAt`]: now, [`${mine}LeftQuiet`]: quiet }
     if (next.applicantLeftAt && next.authorLeftAt) {
       write(
         REQUESTS_KEY,
@@ -378,10 +381,10 @@ export async function leaveThread(thread, userId) {
       REQUESTS_KEY,
       requests.map((r) => (r.id === thread.id ? next : r)),
     )
-    appendLocalMessage({ requestId: thread.id, senderRole: thread.role, kind: 'left', body: null })
+    if (!quiet) appendLocalMessage({ requestId: thread.id, senderRole: thread.role, kind: 'left', body: null })
     return
   }
-  await rpc('leave_roommate_thread', { p_request_id: thread.id }, '채팅방을 나가지 못했어요.')
+  await rpc('leave_roommate_thread', { p_request_id: thread.id, p_quiet: quiet }, '채팅방을 나가지 못했어요.')
 }
 
 /** 여기까지 읽음 (lastId 가 없으면 지금까지 전부) */

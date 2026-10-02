@@ -8,7 +8,7 @@ const EMPTY = { content: '' }
 const fromPost = (post) => ({ content: post.content ?? '' })
 
 /**
- * 글쓰기: 기본 정보·체크리스트는 내 정보(프로필)에서 가져오고, 소개만 적는다. 연락은 룸메 신청으로 한다.
+ * 글쓰기: 기본 정보·체크리스트는 내 정보(프로필)에서 가져오고, '룸메이트에게 한마디'만 적는다. 연락은 룸메 신청으로 한다.
  * 학기는 고르지 않는다: 새 글은 지금 모집 학기(semester)로 올라가고, 수정해도 학기는 그대로다.
  * initial 이 있으면 그 글을 수정한다.
  */
@@ -84,11 +84,10 @@ export default function RoommateForm({ open, initial = null, profile, semester, 
           </div>
         )}
 
+        {/* 칸 이름 없이 입력칸만 (화면 읽기 프로그램에는 aria-label 로 알려 준다) */}
         <label className="rm-field">
-          <span className="rm-label">
-            자기소개 <small>선택 · 체크리스트에 없는 내용을 자유롭게 적어 주세요</small>
-          </span>
           <textarea
+            aria-label="룸메이트에게 한마디 (선택)"
             className="input rm-textarea"
             rows={7}
             maxLength={CONTENT_MAX}
