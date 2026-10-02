@@ -1,7 +1,65 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
-import { collegeName, dormName, genderLabel, timeAgo } from './postFormat.js'
+import { IconMore } from '../common/Icons.jsx'
+import { collegeName, dormTitle, genderLabel, timeAgo } from './postFormat.js'
+
+/** 카드 오른쪽 위 ⋯ 메뉴: 신고 · 차단 (Esc · 바깥을 누르면 닫힘) */
+function CardMenu({ post, onReport, onBlock }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => {
+      if (e.type === 'keydown' ? e.key === 'Escape' : !ref.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('pointerdown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [open])
+
+  const pick = (fn) => {
+    setOpen(false)
+    fn(post)
+  }
+
+  return (
+    <div className="rm-card-menu" ref={ref}>
+      <button
+        type="button"
+        className="rm-card-menu-btn"
+        aria-label="게시글 메뉴"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <IconMore width={18} height={18} />
+      </button>
+      {open && (
+        <ul className="rm-card-menu-list" role="menu">
+          {onReport && (
+            <li role="none">
+              <button type="button" role="menuitem" onClick={() => pick(onReport)}>
+                신고하기
+              </button>
+            </li>
+          )}
+          {onBlock && (
+            <li role="none">
+              <button type="button" role="menuitem" className="is-danger" onClick={() => pick(onBlock)}>
+                차단하기
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 /** 자기소개: 5줄까지만 보여 주고, 넘치면 [더보기]로 펼친다 */
 function Intro({ text }) {
@@ -65,15 +123,15 @@ function cardButton(post, mine, sent, myGender, archived) {
  * match: 내 정보와 맞는 항목 수 (내 글이거나 모르면 null)
  * sent: 이 글의 글쓴이와 대화 중인지 (내가 첫 메시지를 보내 룸메 신청을 했는지)
  * myGender: 내 성별 · archived: 지난 학기 글 보기 중
- * onReport: 남의 글 신고 (없으면 버튼을 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
+ * onReport · onBlock: 남의 글 ⋯ 메뉴의 신고 · 차단 (둘 다 없으면 ⋯ 메뉴를 숨긴다), onDelete: 내 글 삭제 (없으면 버튼을 숨긴다)
  * adminLink: 관리자에게 이 글을 관리자 페이지에서 여는 [관리] 링크를 보여 준다
  */
-export default function RoommateCard({ post, mine, sent = false, match = null, myGender = null, archived = false, onOpen, onRequest, onEdit, onReport, onDelete, adminLink = false }) {
+export default function RoommateCard({ post, mine, sent = false, match = null, myGender = null, archived = false, onOpen, onRequest, onEdit, onReport, onBlock, onDelete, adminLink = false }) {
   const action = cardButton(post, mine, sent, myGender, archived)
   return (
     <article className={`rm-card${post.isClosed ? ' is-closed' : ''}`}>
       <header className="rm-card-head">
-        <strong className="rm-who">{dormName(post.dormitory)}</strong>
+        <strong className="rm-who">{dormTitle(post)}</strong>
         <div className="rm-when">
           {post.isClosed && <span className="rm-closed-badge">모집완료</span>}
           {mine && post.isOpen === false && (
@@ -84,6 +142,7 @@ export default function RoommateCard({ post, mine, sent = false, match = null, m
           {mine && <span className="chip chip-primary">내 글</span>}
           {post.isSample && <span className="chip">예시</span>}
           <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
+          {!mine && !post.isSample && (onReport || onBlock) && <CardMenu post={post} onReport={onReport} onBlock={onBlock} />}
         </div>
         {/* 호관 아래 한 줄: 성별 · 나이 · 단과대학 · MBTI (카드 폭 전체를 쓴다) */}
         <p className="rm-meta">
@@ -116,7 +175,7 @@ export default function RoommateCard({ post, mine, sent = false, match = null, m
           {action.label}
           {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
         </button>
-        {/* 오른쪽 버튼 줄: 내 글이면 수정·삭제, 남의 글이면 신고. 관리자에게는 [관리]를 함께 */}
+        {/* 오른쪽 버튼 줄: 내 글이면 수정·삭제 (남의 글의 신고 · 차단은 위 ⋯ 메뉴). 관리자에게는 [관리]를 함께 */}
         <div className="rm-own-actions">
           {adminLink && !post.isSample && (
             <Link
@@ -127,7 +186,7 @@ export default function RoommateCard({ post, mine, sent = false, match = null, m
               관리
             </Link>
           )}
-          {mine ? (
+          {mine && (
             <>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => onEdit(post)}>
                 수정
@@ -138,12 +197,6 @@ export default function RoommateCard({ post, mine, sent = false, match = null, m
                 </button>
               )}
             </>
-          ) : (
-            onReport && (
-              <button type="button" className="btn btn-ghost btn-sm rm-report-btn" onClick={() => onReport(post)}>
-                신고
-              </button>
-            )
           )}
         </div>
       </footer>

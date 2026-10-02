@@ -6,6 +6,7 @@ import { useSiteSettings } from '../../lib/siteSettings.js'
 import { IconMenu, IconShield } from '../common/Icons.jsx'
 import Logo from '../common/Logo.jsx'
 import MobileDrawer from './MobileDrawer.jsx'
+import TabBar from './TabBar.jsx'
 import './Header.css'
 
 export const NAV_ITEMS = [
@@ -104,6 +105,8 @@ export default function Header() {
         </button>
       </div>
       <MobileDrawer open={menuOpen} onClose={closeMenu} items={navItems} auth={auth} inboxNew={inboxNew} />
+      {/* 모바일 하단 탭 바 (안 읽은 대화 수를 함께 쓴다) */}
+      <TabBar inboxNew={inboxNew} />
     </header>
   )
 }

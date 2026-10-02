@@ -7,6 +7,8 @@ import {
   pushPermission,
   pushPromptDismissed,
   pushSupport,
+  registerPush,
+  requestPushPermission,
   syncPush,
 } from '../../lib/push.js'
 import { IconBell, IconClose } from '../common/Icons.jsx'
@@ -90,10 +92,14 @@ export default function PushPrompt({ userId }) {
   )
 }
 
-/** 채팅 목록 위의 [알림 켜짐 / 꺼짐] 버튼 (이 기기만) */
+/**
+ * 채팅 목록 위의 [채팅 알림] 토글 스위치 (이 기기만).
+ * 누르는 즉시 스위치를 옮기고(낙관적 갱신) 서버 저장은 뒤에서 한다. 실패하면 되돌리고 이유를 보여 준다.
+ */
 export function PushToggle({ userId }) {
   const support = pushSupport()
-  const [on, setOn] = useState(null) // null: 확인 중
+  // 처음에는 권한으로 바로 짐작해 그리고(기다리는 동안 버튼이 사라지지 않게), 구독 여부를 확인해 맞춘다
+  const [on, setOn] = useState(() => support === 'supported' && pushPermission() === 'granted')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
 
@@ -102,45 +108,67 @@ export function PushToggle({ userId }) {
     let active = true
     hasPushSubscription()
       .then((has) => active && setOn(has && pushPermission() === 'granted'))
-      .catch(() => active && setOn(false))
+      .catch(() => {})
     return () => {
       active = false
     }
   }, [support, userId])
 
-  if (support !== 'supported' || on === null) return null
+  if (support !== 'supported') return null
 
   async function toggle() {
     if (busy) return
-    setBusy(true)
     setNote('')
+    if (on) {
+      // 끄기: 바로 끈 것으로 보이고, 구독 해지 · 서버 삭제는 뒤에서
+      setOn(false)
+      disablePush().catch(() => {
+        setOn(true)
+        setNote('알림을 끄지 못했어요. 잠시 후 다시 시도해 주세요.')
+      })
+      return
+    }
+    // 켜기: 권한 창(처음 한 번)만 기다리고, 허용하면 바로 켠 것으로 보인 뒤 등록은 뒤에서
+    setBusy(true)
     try {
-      if (on) {
-        await disablePush()
-        setOn(false)
-      } else {
-        const result = await enablePush()
-        setOn(result === 'granted')
-        if (result === 'denied') setNote('브라우저 설정에서 알림을 허용해 주세요.')
+      const result = await requestPushPermission()
+      if (result !== 'granted') {
+        if (result === 'denied') setNote('브라우저(또는 휴대폰) 설정에서 이 사이트의 알림을 허용해 주세요.')
+        return
       }
-    } catch (err) {
-      setNote(err.message)
+      setOn(true)
+      setBusy(false)
+      registerPush().catch((err) => {
+        setOn(false)
+        setNote(err.message)
+      })
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <button
-      type="button"
-      className={`btn btn-ghost btn-sm push-toggle${on ? ' is-on' : ''}`}
-      onClick={toggle}
-      disabled={busy}
-      aria-pressed={on}
-      title={note || (on ? '이 기기에서 채팅 알림 끄기' : '이 기기에서 채팅 알림 켜기')}
-    >
-      <IconBell width={16} height={16} />
-      {on ? '알림 켜짐' : '알림 꺼짐'}
-    </button>
+    <div className="push-switch-wrap">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        className={`push-switch${on ? ' is-on' : ''}`}
+        onClick={toggle}
+        disabled={busy}
+        title={on ? '이 기기에서 채팅 알림 끄기' : '이 기기에서 채팅 알림 켜기'}
+      >
+        <IconBell width={16} height={16} />
+        <span className="push-switch-label">채팅 알림</span>
+        <span className="push-switch-track" aria-hidden="true">
+          <span className="push-switch-thumb" />
+        </span>
+      </button>
+      {note && (
+        <p className="push-switch-note" role="alert">
+          {note}
+        </p>
+      )}
+    </div>
   )
 }

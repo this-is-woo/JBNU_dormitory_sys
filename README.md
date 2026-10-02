@@ -93,7 +93,7 @@ copy .env.example .env.local      # macOS/Linux: cp .env.example .env.local
 npm run dev
 ```
 
-<http://localhost:5173> 접속. 백엔드가 꺼져 있으면 예측 버튼을 눌렀을 때 "서버에 연결할 수 없습니다" 안내가 나옵니다.
+<http://localhost:5173> 접속. 백엔드가 꺼져 있으면 환산점수 입력을 모두 마쳤을 때 합격률 칸에 "서버에 연결할 수 없습니다" 안내가 나옵니다.
 
 ## 딥러닝 모델 연결
 
@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` → `20261026000000_roommate_posts_public_read.sql` → `20261027000000_roommate_room_type.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -157,7 +157,7 @@ npm run dev
 | `score_submissions` | 환산점수 계산 기록 (단과대학·성별·학점·거리점수·환산점수, 익명 + IP 를 알아볼 수 없게 바꾼 `client_key`) | 누구나 쓰기만, 조회는 관리자 페이지 [기록]·[학점 통계] 탭 |
 | `site_settings` | 사이트 설정 (`support_enabled`: 후원 메뉴 켜기/끄기) | 누구나 읽기, 바꾸기는 관리자 페이지 [설정] 탭 (`admin_set_setting`) |
 | `roommate_profiles` | 내 정보 (기본 정보 + 체크리스트) | 본인만 |
-| `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 체크리스트 등록자, 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
+| `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 누구나(차단 · 정지 · 숨김 글 제외), 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
 
 ### ② Render — 백엔드
 
@@ -201,7 +201,7 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 
 1. **키 한 쌍 만들기** (내 컴퓨터 터미널): `npx web-push generate-vapid-keys` → Public Key 와 Private Key 가 나옵니다.
    Private Key 는 저장소 · 채팅 · 프론트엔드 어디에도 붙여 넣지 마세요.
-2. **마이그레이션** `20261024000000_chat_push.sql` 실행 (SQL Editor)
+2. **마이그레이션** `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` 실행 (SQL Editor)
 3. **Edge Function 배포**: Supabase Dashboard → **Edge Functions → Deploy a new function → Via Editor**
    - 이름: `send-chat-push`, 코드: `supabase/functions/send-chat-push/index.ts` 내용을 그대로 붙여 넣고 Deploy
    - 배포된 함수의 설정(Details)에서 **Verify JWT(Enforce JWT verification) 끄기** — DB 가 JWT 없이 부르고, 대신 비밀 값으로 확인합니다
@@ -228,16 +228,17 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 - 알림은 받는 사람의 기기(알림을 허용한 브라우저)마다 갑니다. 그 대화방을 보고 있으면 띄우지 않고, 알림을 누르면 그 대화방이 열립니다.
 - 새 메시지 · 첫 메시지(룸메 신청)만 알리고, 수정 · 삭제 · 읽음 · 나가기는 알리지 않습니다. 받는 사람이 채팅방을 나갔으면 보내지 않습니다.
 - 알림 내용: 제목 "글쓴이 · 한빛관"(첫 메시지는 "새 룸메 신청 · 한빛관"), 본문은 메시지 앞 120자. 잠금 화면에도 보일 수 있습니다.
-- 채팅 목록의 **[알림 켜짐/꺼짐]** 으로 이 기기의 알림을 끄고 켤 수 있고, **로그아웃하면 그 기기의 알림도 끊깁니다**.
+- 채팅 목록의 **[알림 켜짐/꺼짐]** 으로 이 기기의 알림을 끄고 켤 수 있고, **로그아웃해도 그 기기로 알림이 계속 옵니다** (잠금 화면에 내용이 보일 수 있음). 같은 기기에서 다른 계정으로 로그인하면 알림도 그 계정으로 옮겨 가고, 끄려면 [알림 꺼짐] 또는 브라우저·휴대폰 설정에서 끕니다.
 - 알림을 끈 · 앱을 지운 기기는 보낼 때 자동으로 목록에서 지웁니다. 안내 띠를 닫으면 7일 동안 다시 묻지 않습니다.
 
 ## 룸메이트 찾기
 
-`/roommates` 페이지. **구글 로그인 + 내 정보 등록**을 마친 사용자만 게시글을 볼 수 있습니다.
-그 전에는 게시판이 흐리게(예시 글) 보이고 안내 카드가 뜹니다. DB 정책도 같아서 화면을 우회해도 글을 받을 수 없습니다.
+`/roommates` 페이지. 게시글은 **로그인하지 않아도 누구나** 볼 수 있습니다 (`20261026000000_roommate_posts_public_read.sql`).
+글쓰기 · 룸메 신청 · 내가 쓴 글 · 채팅을 누르면 그때 로그인 창이 뜨고, 로그인 뒤 내 정보가 없으면 등록 창을 띄운 다음 하려던 동작을 이어서 합니다.
+로그인하지 않은 방문자에게는 글쓴이가 정한 연락처 열(`contact`)을 내주지 않고, 신고 · 차단 · 일치 수 · 일치 많은 순은 보이지 않습니다.
 
 1. **내 정보** (`roommate_profiles`, 계정당 1개, 한 번만 등록)
-   - 기본 정보: 성별, 호관, 나이, 단과대학, MBTI
+   - 기본 정보: 성별, 호관, 호실(1인실·2인실·4인실 — 하나뿐인 호관은 자동), 나이, 단과대학, MBTI. 카드 제목은 "창의관 1인실"처럼 호관 + 호실
    - 룸메이트 체크리스트: 「전북대 룸메이트 체크리스트 ver.4」를 고친 15개 항목 (잠버릇은 복수 선택, 취침 시간은 24시 형태) (`frontend/src/data/roommateChecklist.js`)
    - 수정하면 내가 쓴 글에도 자동으로 반영됩니다 (DB 트리거).
 2. **글쓰기**: 소개(선택)만 적습니다. 기본 정보·체크리스트는 내 정보 값이 들어갑니다. 연락 방법 칸은 없고, **연락은 룸메 신청으로** 시작합니다.

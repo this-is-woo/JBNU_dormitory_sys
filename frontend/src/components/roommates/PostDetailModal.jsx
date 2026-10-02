@@ -1,7 +1,7 @@
 import Modal from '../common/Modal.jsx'
 import ChecklistView from './ChecklistView.jsx'
 import { requestButton } from './RoommateCard.jsx'
-import { collegeName, dormName, genderLabel, matchCount, timeAgo } from './postFormat.js'
+import { collegeName, dormTitle, genderLabel, matchCount, timeAgo } from './postFormat.js'
 import { semesterLabel } from '../../lib/semester.js'
 
 /** 체크리스트: 창을 열면 바로 보인다. 내 체크리스트가 있으면 나와 맞는 항목을 초록색으로 표시하고 개수를 제목 옆에 */
@@ -20,16 +20,27 @@ function ChecklistSection({ checklist, myChecklist }) {
 
 /**
  * 자세히 보기: 체크리스트 (자기소개는 카드에서 본다). 연락은 [채팅 보내기]로 대화창을 열어서
- * archived: 지난 학기 글이면 읽기만 (채팅 버튼 없음)
+ * archived: 지난 학기 글이면 읽기만 (채팅 버튼 없음). 신고 · 차단은 카드의 ⋯ 메뉴에서
  */
-export default function PostDetailModal({ post, mine = false, sent = false, archived = false, myGender = null, myChecklist = null, onClose, onEdit, onRequest, onBlock, onReport }) {
+export default function PostDetailModal({ post, mine = false, sent = false, archived = false, myGender = null, myChecklist = null, onClose, onEdit, onRequest }) {
   const action = post && requestButton(post, mine, sent, myGender)
+  const note =
+    post &&
+    (archived && !mine
+      ? '지난 학기 글이라 룸메 신청은 할 수 없어요.'
+      : mine
+        ? '[받은 신청]에서 신청한 사람과 채팅하고 체크리스트를 나와 비교해 볼 수 있어요.'
+        : action.disabled && !post.isClosed
+          ? '룸메이트는 같은 성별끼리만 신청할 수 있어요.'
+          : sent
+            ? '이미 글쓴이와 채팅 중인 글이에요.'
+            : null)
   return (
     <Modal
       open={Boolean(post)}
       onClose={onClose}
       size="lg"
-      title={post ? `${dormName(post.dormitory)} 룸메이트 ${post.isClosed ? '모집완료' : '찾아요'}` : ''}
+      title={post ? `${dormTitle(post)} 룸메이트 ${post.isClosed ? '모집완료' : '찾아요'}` : ''}
       subtitle={
         post &&
         [
@@ -46,17 +57,7 @@ export default function PostDetailModal({ post, mine = false, sent = false, arch
       footer={
         post && (
           <>
-            <p className="rm-contact">
-              {archived && !mine
-                ? '지난 학기 글이라 룸메 신청은 할 수 없어요.'
-                : mine
-                ? '[받은 신청]에서 신청한 사람과 채팅하고 체크리스트를 나와 비교해 볼 수 있어요.'
-                : action.disabled && !post.isClosed
-                  ? '룸메이트는 같은 성별끼리만 신청할 수 있어요.'
-                  : sent
-                    ? '이미 글쓴이와 채팅 중인 글이에요.'
-                    : '마음에 들면 채팅을 보내 보세요. 첫 메시지를 보내면 글쓴이에게 룸메 신청이 가요.'}
-            </p>
+            {note ? <p className="rm-contact">{note}</p> : <span className="rm-contact" aria-hidden="true" />}
             {(!archived || mine) && (
               <button
                 type="button"
@@ -71,16 +72,6 @@ export default function PostDetailModal({ post, mine = false, sent = false, arch
             {mine && (
               <button type="button" className="btn btn-secondary" onClick={() => onEdit(post)}>
                 수정
-              </button>
-            )}
-            {!mine && onReport && (
-              <button type="button" className="btn btn-ghost rq-block" onClick={() => onReport(post)}>
-                신고
-              </button>
-            )}
-            {!mine && onBlock && (
-              <button type="button" className="btn btn-ghost rq-danger" onClick={() => onBlock(post)}>
-                차단
               </button>
             )}
           </>

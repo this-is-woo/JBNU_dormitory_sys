@@ -72,13 +72,91 @@
 }
 
 /* 이 기기 알림 켜기/끄기 */
-.push-toggle {
+/* 채팅 알림 토글 스위치 (채팅 목록 위) */
+.push-switch-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 4px;
-  color: var(--c-text-3);
 }
 
-.push-toggle.is-on {
+.push-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 6px 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--c-text-3);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.push-switch:hover {
+  background: var(--c-surface-2);
+}
+
+.push-switch:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.push-switch:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.push-switch.is-on {
   color: var(--c-text);
+}
+
+.push-switch-track {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--c-border);
+  transition: background-color 0.15s ease;
+}
+
+.push-switch.is-on .push-switch-track {
+  background: var(--c-primary);
+}
+
+.push-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  transition: transform 0.15s ease;
+}
+
+.push-switch.is-on .push-switch-thumb {
+  transform: translateX(16px);
+}
+
+.push-switch-note {
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+  color: var(--c-danger, #d33);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .push-switch-track,
+  .push-switch-thumb {
+    transition: none;
+  }
 }
 
 /* 알림 안내 띠 (채팅 목록 · 대화방 위) */

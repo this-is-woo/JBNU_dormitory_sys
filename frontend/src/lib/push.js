@@ -54,6 +54,16 @@ async function rpc(name, args) {
 }
 
 /** 이 기기를 등록한다 (권한은 이미 허용된 상태) */
+export async function registerPush() {
+  return register()
+}
+
+/** 알림 권한만 묻는다 (버튼을 누른 순간에만 부를 것). 이미 정해졌으면 창 없이 바로 결과 */
+export async function requestPushPermission() {
+  if (pushPermission() !== 'default') return pushPermission()
+  return Notification.requestPermission()
+}
+
 async function register() {
   const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
   await navigator.serviceWorker.ready
@@ -103,17 +113,18 @@ export async function hasPushSubscription() {
   return Boolean(registration && (await registration.pushManager.getSubscription()))
 }
 
-/** 이 기기 알림 끄기 (로그아웃할 때도: 다른 사람이 이 기기로 로그인해도 내 알림이 오지 않게) */
+/** 이 기기 알림 끄기 ([알림 꺼짐] 버튼. 로그아웃할 때는 부르지 않는다 — 로그아웃해도 알림은 계속 받는다) */
 export async function disablePush() {
   if (pushSupport() !== 'supported') return
   const registration = await navigator.serviceWorker.getRegistration('/')
   const subscription = registration && (await registration.pushManager.getSubscription())
   if (!subscription) return
-  try {
-    await rpc('delete_push_subscription', { p_endpoint: subscription.endpoint })
-  } finally {
-    await subscription.unsubscribe()
-  }
+  // 브라우저 구독 해지와 서버 삭제를 함께 (하나씩 기다리지 않게). 해지만 되면 알림은 더 오지 않는다
+  const [unsubscribed] = await Promise.allSettled([
+    subscription.unsubscribe(),
+    rpc('delete_push_subscription', { p_endpoint: subscription.endpoint }),
+  ])
+  if (unsubscribed.status === 'rejected') throw unsubscribed.reason
 }
 
 /** [알림 받기] 안내를 닫으면 며칠 동안은 다시 띄우지 않는다 */

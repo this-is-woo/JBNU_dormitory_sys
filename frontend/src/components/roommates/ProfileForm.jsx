@@ -12,6 +12,7 @@ import {
 import { AGE_MAX, AGE_MIN, GENDERS, MBTI_AXES } from '../../data/roommateOptions.js'
 import ChoiceGroup from '../common/ChoiceGroup.jsx'
 import Modal from '../common/Modal.jsx'
+import { dormRooms } from './postFormat.js'
 
 const STEPS = ['기본 정보', '룸메이트 체크리스트']
 const OX = [
@@ -19,8 +20,15 @@ const OX = [
   { value: false, label: 'X' },
 ]
 
+// 호실이 하나뿐인 호관은 고르지 않아도 그 호실로
+const onlyRoom = (dormitory) => {
+  const rooms = dormRooms(dormitory)
+  return rooms.length === 1 ? rooms[0] : ''
+}
+
 const EMPTY = {
   dormitory: '',
+  roomType: '',
   gender: '',
   age: '',
   collegeCode: '',
@@ -31,6 +39,7 @@ const EMPTY = {
 
 const fromProfile = (p) => ({
   dormitory: p.dormitory,
+  roomType: p.roomType ?? onlyRoom(p.dormitory),
   gender: p.gender,
   age: String(p.age),
   collegeCode: p.collegeCode,
@@ -47,6 +56,7 @@ function validateStep(step, f) {
     if (!f.dormitory) return '호관을 골라 주세요.'
     if (!DORMITORIES.find((d) => d.code === f.dormitory)?.genders.includes(f.gender))
       return '고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.'
+    if (!dormRooms(f.dormitory).includes(f.roomType)) return '호실을 골라 주세요.'
     if (!Number.isInteger(age) || age < AGE_MIN || age > AGE_MAX) return `나이는 ${AGE_MIN}~${AGE_MAX} 사이로 입력해 주세요.`
     if (!f.collegeCode) return '단과대학을 골라 주세요.'
     if (!f.mbtiUnknown && f.mbti.some((c) => !c)) return 'MBTI 네 글자를 모두 고르거나 “잘 모름”을 선택해 주세요.'
@@ -121,8 +131,14 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
 
   function changeGender(gender) {
     const dorm = DORMITORIES.find((d) => d.code === form.dormitory)
-    set({ gender, dormitory: dorm && !dorm.genders.includes(gender) ? '' : form.dormitory })
+    const keep = dorm && dorm.genders.includes(gender)
+    set({ gender, dormitory: keep ? form.dormitory : '', roomType: keep ? form.roomType : '' })
   }
+
+  // 호관을 바꾸면 호실은 다시 고른다 (하나뿐이면 자동)
+  const changeDormitory = (dormitory) =>
+    set({ dormitory, roomType: dormitory === form.dormitory ? form.roomType : onlyRoom(dormitory) })
+  const rooms = dormRooms(form.dormitory)
 
   function goBack() {
     setStep(step - 1)
@@ -148,6 +164,7 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
     try {
       await onSubmit({
         dormitory: form.dormitory,
+        roomType: form.roomType,
         gender: form.gender,
         age: Number(form.age),
         collegeCode: form.collegeCode,
@@ -213,8 +230,22 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
             <span className="rm-label">
               호관 <small>지원했거나 지원할 호관</small>
             </span>
-            <ChoiceGroup label="호관" options={dormOptions} value={form.dormitory} onChange={(dormitory) => set({ dormitory })} />
+            <ChoiceGroup label="호관" options={dormOptions} value={form.dormitory} onChange={changeDormitory} />
           </div>
+
+          {rooms.length > 1 && (
+            <div className="rm-field">
+              <span className="rm-label">
+                호실 <small>지원했거나 지원할 호실</small>
+              </span>
+              <ChoiceGroup
+                label="호실"
+                options={rooms.map((r) => ({ value: r, label: r }))}
+                value={form.roomType}
+                onChange={(roomType) => set({ roomType })}
+              />
+            </div>
+          )}
 
           <div className="rm-field-row">
             <label className="rm-field">

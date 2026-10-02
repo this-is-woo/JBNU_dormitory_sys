@@ -175,6 +175,23 @@
   color: var(--c-text-3);
 }
 
+/* 입력을 고쳐 다시 계산하는 동안: 직전 결과를 흐리게 */
+.result-card .result-body {
+  transition: opacity 0.2s ease;
+}
+
+.result-card.is-updating .result-body {
+  opacity: 0.45;
+}
+
+.result-updating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
 @media (max-width: 760px) {
   .result-card {
     padding: 22px 18px;

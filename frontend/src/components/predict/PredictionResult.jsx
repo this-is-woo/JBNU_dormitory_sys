@@ -56,15 +56,18 @@ function RoomRow({ room, rank }) {
 }
 
 /**
- * @param {{status: 'idle'|'loading'|'success'|'error', data?: object, error?: string, slow?: boolean}} props.result
- * @param {boolean} props.stale   결과를 받은 뒤 입력값이 바뀌었는지
+ * 환산점수 입력이 모두 채워지면 HomePage 가 자동으로 계산해 넘겨준다.
+ * @param {{status: 'idle'|'loading'|'success'|'error', data?: object, prev?: object, error?: string, slow?: boolean}} props.result
+ *   loading 중 prev 가 있으면(입력을 고쳐 다시 계산하는 중) 직전 결과를 흐리게 보여 준다
  */
-export default function PredictionResult({ result, stale, onRetry }) {
-  const { status, data } = result
+export default function PredictionResult({ result, onRetry }) {
+  const { status } = result
+  const updating = status === 'loading' && Boolean(result.prev)
+  const data = status === 'success' ? result.data : updating ? result.prev : null
 
   return (
-    <section className="card result-card" aria-label="예측 결과">
-      {status === 'success' && (
+    <section className={`card result-card${updating ? ' is-updating' : ''}`} aria-label="예측 결과" aria-busy={updating || undefined}>
+      {data && (
         <div className="result-head">
           <div className="result-meta">
             <span className="result-score">
@@ -75,6 +78,12 @@ export default function PredictionResult({ result, stale, onRetry }) {
             ) : (
               <span className="chip">임시 기준점</span>
             )}
+            {updating && (
+              <span className="result-updating" role="status">
+                <span className="spinner" aria-hidden="true" />
+                {result.slow ? '서버가 깨어나는 중이에요…' : '다시 계산하는 중…'}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -82,11 +91,11 @@ export default function PredictionResult({ result, stale, onRetry }) {
       {status === 'idle' && (
         <div className="result-empty">
           <IconSparkles width={28} height={28} />
-          <p>단과대학·성별·직전학기 학점·주소지를 입력하고 ‘합격률 예측하기’를 눌러 주세요.</p>
+          <p>단과대학·성별·직전학기 학점·주소지를 모두 입력하면 여기에 바로 계산돼요.</p>
         </div>
       )}
 
-      {status === 'loading' && <ResultSkeleton slow={result.slow} />}
+      {status === 'loading' && !updating && <ResultSkeleton slow={result.slow} />}
 
       {status === 'error' && (
         <div className="result-body">
@@ -102,14 +111,8 @@ export default function PredictionResult({ result, stale, onRetry }) {
         </div>
       )}
 
-      {status === 'success' && (
+      {data && (
         <div className="result-body">
-          {stale && (
-            <div className="notice notice-warning">
-              <IconInfo width={18} height={18} />
-              <p>입력값이 바뀌었어요. 최신 결과를 보려면 다시 예측해 주세요.</p>
-            </div>
-          )}
           {data.notice && (
             <div className="notice notice-warning">
               <IconInfo width={18} height={18} />

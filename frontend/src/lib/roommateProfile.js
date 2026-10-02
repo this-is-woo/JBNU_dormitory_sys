@@ -6,10 +6,11 @@ import { isSupabaseConfigured } from '../config.js'
 const LOCAL_KEY = 'jbnu-dorm:roommate-profiles' // { [userId]: profile }
 const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
 
-const COLUMNS = 'dormitory_code, gender, age, college_code, mbti, checklist, updated_at'
+const COLUMNS = 'dormitory_code, room_type, gender, age, college_code, mbti, checklist, updated_at'
 
 const fromRow = (row) => ({
   dormitory: row.dormitory_code,
+  roomType: row.room_type ?? null, // 1인실 · 2인실 · 4인실 (예전에 등록한 정보는 비어 있을 수 있다)
   gender: row.gender,
   age: row.age,
   collegeCode: row.college_code,
@@ -20,6 +21,7 @@ const fromRow = (row) => ({
 
 const toRow = (p) => ({
   dormitory_code: p.dormitory,
+  room_type: p.roomType ?? null,
   gender: p.gender,
   age: p.age,
   college_code: p.collegeCode,
@@ -30,6 +32,7 @@ const toRow = (p) => ({
 /** 게시글에 들어가는 프로필 값 */
 export const profileFields = (p) => ({
   dormitory: p.dormitory,
+  roomType: p.roomType ?? null,
   gender: p.gender,
   age: p.age,
   collegeCode: p.collegeCode,

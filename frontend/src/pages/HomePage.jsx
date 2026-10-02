@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
-import { IconAlert, IconArrowRight, IconChevronRight, IconUsers } from '../components/common/Icons.jsx'
+import { IconAlert, IconChevronRight } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
@@ -27,6 +26,8 @@ const INITIAL_FORM = {
   sigunguCode: '',
 }
 const SLOW_RESPONSE_MS = 4000
+// 입력을 멈추고 이만큼 지나면 합격률을 자동으로 계산한다 (학점을 치는 중간값마다 요청하지 않게)
+const PREDICT_DELAY_MS = 700
 // 입력을 멈추고 이만큼 지나면 환산점수를 기록한다 (타이핑 중간값은 기록하지 않음)
 const RECORD_DELAY_MS = 1500
 const GATE_KEY = 'jbnu-dorm:ai-notice-acknowledged'
@@ -83,14 +84,14 @@ export default function HomePage() {
   const { regions, error: regionsError } = useRegions()
   const [form, setForm] = useState(INITIAL_FORM)
   const [result, setResult] = useState({ status: 'idle' })
-  const [submittedKey, setSubmittedKey] = useState(null)
   const [acknowledged, setAcknowledged] = useState(readAcknowledged)
   const { status: authStatus, user, signIn, signInWithIdToken } = useAuth()
   const [reportOpen, setReportOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [rulesOpen, setRulesOpen] = useState(false)
-  const resultRef = useRef(null)
   const slowTimer = useRef(null)
+  // 마지막으로 보낸 예측 요청 번호 (늦게 도착한 옛 응답이 새 결과를 덮지 않게)
+  const requestSeq = useRef(0)
 
   useEffect(() => () => clearTimeout(slowTimer.current), [])
 
@@ -174,33 +175,47 @@ export default function HomePage() {
         }
       : null
   const payloadKey = payload ? JSON.stringify(payload) : null
-  const isLoading = result.status === 'loading'
 
-  async function runPrediction() {
-    if (!payload || isLoading || !acknowledged) return
-    setResult({ status: 'loading', slow: false })
+  // 합격률 계산. 계산하는 동안에는 직전 결과(prev)를 흐리게 남겨 둔다
+  async function runPrediction(target) {
+    const seq = ++requestSeq.current
+    setResult((prev) => ({
+      status: 'loading',
+      slow: false,
+      prev: prev.status === 'success' ? prev.data : prev.prev,
+    }))
     clearTimeout(slowTimer.current)
     slowTimer.current = setTimeout(
-      () => setResult((r) => (r.status === 'loading' ? { ...r, slow: true } : r)),
+      () => setResult((r) => (r.status === 'loading' && seq === requestSeq.current ? { ...r, slow: true } : r)),
       SLOW_RESPONSE_MS,
     )
-    resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
     try {
-      const data = await predictAdmission(payload)
-      setResult({ status: 'success', data })
-      setSubmittedKey(payloadKey)
+      const data = await predictAdmission(target)
+      if (seq === requestSeq.current) setResult({ status: 'success', data })
     } catch (err) {
-      setResult({ status: 'error', error: err.message })
+      if (seq === requestSeq.current) setResult({ status: 'error', error: err.message })
     } finally {
-      clearTimeout(slowTimer.current)
+      if (seq === requestSeq.current) clearTimeout(slowTimer.current)
     }
   }
 
+  // 환산점수에 필요한 값과 성별이 모두 정해지면(안내 확인 후) 입력을 멈춘 뒤 자동으로 합격률을 계산한다.
+  // 값을 지워 입력이 덜 채워지면 결과를 비운다.
+  useEffect(() => {
+    if (!acknowledged) return
+    if (!payloadKey) {
+      requestSeq.current += 1 // 진행 중인 요청의 응답은 버린다
+      clearTimeout(slowTimer.current)
+      setResult({ status: 'idle' })
+      return
+    }
+    const timer = setTimeout(() => runPrediction(JSON.parse(payloadKey)), PREDICT_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [payloadKey, acknowledged]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleReset() {
     setForm(INITIAL_FORM)
-    setResult({ status: 'idle' })
-    setSubmittedKey(null)
   }
 
   return (
@@ -210,24 +225,6 @@ export default function HomePage() {
         title="내 점수로 보는 생활관 합격 가능성"
         lead="입력하면 환산점수와 호관별 예상 합격률이 바로 나와요. 주소지는 JUMP에 등록된 주소 기준이에요."
       />
-
-      {/* 모바일에서만: 룸메이트 찾기 소개 (PC 는 헤더 메뉴에 늘 보이므로 생략) */}
-      <div className="container home-promo-wrap">
-        <Link to="/roommates" className="home-promo">
-          <span className="home-promo-icon" aria-hidden="true">
-            <IconUsers width={22} height={22} />
-          </span>
-          <span className="home-promo-text">
-            <span className="home-promo-kicker">룸메이트 찾기</span>
-            <strong>요거 엄청 열심히 만들었어요..</strong>
-            <span className="home-promo-desc">생활 습관 체크리스트로 나랑 잘 맞는 룸메이트를 찾고, 바로 채팅해 보세요.</span>
-          </span>
-          <span className="home-promo-go">
-            룸메이트 찾기 바로가기
-            <IconArrowRight width={16} height={16} />
-          </span>
-        </Link>
-      </div>
 
       <div className="container home-blocks">
         <section className="home-block" aria-labelledby="block-score">
@@ -253,31 +250,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section ref={resultRef} className="home-block predict-result" aria-labelledby="block-result">
+        <section className="home-block predict-result" aria-labelledby="block-result">
           <BlockHead id="block-result" title="호관별 예상 합격률" desc="같은 관이라도 1인실·2인실·4인실은 따로 선발되어 합격선이 달라요." />
           <AiGate unlocked={acknowledged} onUnlock={acknowledge}>
-            <PredictionResult
-              result={result}
-              stale={result.status === 'success' && submittedKey !== payloadKey}
-              onRetry={runPrediction}
-            />
+            <PredictionResult result={result} onRetry={() => payload && runPrediction(payload)} />
           </AiGate>
-          <div className="block-actions">
-            {/* 안내가 필요할 때만 한 줄 (안내 확인 전에는 위 "재미로 봐 주세요" 안내가 설명한다) */}
-            {acknowledged && !payload && (
-              <p className="predict-hint">성별을 포함해 위 항목을 모두 입력하면 예측할 수 있어요.</p>
-            )}
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={runPrediction}
-              disabled={!payload || isLoading || !acknowledged}
-            >
-              {isLoading && <span className="spinner" aria-hidden="true" />}
-              합격률 예측하기
-              {!isLoading && <IconArrowRight width={18} height={18} />}
-            </button>
-          </div>
         </section>
 
         <section className="home-block" aria-labelledby="block-rules">

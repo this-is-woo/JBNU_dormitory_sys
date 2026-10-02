@@ -105,10 +105,9 @@ export function useAuth() {
       window.dispatchEvent(new Event(DEMO_AUTH_EVENT))
       return
     }
-    // 이 기기의 채팅 알림을 먼저 끊는다 (다른 사람이 이 기기로 로그인해도 내 알림이 오지 않게)
-    await import('../lib/push.js')
-      .then((m) => m.disablePush())
-      .catch(() => {})
+    // 채팅 알림은 끊지 않는다: 로그아웃해도 이 기기로 계속 받는다.
+    // (이 기기에서 다른 계정으로 로그인하면 save_push_subscription 이 그 계정으로 옮긴다.
+    //  끄려면 채팅 목록의 [알림 꺼짐] 또는 브라우저 · 휴대폰 설정)
     try {
       const { supabase } = await import('../lib/supabase.js')
       // 서버에 알리지 못하면(오프라인 등) 이 브라우저의 세션만이라도 지운다.

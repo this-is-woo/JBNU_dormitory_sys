@@ -12,7 +12,7 @@ const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
 const LOCAL_REQUESTS_KEY = 'jbnu-dorm:roommate-requests' // lib/roommateRequests.js
 
 const COLUMNS =
-  'id, created_at, updated_at, user_id, dormitory_code, gender, age, college_code, mbti, checklist, content, semester, is_closed, is_open, request_count'
+  'id, created_at, updated_at, user_id, dormitory_code, room_type, gender, age, college_code, mbti, checklist, content, semester, is_closed, is_open, request_count'
 
 const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString()
 
@@ -24,6 +24,7 @@ const SAMPLES = [
     id: 'sample-1',
     createdAt: hoursAgo(0.7),
     dormitory: 'daedong',
+    roomType: '2인실',
     gender: '남',
     age: 22,
     collegeCode: 'engineering',
@@ -41,6 +42,7 @@ const SAMPLES = [
     id: 'sample-2',
     createdAt: hoursAgo(5),
     dormitory: 'changui',
+    roomType: '1인실',
     gender: '여',
     age: 24,
     collegeCode: 'arts',
@@ -58,6 +60,7 @@ const SAMPLES = [
     id: 'sample-3',
     createdAt: hoursAgo(26),
     dormitory: 'hanbit',
+    roomType: '4인실',
     gender: '남',
     age: 20,
     collegeCode: 'business',
@@ -83,6 +86,7 @@ const fromRow = (row) => ({
   updatedAt: row.updated_at,
   authorId: row.user_id,
   dormitory: row.dormitory_code,
+  roomType: row.room_type ?? null,
   gender: row.gender,
   age: row.age,
   collegeCode: row.college_code,
@@ -97,6 +101,7 @@ const fromRow = (row) => ({
 
 const toRow = (post) => ({
   dormitory_code: post.dormitory,
+  room_type: post.roomType ?? null,
   gender: post.gender,
   age: post.age,
   college_code: post.collegeCode,
