@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { COLLEGES_SORTED } from '../../data/colleges.js'
-import { DORMITORIES } from '../../data/dormitories.js'
 import {
   CHECKLIST_ITEMS,
   CHECKLIST_SECTIONS,
@@ -12,7 +11,6 @@ import {
 import { AGE_MAX, AGE_MIN, GENDERS, MBTI_AXES } from '../../data/roommateOptions.js'
 import ChoiceGroup from '../common/ChoiceGroup.jsx'
 import Modal from '../common/Modal.jsx'
-import { dormRooms } from './postFormat.js'
 
 const STEPS = ['기본 정보', '룸메이트 체크리스트']
 const OX = [
@@ -20,15 +18,8 @@ const OX = [
   { value: false, label: 'X' },
 ]
 
-// 호실이 하나뿐인 호관은 고르지 않아도 그 호실로
-const onlyRoom = (dormitory) => {
-  const rooms = dormRooms(dormitory)
-  return rooms.length === 1 ? rooms[0] : ''
-}
-
+// 호관 · 호실은 내 정보가 아니라 글쓰기에서 고른다 (어느 관 몇 인실 룸메이트를 구하는지)
 const EMPTY = {
-  dormitory: '',
-  roomType: '',
   gender: '',
   age: '',
   collegeCode: '',
@@ -38,8 +29,6 @@ const EMPTY = {
 }
 
 const fromProfile = (p) => ({
-  dormitory: p.dormitory,
-  roomType: p.roomType ?? onlyRoom(p.dormitory),
   gender: p.gender,
   age: String(p.age),
   collegeCode: p.collegeCode,
@@ -53,10 +42,6 @@ function validateStep(step, f) {
   if (step === 0) {
     const age = Number(f.age)
     if (!f.gender) return '성별을 골라 주세요.'
-    if (!f.dormitory) return '호관을 골라 주세요.'
-    if (!DORMITORIES.find((d) => d.code === f.dormitory)?.genders.includes(f.gender))
-      return '고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.'
-    if (!dormRooms(f.dormitory).includes(f.roomType)) return '호실을 골라 주세요.'
     if (!Number.isInteger(age) || age < AGE_MIN || age > AGE_MAX) return `나이는 ${AGE_MIN}~${AGE_MAX} 사이로 입력해 주세요.`
     if (!f.collegeCode) return '단과대학을 골라 주세요.'
     if (!f.mbtiUnknown && f.mbti.some((c) => !c)) return 'MBTI 네 글자를 모두 고르거나 “잘 모름”을 선택해 주세요.'
@@ -122,24 +107,6 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
 
   const answeredCount = CHECKLIST_ITEMS.filter((i) => isAnswered(form.checklist[i.key])).length
 
-  // 성별 전용 호관(한빛·대동관 남자, 새빛관 여자)은 다른 성별을 고르면 선택할 수 없다
-  const dormOptions = DORMITORIES.map((d) => ({
-    value: d.code,
-    label: d.name,
-    disabled: form.gender !== '' && !d.genders.includes(form.gender),
-  }))
-
-  function changeGender(gender) {
-    const dorm = DORMITORIES.find((d) => d.code === form.dormitory)
-    const keep = dorm && dorm.genders.includes(gender)
-    set({ gender, dormitory: keep ? form.dormitory : '', roomType: keep ? form.roomType : '' })
-  }
-
-  // 호관을 바꾸면 호실은 다시 고른다 (하나뿐이면 자동)
-  const changeDormitory = (dormitory) =>
-    set({ dormitory, roomType: dormitory === form.dormitory ? form.roomType : onlyRoom(dormitory) })
-  const rooms = dormRooms(form.dormitory)
-
   function goBack() {
     setStep(step - 1)
     setError('')
@@ -163,8 +130,6 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
     setSubmitting(true)
     try {
       await onSubmit({
-        dormitory: form.dormitory,
-        roomType: form.roomType,
         gender: form.gender,
         age: Number(form.age),
         collegeCode: form.collegeCode,
@@ -199,8 +164,8 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
           </ol>
           <p className="rm-profile-note">
             {isEdit
-              ? '수정하면 내가 쓴 글에도 함께 반영돼요.'
-              : '한 번만 등록하면 돼요. 등록하면 다른 사람의 글과 체크리스트를 볼 수 있고, 글쓰기는 룸메이트에게 한마디만 적으면 끝나요. 마음에 드는 글에는 룸메 신청을 보낼 수 있어요.'}
+              ? '수정하면 내가 쓴 글에도 함께 반영돼요. 호관 · 호실은 글 수정에서 바꿀 수 있어요.'
+              : '한 번만 등록하면 돼요. 등록하면 다른 사람의 글과 체크리스트를 볼 수 있고, 글쓰기에서는 구하는 호관 · 호실만 고르고 한마디를 적으면 끝나요. 마음에 드는 글에는 룸메 신청을 보낼 수 있어요.'}
           </p>
         </>
       }
@@ -223,29 +188,8 @@ export default function ProfileForm({ open, initial = null, onClose, onSubmit })
         <div className="rm-fieldset">
           <div className="rm-field">
             <span className="rm-label">성별</span>
-            <ChoiceGroup label="성별" options={GENDERS} value={form.gender} onChange={changeGender} />
+            <ChoiceGroup label="성별" options={GENDERS} value={form.gender} onChange={(gender) => set({ gender })} />
           </div>
-
-          <div className="rm-field">
-            <span className="rm-label">
-              호관 <small>지원했거나 지원할 호관</small>
-            </span>
-            <ChoiceGroup label="호관" options={dormOptions} value={form.dormitory} onChange={changeDormitory} />
-          </div>
-
-          {rooms.length > 1 && (
-            <div className="rm-field">
-              <span className="rm-label">
-                호실 <small>지원했거나 지원할 호실</small>
-              </span>
-              <ChoiceGroup
-                label="호실"
-                options={rooms.map((r) => ({ value: r, label: r }))}
-                value={form.roomType}
-                onChange={(roomType) => set({ roomType })}
-              />
-            </div>
-          )}
 
           <div className="rm-field-row">
             <label className="rm-field">

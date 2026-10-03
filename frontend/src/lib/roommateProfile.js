@@ -2,15 +2,14 @@ import { isSupabaseConfigured } from '../config.js'
 
 // 내 정보(프로필): 기본 정보 + 룸메이트 체크리스트 (supabase/migrations/20261002000000_roommate_profiles.sql)
 // 등록해야 게시판을 볼 수 있고, 글을 쓰면 이 값이 게시글에 그대로 들어간다.
+// 호관 · 호실은 내 정보가 아니라 글마다 고른다 (20261029000000_roommate_post_room.sql)
 // Supabase 미연결 시에는 이 브라우저에만 저장한다 (데모 계정).
 const LOCAL_KEY = 'jbnu-dorm:roommate-profiles' // { [userId]: profile }
 const LOCAL_POSTS_KEY = 'jbnu-dorm:roommate-posts'
 
-const COLUMNS = 'dormitory_code, room_type, gender, age, college_code, mbti, checklist, updated_at'
+const COLUMNS = 'gender, age, college_code, mbti, checklist, updated_at'
 
 const fromRow = (row) => ({
-  dormitory: row.dormitory_code,
-  roomType: row.room_type ?? null, // 1인실 · 2인실 · 4인실 (예전에 등록한 정보는 비어 있을 수 있다)
   gender: row.gender,
   age: row.age,
   collegeCode: row.college_code,
@@ -20,8 +19,6 @@ const fromRow = (row) => ({
 })
 
 const toRow = (p) => ({
-  dormitory_code: p.dormitory,
-  room_type: p.roomType ?? null,
   gender: p.gender,
   age: p.age,
   college_code: p.collegeCode,
@@ -29,10 +26,8 @@ const toRow = (p) => ({
   checklist: p.checklist,
 })
 
-/** 게시글에 들어가는 프로필 값 */
+/** 게시글에 들어가는 프로필 값 (호관 · 호실은 글쓰기에서 고른다) */
 export const profileFields = (p) => ({
-  dormitory: p.dormitory,
-  roomType: p.roomType ?? null,
   gender: p.gender,
   age: p.age,
   collegeCode: p.collegeCode,
@@ -96,7 +91,8 @@ export async function saveProfile(profile, userId, exists) {
     : await supabase.from('roommate_profiles').insert(toRow(profile)).select(COLUMNS).single()
   // 다른 탭·기기에서 먼저 등록한 경우: 새로 만들지 말고 고친다
   if (error?.code === '23505') ({ data, error } = await update())
-  if (error?.hint === 'dorm_gender') throw new Error('고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.')
+  // 성별을 바꿨는데 내 글의 호관이 원래 성별 전용인 경우 (DB 가 글에 반영하다가 막는다)
+  if (error?.hint === 'dorm_gender') throw new Error('내 글의 호관이 다른 성별 전용이라 성별을 바꿀 수 없어요. 글의 호관을 먼저 바꿔 주세요.')
   if (error) throw new Error('내 정보를 저장하지 못했어요. 입력값을 확인해 주세요.')
   const saved = fromRow(data)
   memory.set(userId, saved)

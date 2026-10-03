@@ -111,7 +111,6 @@ function PostCard({ thread, myChecklist }) {
             {facts.filter(Boolean).map((f) => (
               <span key={f}>{f}</span>
             ))}
-            {thread.role === 'author' && c.dormitory && <span>희망 {dormName(c.dormitory)}</span>}
           </div>
           {myChecklist ? (
             <CompareTable mine={myChecklist} theirs={c.checklist} theirLabel={counterpartRole(thread)} />

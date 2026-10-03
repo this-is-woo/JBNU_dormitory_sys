@@ -42,7 +42,7 @@ const SAMPLES = [
     id: 'sample-2',
     createdAt: hoursAgo(5),
     dormitory: 'changui',
-    roomType: '1인실',
+    roomType: '2인실',
     gender: '여',
     age: 24,
     collegeCode: 'arts',
@@ -148,7 +148,11 @@ async function client() {
 
 // 글쓰기·수정 오류를 알아들을 수 있는 말로 (DB 의 트리거·정책이 막은 이유)
 function postError(error, fallback) {
-  if (error?.hint === 'dorm_gender') return new Error('고른 호관은 다른 성별 전용이에요. 내 정보에서 호관을 다시 골라 주세요.')
+  if (error?.hint === 'dorm_gender') return new Error('고른 호관은 다른 성별 전용이에요. 호관을 다시 골라 주세요.')
+  if (error?.hint === 'room_required') return new Error('몇 인실 룸메이트를 구하는지 골라 주세요.')
+  if (error?.hint === 'single_room') return new Error('1인실은 룸메이트를 구할 수 없어요. 다른 호실을 골라 주세요.')
+  // 그 호관에 없는 호실 (roommate_posts_room_fk)
+  if (error?.code === '23503') return new Error('고른 호관에 없는 호실이에요. 호실을 다시 골라 주세요.')
   // 행 수준 보안 정책 위반: 글쓴이 본인인데 막혔다면 이용 정지 때문이다
   if (error?.code === '42501') return new Error('이용이 정지된 계정이라 글을 쓰거나 고칠 수 없어요.')
   return new Error(fallback)

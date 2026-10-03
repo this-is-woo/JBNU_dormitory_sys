@@ -14,7 +14,7 @@ import {
 } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import ChecklistView from '../components/roommates/ChecklistView.jsx'
-import { collegeName, dormTitle, genderLabel } from '../components/roommates/postFormat.js'
+import { collegeName, genderLabel } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
 import { authMode, useAuth } from '../hooks/useAuth.js'
 import { pushSupport } from '../lib/push.js'
@@ -173,10 +173,6 @@ export default function MyPage() {
                       <dd>{genderLabel(p.gender)}</dd>
                     </div>
                     <div>
-                      <dt>호관</dt>
-                      <dd>{dormTitle(p)}</dd>
-                    </div>
-                    <div>
                       <dt>나이</dt>
                       <dd className="tabular">{p.age}세</dd>
                     </div>
@@ -189,9 +185,6 @@ export default function MyPage() {
                       <dd>{p.mbti ?? '비공개'}</dd>
                     </div>
                   </dl>
-                  {!p.roomType && (
-                    <p className="me-hint">호실(몇 인실)을 아직 고르지 않았어요. [수정]에서 고르면 내 글 제목에도 함께 보여요.</p>
-                  )}
                   <button
                     type="button"
                     className="me-toggle"

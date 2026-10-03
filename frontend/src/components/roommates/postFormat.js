@@ -25,10 +25,14 @@ export function timeAgo(iso) {
 }
 
 export const dormName = (code) => DORMITORIES.find((d) => d.code === code)?.name ?? code
-/** 카드 · 자세히 보기 제목: "창의관 1인실" (호실을 모르는 예전 글은 "창의관") */
+/** 카드 · 자세히 보기 제목: "창의관 2인실" (호실을 모르는 예전 글은 "창의관") */
 export const dormTitle = (post) => [dormName(post.dormitory), post.roomType].filter(Boolean).join(' ')
 /** 이 호관의 호실 유형 (예: 창의관 → ['1인실', '2인실']) */
 export const dormRooms = (code) => DORMITORIES.find((d) => d.code === code)?.rooms ?? []
+/** 1인실: 혼자 쓰는 방이라 룸메이트를 구하지 않는다 (DB 도 1인실 글은 받지 않는다) */
+export const SINGLE_ROOM = '1인실'
+/** 룸메이트를 구할 수 있는 호실 (예: 창의관 → ['2인실']) */
+export const recruitRooms = (code) => dormRooms(code).filter((r) => r !== SINGLE_ROOM)
 export const collegeName = (code) => findCollege(code)?.name ?? ''
 export const genderLabel = (gender) => (gender === '여' ? '여자' : '남자')
 

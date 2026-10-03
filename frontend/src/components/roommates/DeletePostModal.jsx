@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { semesterLabel } from '../../lib/semester.js'
 import { IconAlert } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
-import { dormName } from './postFormat.js'
+import { dormTitle } from './postFormat.js'
 
 /**
  * 내 글 삭제 확인 창. post 가 있으면 열린다.
@@ -31,7 +31,7 @@ export default function DeletePostModal({ post, onClose, onConfirm }) {
       open={Boolean(post)}
       onClose={onClose}
       title="이 글을 삭제할까요?"
-      subtitle={post && `${dormName(post.dormitory)}${post.semester ? ` · ${semesterLabel(post.semester)} 입주` : ''}`}
+      subtitle={post && `${dormTitle(post)}${post.semester ? ` · ${semesterLabel(post.semester)} 입주` : ''}`}
       as="form"
       wrapperProps={{ onSubmit: submit, noValidate: true }}
       footer={

@@ -3,7 +3,7 @@ import { deleteRoommatePost, fetchMyPosts, setRoommatePostClosed } from '../../l
 import { IconAlert } from '../common/Icons.jsx'
 import Modal from '../common/Modal.jsx'
 import { semesterLabel } from '../../lib/semester.js'
-import { dormName, timeAgo } from './postFormat.js'
+import { dormTitle, timeAgo } from './postFormat.js'
 
 /** 로그인한 구글 계정으로 쓴 글 목록 + 모집완료 / 수정 / 자세히 보기 / 삭제 */
 export default function MyPostsModal({ open, reloadKey = 0, userId, onClose, onView, onRequests, onEdit, onDeleted, onChanged }) {
@@ -85,7 +85,7 @@ export default function MyPostsModal({ open, reloadKey = 0, userId, onClose, onV
             <li key={post.id} className={`my-post${post.isClosed ? ' is-closed' : ''}`}>
               <div className="my-post-main">
                 <div className="my-post-title">
-                  <strong>{dormName(post.dormitory)}</strong>
+                  <strong>{dormTitle(post)}</strong>
                   {post.semester && <span className="my-post-semester">{semesterLabel(post.semester)}</span>}
                   {post.isClosed && <span className="rm-closed-badge">모집완료</span>}
                   {post.isOpen === false && (
