@@ -1,5 +1,7 @@
 // 전역 스타일을 가장 먼저 불러와야 컴포넌트 CSS 가 그 위에 덮어쓸 수 있다.
 import './styles/global.css'
+// 브라우저의 "설치할 수 있어요" 알림은 페이지가 뜨자마자 오므로 가장 먼저 듣기 시작한다 (홈의 앱 설치 안내)
+import './lib/install.js'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'

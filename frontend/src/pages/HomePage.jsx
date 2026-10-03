@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoginModal from '../components/auth/LoginModal.jsx'
 import { IconAlert, IconChevronRight } from '../components/common/Icons.jsx'
+import InstallBanner from '../components/common/InstallBanner.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
 import AiGate from '../components/predict/AiGate.jsx'
 import PredictionResult from '../components/predict/PredictionResult.jsx'
@@ -221,6 +222,8 @@ export default function HomePage() {
   return (
     <>
       <title>JBNU Dormi | 생활관 합격 예측</title>
+      {/* 맨 위: 앱으로 설치하기 안내 (설치할 수 있을 때만 · 이미 앱으로 열었으면 숨김) */}
+      <InstallBanner />
       {/* 모바일에서는 제목 · 소개를 숨기고 바로 환산점수 계산부터 (HomePage.css) */}
       <PageHeader
         className="home-header"
