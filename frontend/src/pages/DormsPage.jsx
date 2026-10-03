@@ -9,7 +9,15 @@ import {
   SEMESTER_FEES,
   WINTER_FEES,
 } from "../data/dormFees.js";
-import { DORMITORIES, SELECTION_TYPES } from "../data/dormitories.js";
+import { DORMITORIES, SELECTION_TYPES, SPECIAL_CAMPUS_DORMITORIES } from "../data/dormitories.js";
+import chambitPhoto from "../assets/dorms/chambit.webp";
+import changuiPhoto from "../assets/dorms/changui.webp";
+import cheongunPhoto from "../assets/dorms/cheongun.webp";
+import daedongPhoto from "../assets/dorms/daedong.webp";
+import hanbitPhoto from "../assets/dorms/hanbit.webp";
+import hyeminPhoto from "../assets/dorms/hyemin.webp";
+import saebitPhoto from "../assets/dorms/saebit.webp";
+import { COMMON_CONTACTS, CONTACTS_CHECKED_AT, DORM_CONTACTS, telHref } from "../data/dormContacts.js";
 import { fetchDormitories } from "../lib/dormitories.js";
 import "./DormsPage.css";
 
@@ -22,6 +30,103 @@ function Source() {
       </a>{" "}
       · {FEE_SOURCE.checkedAt} 확인
     </p>
+  );
+}
+
+// 생활관 사진 (생활관 홍보 영상 화면, 16:9 로 같은 크기로 맞춤)
+const PHOTOS = {
+  chambit: chambitPhoto,
+  changui: changuiPhoto,
+  cheongun: cheongunPhoto,
+  daedong: daedongPhoto,
+  hanbit: hanbitPhoto,
+  hyemin: hyeminPhoto,
+  saebit: saebitPhoto,
+};
+
+/** 연락처 목록: 이름(+ 주간/야간) · 번호 (휴대폰에서는 누르면 바로 전화) */
+function ContactList({ items }) {
+  return (
+    <ul className="dorm-contacts">
+      {items.map((c) => (
+        <li key={c.label + (c.note ?? "")}>
+          <span className="dorm-contact-label">
+            {c.label}
+            {c.note && <small>{c.note}</small>}
+          </span>
+          <span className="dorm-contact-tels">
+            {c.tel.map((tel) => (
+              <a key={tel} href={telHref(tel)} className="dorm-tel tabular">
+                {tel}
+              </a>
+            ))}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** 생활관 카드: 사진 · 이름 · 선발 유형 · 호실 · 성별 · 식사 · 지원 대상 (+ 규모) · 연락처 */
+function DormCard({ d }) {
+  const photo = PHOTOS[d.code];
+  const contacts = DORM_CONTACTS[d.code];
+  return (
+    <article className="card dorm-card">
+      {photo && (
+        <img
+          className="dorm-photo"
+          src={photo}
+          alt={`${d.name} 전경`}
+          width="960"
+          height="540"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+      <div className="dorm-card-head">
+        <h3>{d.name}</h3>
+        <span className="dorm-type">{d.typeLabel ?? SELECTION_TYPES[d.type]?.label ?? d.type}</span>
+      </div>
+      <div className="dorm-rooms">
+        {d.rooms.map((room) => (
+          <span key={room} className="dorm-room">
+            {room}
+          </span>
+        ))}
+      </div>
+      <dl className="dorm-info">
+        <div>
+          <dt>성별</dt>
+          <dd>{d.genders.join(" · ")}</dd>
+        </div>
+        <div>
+          <dt>식사</dt>
+          <dd>{d.meal}</dd>
+        </div>
+        <div>
+          <dt>지원 대상</dt>
+          <dd>{d.eligibility}</dd>
+        </div>
+        {d.scale && (
+          <div>
+            <dt>규모</dt>
+            <dd>{d.scale}</dd>
+          </div>
+        )}
+      </dl>
+      {contacts && (
+        <section className="dorm-contact-box" aria-label={`${d.name} 연락처`}>
+          <h4>연락처</h4>
+          <ContactList items={contacts} />
+        </section>
+      )}
+      {d.infoUrl && (
+        <a href={d.infoUrl} target="_blank" rel="noreferrer" className="dorm-link">
+          생활관 소개 <IconExternal width={14} height={14} />
+        </a>
+      )}
+    </article>
   );
 }
 
@@ -51,7 +156,7 @@ export default function DormsPage() {
   return (
     <>
       <title>생활관 안내 | JBNU Dormi</title>
-      <PageHeader title="전주캠퍼스 생활관 한눈에 보기" />
+      <PageHeader title="생활관 한눈에 보기" />
 
       <div className="container dorms-content">
         <Section
@@ -59,46 +164,8 @@ export default function DormsPage() {
           title="생활관 소개"
         >
           <div className="dorm-grid">
-            {dorms.items.map((d) => (
-              <article key={d.code} className="card dorm-card">
-                <div className="dorm-card-head">
-                  <h3>{d.name}</h3>
-                  <span className="dorm-type">
-                    {SELECTION_TYPES[d.type]?.label ?? d.type}
-                  </span>
-                </div>
-                <div className="dorm-rooms">
-                  {d.rooms.map((room) => (
-                    <span key={room} className="dorm-room">
-                      {room}
-                    </span>
-                  ))}
-                </div>
-                <dl className="dorm-info">
-                  <div>
-                    <dt>성별</dt>
-                    <dd>{d.genders.join(" · ")}</dd>
-                  </div>
-                  <div>
-                    <dt>식사</dt>
-                    <dd>{d.meal}</dd>
-                  </div>
-                  <div>
-                    <dt>지원 대상</dt>
-                    <dd>{d.eligibility}</dd>
-                  </div>
-                </dl>
-                {d.infoUrl && (
-                  <a
-                    href={d.infoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="dorm-link"
-                  >
-                    생활관 소개 <IconExternal width={14} height={14} />
-                  </a>
-                )}
-              </article>
+            {[...dorms.items, ...SPECIAL_CAMPUS_DORMITORIES].map((d) => (
+              <DormCard key={d.code} d={d} />
             ))}
           </div>
 
@@ -109,6 +176,16 @@ export default function DormsPage() {
               특성화캠퍼스(익산) 생활관만 지원할 수 있습니다. 모집 인원, 호실,
               생활관비는 학기마다 달라지므로 반드시 최신 모집요강을 확인하세요.
             </p>
+          </div>
+        </Section>
+
+        <Section
+          id="contacts"
+          title="생활관 공통 연락처"
+          desc={`호관과 상관없는 업무는 행정실 담당자에게 문의하세요. (${CONTACTS_CHECKED_AT} 기준)`}
+        >
+          <div className="card dorm-contact-common">
+            <ContactList items={COMMON_CONTACTS} />
           </div>
         </Section>
 

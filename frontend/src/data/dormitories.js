@@ -75,3 +75,19 @@ export const DORMITORIES = [
     eligibility: '의과대학 · 간호대학',
   },
 ]
+
+// 특성화캠퍼스(익산) 생활관: 생활관 안내 페이지에만 보인다 (룸메이트 찾기 · 합격률 예측의 호관 목록에는 넣지 않는다)
+// 출처: 생활관 홈페이지 「특성화캠퍼스 : 청운관 [준공년도 : 2015년]」 표
+export const SPECIAL_CAMPUS_DORMITORIES = [
+  {
+    code: 'cheongun',
+    name: '청운관',
+    typeLabel: '익산 · 특성화캠퍼스',
+    genders: ['남', '여'],
+    rooms: ['2인실'],
+    meal: '급식 미제공',
+    eligibility: '환경생명자원대학 · 수의과대학',
+    scale: '2015년 준공 · 2인실 99실',
+    infoUrl: infoUrl('C8000'),
+  },
+]

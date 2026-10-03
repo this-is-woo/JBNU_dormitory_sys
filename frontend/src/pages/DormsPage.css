@@ -209,8 +209,21 @@
 .dorm-card {
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 사진이 카드 모서리를 따라 둥글게 */
   padding: 24px;
   transition: border-color 0.15s;
+}
+
+/* 카드 맨 위 사진: 카드 폭 가득, 모두 같은 16:9 */
+.dorm-photo {
+  display: block;
+  width: calc(100% + 48px);
+  max-width: none;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  margin: -24px -24px 18px;
+  object-fit: cover;
+  background: var(--c-surface-2);
 }
 
 .dorm-card:hover {
@@ -289,4 +302,83 @@
   color: var(--c-text);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* 연락처: 카드 안 작은 표 (이름 · 번호), 번호는 누르면 전화 */
+.dorm-contact-box {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--c-surface);
+}
+
+.dorm-contact-box h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text-2);
+}
+
+.dorm-contacts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dorm-contacts li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid var(--c-border);
+  font-size: 14px;
+}
+
+.dorm-contacts li:first-child {
+  border-top: 0;
+}
+
+.dorm-contact-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+
+.dorm-contact-label small {
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.dorm-contact-tels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 10px;
+}
+
+.dorm-tel {
+  font-weight: 600;
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.dorm-tel:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 공통 연락처 카드 */
+.dorm-contact-common {
+  max-width: 520px;
+  padding: 6px 18px;
+}
+
+.dorm-contact-common .dorm-contacts li {
+  padding: 11px 0;
 }
