@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { LONG_PRESS_MS, popPress } from '../../lib/press.js'
 
-// 꾹 누르기: 이만큼 누르고 있으면 메뉴 (손가락이 이만큼 움직이면 스크롤로 보고 취소)
-const LONG_PRESS_MS = 450
+// 꾹 누르기: LONG_PRESS_MS 만큼 누르고 있으면 메뉴 (손가락이 이만큼 움직이면 스크롤로 보고 취소)
+// 누르는 동안 천천히 눌리는 모습 · 메뉴가 뜰 때 튀어 오르는 모습은 lib/press.js (data-longpress)
 const MOVE_TOLERANCE = 10
 
 /**
@@ -12,21 +13,25 @@ export function useLongPress(onPress) {
   const timer = useRef(null)
   const start = useRef(null)
   const fired = useRef(false)
+  const target = useRef(null)
   const cancel = () => {
     clearTimeout(timer.current)
     timer.current = null
   }
   useEffect(() => cancel, [])
   return {
+    'data-longpress': '',
     onPointerDown: (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return
       start.current = { x: e.clientX, y: e.clientY }
+      target.current = e.currentTarget
       fired.current = false
       cancel()
       timer.current = setTimeout(() => {
         timer.current = null
         fired.current = true
         navigator.vibrate?.(10)
+        popPress(target.current)
         onPress()
       }, LONG_PRESS_MS)
     },

@@ -147,9 +147,11 @@ a {
   text-decoration: none;
 }
 
+/* 입력칸도 사이트 글꼴로 (textarea 는 브라우저 기본이 고정폭 글꼴이라 글자 사이가 벌어져 보였다) */
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
@@ -238,11 +240,13 @@ svg {
   letter-spacing: -0.005em;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, filter 0.15s;
 }
 
-.btn:active:not(:disabled) {
-  transform: scale(0.98);
+/* 누르는 동안 살짝 어둡게 (크기 변화는 lib/press.js) */
+.btn[data-pressed] {
+  filter: brightness(0.93);
+  transition-duration: 0.05s;
 }
 
 .btn:disabled {
@@ -332,6 +336,11 @@ svg {
   .select {
     word-spacing: -0.14em;
   }
+}
+
+/* 여러 줄로 쓰는 글(textarea)은 보여 줄 때(카드 본문)와 같은 띄어쓰기로 */
+textarea.input {
+  word-spacing: normal;
 }
 
 .input::placeholder {
@@ -562,4 +571,79 @@ svg {
   justify-content: center;
   gap: 10px;
   margin-top: 32px;
+}
+
+/* ─────────────────────────────────────────────
+   누름 효과 (lib/press.js 가 누르는 동안 data-pressed 를 붙이고, 크기는 살짝 눌렸다가 통통 튀며 돌아온다)
+   · 휴대폰 기본의 회색 네모 하이라이트는 끈다
+   · 목록 한 줄(대화방 · 메뉴 · 바로가기): 손가락이 닿은 자리에서 옅은 빛이 동그랗게 번진다
+   · 꾹 누르는 요소(data-longpress): 메뉴가 뜰 때까지 빛이 천천히 차오른다
+   ───────────────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 눌리는 정도 (0 이면 크기에 맞춰 자동). 부모 값을 물려받지 않게 등록한다 */
+@property --press-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/* 빛이 번지는 반지름 (애니메이션할 수 있게 등록) */
+@property --press-r {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+[data-longpress] {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:is(.chat-row, .me-link, .drawer-item, .drawer-logout, .archive-item, .chat-sheet-list button, .rm-card-menu-list button, .adm-link) {
+  --press-scale: 0.985;
+}
+
+:is(
+    .chat-row,
+    .me-link,
+    .drawer-item,
+    .drawer-logout,
+    .archive-item,
+    .chat-sheet-list button,
+    .rm-card-menu-list button,
+    .adm-link,
+    .chat-bubble.is-pressable
+  )[data-pressed] {
+  background-image: radial-gradient(
+    circle at var(--press-x, 50%) var(--press-y, 50%),
+    color-mix(in srgb, var(--c-text) 11%, transparent) 0%,
+    color-mix(in srgb, var(--c-text) 6%, transparent) var(--press-r),
+    transparent calc(var(--press-r) + 0.5%)
+  );
+  animation: press-bloom 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+[data-longpress][data-pressed] {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+}
+
+@keyframes press-bloom {
+  from {
+    --press-r: 0%;
+  }
+  to {
+    --press-r: 160%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-pressed] {
+    animation: none !important;
+    --press-r: 160%;
+  }
 }

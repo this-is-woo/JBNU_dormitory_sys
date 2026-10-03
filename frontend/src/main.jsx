@@ -2,6 +2,8 @@
 import './styles/global.css'
 // 브라우저의 "설치할 수 있어요" 알림은 페이지가 뜨자마자 오므로 가장 먼저 듣기 시작한다 (홈의 앱 설치 안내)
 import './lib/install.js'
+// 버튼 · 목록을 누를 때의 반응 (눌림 · 통통 · 번지는 빛)
+import './lib/press.js'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'

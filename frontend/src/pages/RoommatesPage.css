@@ -1610,9 +1610,6 @@
     cursor: pointer;
   }
 
-  .rm-fab:active {
-    transform: scale(0.97);
-  }
 }
 
 /* 카드 오른쪽 위 ⋯ 메뉴 (신고 · 차단) */

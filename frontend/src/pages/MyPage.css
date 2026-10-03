@@ -192,10 +192,6 @@
   text-decoration: none;
 }
 
-.me-link:active {
-  background: var(--c-surface);
-}
-
 .me-link-icon {
   display: inline-flex;
   align-items: center;
