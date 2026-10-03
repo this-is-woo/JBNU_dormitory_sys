@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { IconExternal, IconInfo } from "../components/common/Icons.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
+import DormGallery from "../components/dorms/DormGallery.jsx";
 import FeeTable from "../components/dorms/FeeTable.jsx";
 import MealTable from "../components/dorms/MealTable.jsx";
 import {
@@ -44,6 +45,28 @@ const PHOTOS = {
   saebit: saebitPhoto,
 };
 
+// 내부 사진: src/assets/dorms/interior/{호관 code}-{번호}.webp (생활관 홈페이지의 호관 소개 사진, 16:9 로 맞춤)
+// 파일을 넣기만 하면 번호 순서대로 그 호관 카드의 슬라이더에 붙는다.
+const INTERIOR = Object.entries(
+  import.meta.glob("../assets/dorms/interior/*.webp", { eager: true, import: "default" }),
+)
+  .map(([path, src]) => {
+    const [, code, n] = path.match(/\/([a-z]+)-(\d+)\.webp$/) ?? [];
+    return { code, n: Number(n), src };
+  })
+  .filter((p) => p.code)
+  .sort((a, b) => a.n - b.n);
+
+/** 카드 사진: 외관 1장 + 내부 사진 */
+function dormPhotos(d) {
+  const list = [];
+  if (PHOTOS[d.code]) list.push({ src: PHOTOS[d.code], alt: `${d.name} 전경` });
+  for (const p of INTERIOR) {
+    if (p.code === d.code) list.push({ src: p.src, alt: `${d.name} 내부 사진 ${p.n}` });
+  }
+  return list;
+}
+
 /** 연락처 목록: 이름(+ 주간/야간) · 번호 (휴대폰에서는 누르면 바로 전화) */
 function ContactList({ items }) {
   return (
@@ -69,21 +92,10 @@ function ContactList({ items }) {
 
 /** 생활관 카드: 사진 · 이름 · 선발 유형 · 호실 · 성별 · 식사 · 지원 대상 (+ 규모) · 연락처 */
 function DormCard({ d }) {
-  const photo = PHOTOS[d.code];
   const contacts = DORM_CONTACTS[d.code];
   return (
     <article className="card dorm-card">
-      {photo && (
-        <img
-          className="dorm-photo"
-          src={photo}
-          alt={`${d.name} 전경`}
-          width="960"
-          height="540"
-          loading="lazy"
-          decoding="async"
-        />
-      )}
+      <DormGallery name={d.name} photos={dormPhotos(d)} />
       <div className="dorm-card-head">
         <h3>{d.name}</h3>
         <span className="dorm-type">{d.typeLabel ?? SELECTION_TYPES[d.type]?.label ?? d.type}</span>
@@ -130,13 +142,21 @@ function DormCard({ d }) {
   );
 }
 
-function Section({ id, title, desc, children }) {
+/** 제목 없이 쓸 때는 label 로 화면 읽기 프로그램에만 이름을 알린다 */
+function Section({ id, title, label, desc, children }) {
   return (
-    <section id={id} className="dorm-section" aria-labelledby={`${id}-title`}>
-      <header className="dorm-section-head">
-        <h2 id={`${id}-title`}>{title}</h2>
-        {desc && <p>{desc}</p>}
-      </header>
+    <section
+      id={id}
+      className="dorm-section"
+      aria-labelledby={title ? `${id}-title` : undefined}
+      aria-label={title ? undefined : label}
+    >
+      {title && (
+        <header className="dorm-section-head">
+          <h2 id={`${id}-title`}>{title}</h2>
+          {desc && <p>{desc}</p>}
+        </header>
+      )}
       {children}
     </section>
   );
@@ -159,10 +179,8 @@ export default function DormsPage() {
       <PageHeader title="생활관 한눈에 보기" />
 
       <div className="container dorms-content">
-        <Section
-          id="dorms"
-          title="생활관 소개"
-        >
+        {/* 생활관 카드 (페이지 제목 "생활관 한눈에 보기" 바로 아래, 섹션 제목 없이) */}
+        <Section id="dorms" label="생활관 소개">
           <div className="dorm-grid">
             {[...dorms.items, ...SPECIAL_CAMPUS_DORMITORIES].map((d) => (
               <DormCard key={d.code} d={d} />

@@ -214,16 +214,148 @@
   transition: border-color 0.15s;
 }
 
-/* 카드 맨 위 사진: 카드 폭 가득, 모두 같은 16:9 */
+/* 카드 맨 위 사진 · 슬라이더: 카드 폭 가득, 모두 같은 16:9 */
+.dorm-gallery {
+  position: relative;
+  margin: -24px -24px 18px;
+  background: var(--c-surface-2);
+}
+
 .dorm-photo {
   display: block;
-  width: calc(100% + 48px);
+  width: 100%;
   max-width: none;
   height: auto;
   aspect-ratio: 16 / 9;
-  margin: -24px -24px 18px;
   object-fit: cover;
-  background: var(--c-surface-2);
+}
+
+.dorm-gallery-track {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dorm-gallery-track::-webkit-scrollbar {
+  display: none;
+}
+
+.dorm-gallery-track:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: -2px;
+}
+
+.dorm-gallery-track .dorm-photo {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* 사진 위 글자 · 버튼은 사진 색과 상관없이 보이게 반투명 검정 바탕 */
+.dorm-gallery-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.5);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+}
+
+.dorm-gallery-dots {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.dorm-gallery-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0 2px rgb(0 0 0 / 0.4);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* 점은 작아도 누르는 범위는 넉넉하게 */
+.dorm-gallery-dot {
+  position: relative;
+}
+
+.dorm-gallery-dot::after {
+  content: '';
+  position: absolute;
+  inset: -8px -3px;
+}
+
+.dorm-gallery-dot.is-active {
+  width: 18px;
+  background: #fff;
+}
+
+.dorm-gallery-arrow {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: -17px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.dorm-gallery-arrow.is-prev {
+  left: 10px;
+}
+
+.dorm-gallery-arrow.is-next {
+  right: 10px;
+}
+
+.dorm-gallery-arrow:disabled {
+  visibility: hidden;
+}
+
+/* 마우스가 있는 화면(PC)에서만 화살표 · 휴대폰은 손가락으로 넘긴다 */
+@media (hover: hover) {
+  .dorm-gallery:hover .dorm-gallery-arrow,
+  .dorm-gallery-arrow:focus-visible {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .dorm-gallery-arrow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dorm-gallery-dot {
+    transition: none;
+  }
 }
 
 .dorm-card:hover {

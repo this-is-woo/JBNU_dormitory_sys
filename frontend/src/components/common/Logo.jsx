@@ -1,12 +1,15 @@
 import { Link } from 'react-router'
+import LogoMark from './LogoMark.jsx'
 import './Logo.css'
 
-/** 워드마크 로고: 세리프 "JBNU Dormi" */
+/** 로고: 심볼 + "Dormi". i 의 점은 파란 점으로 바꿔 찍는다 */
 export default function Logo({ size = 'md', onClick }) {
   return (
-    <Link to="/" className={`logo logo-${size}`} onClick={onClick} aria-label="JBNU Dormi 홈">
-      <span className="logo-en">JBNU</span>
-      <span className="logo-name">Dormi</span>
+    <Link to="/" className={`logo logo-${size}`} onClick={onClick} aria-label="Dormi 홈">
+      <LogoMark className="logo-mark" size={size === 'sm' ? 24 : 28} />
+      <span className="logo-word" aria-hidden="true">
+        Dorm<span className="logo-i">ı</span>
+      </span>
     </Link>
   )
 }

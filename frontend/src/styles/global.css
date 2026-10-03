@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────
    디자인 토큰 — "심플 이즈 베스트"
-   · 글꼴은 하나(Pretendard, 한글 가독성 우선). 로고만 나눔명조. 크기와 굵기로만 위계를 준다
+   · 글꼴은 하나(Pretendard, 한글 가독성 우선). 크기와 굵기로만 위계를 준다
    · 색은 흑백 + 강조 한 가지(파랑). 면은 흰 바탕 + 가는 선, 회색 면은 꼭 필요한 곳에만
    · 설명 문장은 짧게, 장식(그림자·배지·아이콘)은 정보가 있을 때만
    색: JetBrains IntelliJ IDEA New UI (Dark / Light)
@@ -8,8 +8,6 @@
 :root {
   --font-sans: 'Pretendard Variable', Pretendard, Inter, -apple-system, BlinkMacSystemFont, system-ui,
     'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  /* 로고만 나눔명조 (index.html 에서 로고 글자만 받아 옴), 나머지는 모두 Pretendard */
-  --font-logo: 'Nanum Myeongjo', 'Noto Serif KR', Georgia, serif;
   /* 예전 세리프 자리도 같은 글꼴을 쓴다 (한 글꼴로 통일) */
   --font-serif: var(--font-sans);
 
