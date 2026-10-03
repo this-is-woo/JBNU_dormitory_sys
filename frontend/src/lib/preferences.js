@@ -21,6 +21,15 @@ let current = read()
 const listeners = new Set()
 
 function apply(prefs) {
+  // 화면 설정을 붙이다 문제가 생겨도 앱은 그대로 뜨게 한다 (설정만 안 먹을 뿐)
+  try {
+    applyUnsafe(prefs)
+  } catch (err) {
+    console.warn('[preferences] 화면 설정을 적용하지 못했습니다.', err)
+  }
+}
+
+function applyUnsafe(prefs) {
   const root = document.documentElement
   if (prefs.theme === 'light' || prefs.theme === 'dark') root.dataset.theme = prefs.theme
   else delete root.dataset.theme
@@ -32,18 +41,22 @@ function apply(prefs) {
 
 if (typeof document !== 'undefined') {
   apply(current)
-  // 휴대폰의 다크 모드를 바꾸면 (테마가 '휴대폰 설정 따라'일 때) 다시 맞춘다
-  window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
-    apply(current)
-    listeners.forEach((fn) => fn())
-  })
-  // 다른 탭에서 바꾼 설정도 반영
-  window.addEventListener('storage', (e) => {
-    if (e.key !== KEY) return
-    current = read()
-    apply(current)
-    listeners.forEach((fn) => fn())
-  })
+  try {
+    // 휴대폰의 다크 모드를 바꾸면 (테마가 '휴대폰 설정 따라'일 때) 다시 맞춘다
+    window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+      apply(current)
+      listeners.forEach((fn) => fn())
+    })
+    // 다른 탭에서 바꾼 설정도 반영
+    window.addEventListener('storage', (e) => {
+      if (e.key !== KEY) return
+      current = read()
+      apply(current)
+      listeners.forEach((fn) => fn())
+    })
+  } catch {
+    // 바뀐 설정을 바로 따라가지 못할 뿐, 앱은 그대로 뜬다
+  }
 }
 
 /** 설정 하나를 바꾼다 (바로 화면에 반영되고 이 기기에 저장된다) */

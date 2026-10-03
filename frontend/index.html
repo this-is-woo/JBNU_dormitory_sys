@@ -40,6 +40,84 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      시작 안전망: 앱 코드가 화면을 그리지 못하면(시작 중 오류 · 코드 파일을 못 받음 · 10초 넘게 빈 화면)
+      검정 · 흰 빈 화면 대신 이유와 [다시 불러오기] 버튼을 보여 준다. 화면이 한 번 그려지면 아무것도 하지 않는다.
+    -->
+    <script>
+      ;(function () {
+        var shown = false
+        var drawn = function () {
+          var root = document.getElementById('root')
+          return Boolean(root && root.childElementCount)
+        }
+        var box = null
+        function show(reason) {
+          if (shown || drawn()) return
+          shown = true
+          var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+          box = document.createElement('div')
+          box.setAttribute('role', 'alert')
+          box.style.cssText =
+            'position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px;' +
+            'font:15px/1.6 system-ui,-apple-system,sans-serif;' +
+            (dark ? 'background:#1e1f22;color:#dfe1e5' : 'background:#fff;color:#1e1f22')
+          var title = document.createElement('strong')
+          title.style.fontSize = '18px'
+          title.textContent = '화면을 불러오지 못했어요'
+          var desc = document.createElement('p')
+          desc.style.margin = '0'
+          desc.textContent = '아래 버튼을 눌러 다시 불러와 주세요. 계속 이러면 아래 내용을 캡처해서 알려 주세요.'
+          var detail = document.createElement('pre')
+          detail.style.cssText = 'margin:0;padding:12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;font-size:12px;opacity:.75;background:' + (dark ? '#2b2d30' : '#f2f3f5')
+          detail.textContent = String(reason).slice(0, 600) + '\n' + navigator.userAgent
+          var retry = document.createElement('button')
+          retry.type = 'button'
+          retry.textContent = '다시 불러오기'
+          retry.style.cssText = 'height:48px;border:0;border-radius:12px;font:inherit;font-weight:700;' + (dark ? 'background:#dfe1e5;color:#1e1f22' : 'background:#1e1f22;color:#fff')
+          retry.onclick = function () {
+            // 이 기기의 화면 설정 · 다시 불러오기 기록을 지우고 새로 받는다 (로그인은 그대로)
+            try {
+              localStorage.removeItem('jbnu-dorm:preferences')
+              sessionStorage.removeItem('jbnu-dorm:reloaded-for-update')
+            } catch (e) {}
+            location.reload()
+          }
+          box.append(title, desc, detail, retry)
+          document.body.appendChild(box)
+          // 늦게라도 화면이 그려지면 안내를 걷는다
+          new MutationObserver(function (_, observer) {
+            if (!drawn()) return
+            box.remove()
+            observer.disconnect()
+          }).observe(document.getElementById('root'), { childList: true })
+        }
+        // 잠깐 기다렸다가도 화면이 비어 있을 때만 (곧바로 다시 그려지는 오류는 넘어간다)
+        function later(reason) {
+          setTimeout(function () {
+            show(reason)
+          }, 1500)
+        }
+        window.addEventListener('error', function (e) {
+          var el = e.target
+          if (el && el !== window) {
+            // 받지 못한 파일: 이 사이트의 코드 · 스타일만 (글꼴 CDN · 그림은 없어도 화면은 뜬다)
+            var src = el.src || el.href || ''
+            var ours = src.indexOf(location.origin + '/assets/') === 0
+            if ((el.tagName === 'SCRIPT' || el.tagName === 'LINK') && ours) later('파일을 받지 못했어요: ' + src)
+            return
+          }
+          later((e.message || '오류') + (e.filename ? ' @ ' + e.filename.split('/').pop() + ':' + e.lineno + ':' + e.colno : ''))
+        }, true)
+        window.addEventListener('unhandledrejection', function (e) {
+          var r = e.reason
+          later('처리되지 않은 오류: ' + (r && (r.stack || r.message) ? r.stack || r.message : r))
+        })
+        setTimeout(function () {
+          show('10초가 지나도 화면이 그려지지 않았어요')
+        }, 10000)
+      })()
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
