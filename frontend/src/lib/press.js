@@ -4,7 +4,9 @@
 //   · 눌리는 정도는 크기에 맞춘다 (작은 아이콘 버튼은 크게, 넓은 줄은 아주 살짝). CSS 변수 --press-scale 로 바꿀 수 있다
 //   · 휴대폰: 손가락을 대자마자 반응하지 않고 아주 잠깐 기다린다 (스크롤하려고 댄 손가락에 화면이 움찔하지 않게)
 //   · 꾹 누르는 요소(data-longpress, 채팅 목록 · 말풍선)는 누르는 동안 천천히 눌리고, 메뉴가 뜨면 popPress 로 튀어 오른다
-//   · "동작 줄이기"를 켠 사용자에게는 크기 변화 없이 빛만
+//   · "동작 줄이기"(휴대폰 설정 또는 내 정보 > 설정)를 켠 사용자에게는 크기 변화 없이 빛만
+
+import { reducedMotion } from './preferences.js'
 
 /** 꾹 누르기로 보는 시간 (components/chat/useLongPress.js 와 같이 쓴다) */
 export const LONG_PRESS_MS = 450
@@ -17,8 +19,8 @@ const MOVE_TOLERANCE = 8 // px: 이보다 움직이면 누르기가 아니라 �
 
 const SPRING = 'cubic-bezier(.34, 1.56, .64, 1)' // 살짝 넘쳤다가 돌아오는 곡선
 const canScale = typeof CSS !== 'undefined' && CSS.supports?.('scale', '1')
-const reducedMotion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false }
-const moves = () => canScale && !reducedMotion.matches
+// 휴대폰의 '동작 줄이기' 또는 내 정보 > 설정 > 애니메이션 줄이기
+const moves = () => canScale && !reducedMotion()
 
 let current = null // { el, pointerId, x, y, timer, shownAt, anim }
 

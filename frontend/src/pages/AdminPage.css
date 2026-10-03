@@ -11,13 +11,21 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --viz-series: #3987e5;
     --viz-series-active: #6da7ec;
     --viz-band: #256abf;
     --viz-dot: #86b6ef;
     --viz-dot-active: #cde2fb;
   }
+}
+
+:root[data-theme='dark'] {
+  --viz-series: #3987e5;
+  --viz-series-active: #6da7ec;
+  --viz-band: #256abf;
+  --viz-dot: #86b6ef;
+  --viz-dot-active: #cde2fb;
 }
 
 .adm-gate {

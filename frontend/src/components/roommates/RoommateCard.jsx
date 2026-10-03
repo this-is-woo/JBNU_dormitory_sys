@@ -61,8 +61,8 @@ function CardMenu({ post, onReport, onBlock }) {
   )
 }
 
-/** 룸메이트에게 한마디: 5줄까지만 보여 주고, 넘치면 [더보기]로 펼친다 */
-function Intro({ text }) {
+/** 룸메이트에게 한마디: 5줄까지만 보여 주고, 넘치면 [더보기]로 펼친다 (내가 쓴 글 페이지에서도 쓴다) */
+export function Intro({ text }) {
   const ref = useRef(null)
   const [open, setOpen] = useState(false)
   const [overflows, setOverflows] = useState(false)

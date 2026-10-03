@@ -220,3 +220,38 @@ export const IconShield = (p) => (
     <path d="M12 3 5 6v6c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6zM9 12l2 2 4-4" />
   </svg>
 )
+
+// 달 (화면 테마)
+export const IconMoon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+  </svg>
+)
+
+// 물결 (애니메이션)
+export const IconWave = (p) => (
+  <svg {...base} {...p}>
+    <path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" />
+  </svg>
+)
+
+// 휴대폰 + 떨림 (진동)
+export const IconVibrate = (p) => (
+  <svg {...base} {...p}>
+    <path d="M8 4h8v16H8zM4 9v6M20 9v6M11 17h2" />
+  </svg>
+)
+
+// 내려받기 (앱 설치)
+export const IconDownload = (p) => (
+  <svg {...base} {...p}>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+  </svg>
+)
+
+// 더하기 (새 글)
+export const IconPlus = (p) => (
+  <svg {...base} {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+)

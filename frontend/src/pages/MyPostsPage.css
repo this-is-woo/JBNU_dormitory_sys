@@ -1,0 +1,221 @@
+/* 내가 쓴 글 (/me/posts) */
+.mp-header {
+  padding-bottom: 16px;
+}
+
+.mp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -6px 0 10px -6px;
+  padding: 6px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+.mp-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mp-title-row .btn {
+  gap: 4px;
+}
+
+.mp-page {
+  display: grid;
+  gap: 14px;
+  max-width: 640px;
+  padding-bottom: 32px;
+}
+
+.mp-list {
+  display: grid;
+  gap: 12px;
+}
+
+.mp-skeleton {
+  height: 200px;
+  background: var(--c-surface);
+}
+
+/* 글 한 장 */
+.mp-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.mp-card.is-closed,
+.mp-card.is-past {
+  border-style: dashed;
+}
+
+.mp-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mp-card-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mp-card-title strong {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mp-card-title span {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+/* 상태: 모집 중(초록) · 모집완료 · 지난 학기(회색) · 숨겨짐(빨강) */
+.mp-status {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mp-status.is-open {
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.mp-status.is-closed,
+.mp-status.is-past {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+}
+
+.mp-status.is-hidden {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.mp-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--c-danger-soft);
+  font-size: 13px;
+  color: var(--c-text);
+}
+
+.mp-card.is-closed .rm-intro,
+.mp-card.is-past .rm-intro {
+  opacity: 0.7;
+}
+
+.mp-no-content {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+/* 받은 신청 → 그 글의 채팅 목록 */
+.mp-requests {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  --press-scale: 0.98;
+}
+
+.mp-requests b {
+  margin-left: 4px;
+  color: var(--c-primary-text);
+}
+
+.mp-requests svg {
+  color: var(--c-text-3);
+}
+
+.mp-requests.is-empty {
+  border-style: dashed;
+  font-weight: 500;
+  color: var(--c-text-3);
+}
+
+/* 버튼 줄: [모집완료로 바꾸기] [수정] [삭제] */
+.mp-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+
+.mp-actions .btn {
+  gap: 4px;
+  height: 38px;
+}
+
+.mp-delete {
+  color: var(--c-danger);
+}
+
+/* 비어 있을 때 */
+.mp-empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.mp-empty p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-2);
+}
+
+.mp-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-text-3);
+}
+
+.mp-filter-empty {
+  margin: 8px 0;
+  font-size: 14px;
+  text-align: center;
+  color: var(--c-text-3);
+}
+
+@media (hover: hover) {
+  .mp-back:hover {
+    color: var(--c-text);
+  }
+
+  .mp-requests:hover {
+    background: var(--c-surface);
+  }
+}

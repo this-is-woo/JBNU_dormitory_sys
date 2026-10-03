@@ -6,6 +6,15 @@
     <meta name="description" content="전북대학교 생활관 선발 기준으로 환산점수를 계산하고 AI 모델로 생활관별 합격률을 예측합니다." />
     <meta name="theme-color" content="#1e1f22" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- 화면 설정(내 정보 > 설정 > 테마 · 애니메이션 줄이기)을 화면을 그리기 전에 붙인다 (다크 모드에서 흰 화면이 번쩍이지 않게). lib/preferences.js 와 같은 저장 값 -->
+    <script>
+      try {
+        var p = JSON.parse(localStorage.getItem('jbnu-dorm:preferences')) || {}
+        var r = document.documentElement
+        if (p.theme === 'light' || p.theme === 'dark') r.dataset.theme = p.theme
+        if (p.motion === 'reduce') r.dataset.motion = 'reduce'
+      } catch (e) {}
+    </script>
     <!-- 홈 화면에 추가(앱처럼 설치): 아이폰은 이렇게 설치해야 채팅 푸시 알림을 받을 수 있다 -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />

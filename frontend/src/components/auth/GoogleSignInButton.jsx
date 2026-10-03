@@ -1,30 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { GOOGLE_CLIENT_ID } from '../../config.js'
 import { createNonce, loadGoogleIdentity } from '../../lib/googleIdentity.js'
+import { isDarkTheme, onThemeChange } from '../../lib/preferences.js'
 
 const MAX_WIDTH = 400 // 구글 버튼이 허용하는 최대 너비
-const darkQuery = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 /**
  * 구글이 직접 그리는 "Google 계정으로 로그인" 버튼.
- * 사이트 테마(운영체제 다크 모드)에 맞춰 검정/흰색 버튼을 고르고, 카드 너비에 맞춘다.
+ * 사이트 테마(휴대폰 다크 모드 · 내 정보 > 설정의 테마)에 맞춰 검정/흰색 버튼을 고르고, 카드 너비에 맞춘다.
  * @param {(token: string, nonce: string) => Promise<void>} onCredential
  */
 export default function GoogleSignInButton({ onCredential, onError }) {
   const slot = useRef(null)
   const [ready, setReady] = useState(false)
   const [pending, setPending] = useState(false)
-  const [dark, setDark] = useState(() => darkQuery().matches)
+  const [dark, setDark] = useState(isDarkTheme)
   // 콜백이 바뀌어도 버튼을 다시 초기화하지 않도록 최신 값만 참조
   const handlers = useRef({ onCredential, onError })
   handlers.current = { onCredential, onError }
 
-  useEffect(() => {
-    const query = darkQuery()
-    const onChange = (e) => setDark(e.matches)
-    query.addEventListener('change', onChange)
-    return () => query.removeEventListener('change', onChange)
-  }, [])
+  useEffect(() => onThemeChange(() => setDark(isDarkTheme())), [])
 
   useEffect(() => {
     let active = true

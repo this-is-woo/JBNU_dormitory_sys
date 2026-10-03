@@ -22,6 +22,7 @@ const pages = {
   policy: () => import('./pages/PolicyPage.jsx'),
   admin: () => import('./pages/AdminPage.jsx'),
   me: () => import('./pages/MyPage.jsx'),
+  myPosts: () => import('./pages/MyPostsPage.jsx'),
 }
 const page = (load, name = 'default') => () => load().then((m) => ({ Component: m[name] }))
 
@@ -61,6 +62,8 @@ export const router = createBrowserRouter([
           { path: '/dorms', lazy: page(pages.dorms) },
           // 내 정보: 계정 · 룸메이트 찾기 정보 · 바로가기 · 알림 · 로그아웃 (모바일 하단 탭의 [내 정보])
           { path: '/me', lazy: page(pages.me) },
+          // 내가 쓴 글 관리 (내 정보 > 바로가기 · 모바일 메뉴의 [내가 쓴 글])
+          { path: '/me/posts', lazy: page(pages.myPosts) },
           { path: '/support', lazy: page(pages.support) },
           // 관리자만 (권한은 DB 가 확인하고, 다른 사용자에게는 없는 페이지로 보인다)
           { path: '/admin', lazy: page(pages.admin) },

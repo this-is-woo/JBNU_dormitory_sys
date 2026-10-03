@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { vibrate } from '../../lib/preferences.js'
 import { LONG_PRESS_MS, popPress } from '../../lib/press.js'
 
 // 꾹 누르기: LONG_PRESS_MS 만큼 누르고 있으면 메뉴 (손가락이 이만큼 움직이면 스크롤로 보고 취소)
@@ -30,7 +31,7 @@ export function useLongPress(onPress) {
       timer.current = setTimeout(() => {
         timer.current = null
         fired.current = true
-        navigator.vibrate?.(10)
+        vibrate(10) // 내 정보 > 설정에서 끌 수 있다
         popPress(target.current)
         onPress()
       }, LONG_PRESS_MS)

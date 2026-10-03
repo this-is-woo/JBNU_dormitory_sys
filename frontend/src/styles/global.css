@@ -46,8 +46,18 @@
   color-scheme: light dark;
 }
 
+/* 설정에서 테마를 고르면 입력칸 · 스크롤바 같은 브라우저 기본 부품도 그 색으로 */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* 다크: 휴대폰 설정이 다크이거나(내 정보 > 설정 > 테마가 '휴대폰 설정 따라'일 때), 설정에서 다크를 고른 경우 */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --c-bg: #1e1f22;
     --c-surface: #2b2d30;
     --c-surface-2: #393b40;
@@ -72,6 +82,32 @@
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-lg: 0 16px 40px -12px rgb(0 0 0 / 0.6);
   }
+}
+
+:root[data-theme='dark'] {
+  --c-bg: #1e1f22;
+  --c-surface: #2b2d30;
+  --c-surface-2: #393b40;
+  --c-border: #393b40;
+  --c-border-strong: #4e5157;
+  --c-text: #dfe1e5;
+  --c-text-2: #b4b8bf;
+  --c-text-3: #95999f;
+
+  --c-primary: #3574f0;
+  --c-primary-hover: #467ff2;
+  --c-primary-soft: #25324d;
+  --c-primary-text: #6f9cf8;
+
+  --c-success: #5fb865;
+  --c-success-soft: #253627;
+  --c-warning: #f2c55c;
+  --c-warning-soft: #3d3223;
+  --c-danger: #e06c6c;
+  --c-danger-soft: #402929;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 16px 40px -12px rgb(0 0 0 / 0.6);
 }
 
 @media (max-width: 640px) {
@@ -549,6 +585,15 @@ textarea.input {
   }
 }
 
+/* 내 정보 > 설정 > 애니메이션 줄이기 (휴대폰의 '동작 줄이기'와 같게) */
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* 화면 오류 안내 (components/common/RouteError.jsx) */
 .route-error {
   padding: 120px 0 80px;
@@ -603,13 +648,15 @@ html {
   -webkit-user-select: none;
 }
 
-:is(.chat-row, .me-link, .drawer-item, .drawer-logout, .archive-item, .chat-sheet-list button, .rm-card-menu-list button, .adm-link) {
+:is(.chat-row, .me-link, .me-set-link, .mp-requests, .drawer-item, .drawer-logout, .archive-item, .chat-sheet-list button, .rm-card-menu-list button, .adm-link) {
   --press-scale: 0.985;
 }
 
 :is(
     .chat-row,
     .me-link,
+    .me-set-link,
+    .mp-requests,
     .drawer-item,
     .drawer-logout,
     .archive-item,
@@ -646,4 +693,9 @@ html {
     animation: none !important;
     --press-r: 160%;
   }
+}
+
+:root[data-motion='reduce'] [data-pressed] {
+  animation: none !important;
+  --press-r: 160%;
 }
