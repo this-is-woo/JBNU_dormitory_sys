@@ -290,11 +290,15 @@
   white-space: nowrap;
 }
 
-/* 자기소개: 5줄까지만, 넘치면 [더보기] */
+/* 룸메이트에게 한마디: 카드에서 가장 중요한 글이라 옅은 바탕 칸에 넣어 메타 정보와 구분하고,
+   본문 글자는 한 단계 크게 · 진하게 · 줄 간격 넉넉히 (휴대폰에서도 편하게 읽히게). 5줄까지만, 넘치면 [더보기] */
 .rm-intro {
   display: grid;
   justify-items: start;
-  gap: 4px;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--c-surface);
 }
 
 .rm-intro-text {
@@ -303,10 +307,13 @@
   -webkit-line-clamp: 5;
   line-clamp: 5;
   overflow: hidden;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--c-text-2);
+  font-size: 15px;
+  font-weight: 450;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  color: var(--c-text);
   white-space: pre-line;
+  word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
@@ -322,7 +329,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--c-text-3);
+  color: var(--c-text-2);
   cursor: pointer;
 }
 

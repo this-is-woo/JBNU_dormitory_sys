@@ -90,7 +90,7 @@ function ContactList({ items }) {
   );
 }
 
-/** 생활관 카드: 사진 · 이름 · 선발 유형 · 호실 · 성별 · 식사 · 지원 대상 (+ 규모) · 연락처 */
+/** 생활관 카드: 사진 · 이름 · 선발 유형 · 호실 · 성별 · 식사 · 지원 대상 · 연락처 */
 function DormCard({ d }) {
   const contacts = DORM_CONTACTS[d.code];
   return (
@@ -120,23 +120,12 @@ function DormCard({ d }) {
           <dt>지원 대상</dt>
           <dd>{d.eligibility}</dd>
         </div>
-        {d.scale && (
-          <div>
-            <dt>규모</dt>
-            <dd>{d.scale}</dd>
-          </div>
-        )}
       </dl>
       {contacts && (
         <section className="dorm-contact-box" aria-label={`${d.name} 연락처`}>
           <h4>연락처</h4>
           <ContactList items={contacts} />
         </section>
-      )}
-      {d.infoUrl && (
-        <a href={d.infoUrl} target="_blank" rel="noreferrer" className="dorm-link">
-          생활관 소개 <IconExternal width={14} height={14} />
-        </a>
       )}
     </article>
   );

@@ -9,14 +9,14 @@ const HIDDEN = /^\/chats\/.+/
 
 const TABS = [
   { to: '/', label: '홈', Icon: IconHome, end: true },
-  { to: '/roommates', label: '룸메이트 찾기', Icon: IconUsers },
   { to: '/dorms', label: '생활관 안내', Icon: IconBuilding },
+  { to: '/roommates', label: '룸메이트 찾기', Icon: IconUsers },
   { to: '/chats', label: '채팅', Icon: IconChat },
   { to: '/me', label: '내 정보', Icon: IconUser },
 ]
 
 /**
- * 모바일 하단 탭 바: 홈 · 룸메이트 찾기 · 생활관 안내 · 채팅 · 내 정보 (760px 이하에서만 보인다)
+ * 모바일 하단 탭 바: 홈 · 생활관 안내 · 룸메이트 찾기 · 채팅 · 내 정보 (760px 이하에서만 보인다)
  * 내 정보는 /me 페이지 (로그인 전이면 그 페이지가 로그인을 안내한다)
  * 헤더는 backdrop-filter 때문에 fixed 위치의 기준이 되므로, body 에 따로 그린다.
  */

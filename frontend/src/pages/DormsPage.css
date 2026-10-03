@@ -418,24 +418,6 @@
   margin: 0;
 }
 
-/* 카드 높이가 달라도 버튼은 카드 맨 아래에 맞춘다 */
-.dorm-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  margin-top: 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-text-2);
-}
-
-.dorm-link:hover {
-  color: var(--c-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* 연락처: 카드 안 작은 표 (이름 · 번호), 번호는 누르면 전화 */
 .dorm-contact-box {
   display: grid;

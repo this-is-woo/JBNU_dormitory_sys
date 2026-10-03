@@ -1,8 +1,7 @@
-/* 로고: 심볼 + 굵은 산세리프 "Dormi" (본문과 같은 Pretendard 라 글꼴을 따로 받지 않는다) */
+/* 로고: 굵은 산세리프 "Dormi" (본문과 같은 Pretendard 라 글꼴을 따로 받지 않는다) */
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   flex: none;
   font-family: var(--font-sans);
   font-size: 22px;
@@ -14,22 +13,7 @@
 }
 
 .logo-sm {
-  gap: 7px;
   font-size: 19px;
-}
-
-.logo-mark {
-  flex: none;
-  transition: transform 0.2s ease;
-}
-
-.logo:hover .logo-mark {
-  transform: rotate(-6deg);
-}
-
-.logo-word {
-  /* 심볼과 글자의 시각적 중심을 맞춘다 (대문자 높이 기준) */
-  padding-bottom: 1px;
 }
 
 /* 점 없는 ı 위에 파란 점 */
@@ -47,10 +31,4 @@
   margin-left: -0.105em;
   border-radius: 50%;
   background: var(--c-primary);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .logo-mark {
-    transition: none;
-  }
 }

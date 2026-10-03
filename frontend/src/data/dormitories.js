@@ -87,7 +87,6 @@ export const SPECIAL_CAMPUS_DORMITORIES = [
     rooms: ['2인실'],
     meal: '급식 미제공',
     eligibility: '환경생명자원대학 · 수의과대학',
-    scale: '2015년 준공 · 2인실 99실',
     infoUrl: infoUrl('C8000'),
   },
 ]
