@@ -1686,3 +1686,54 @@
     display: none;
   }
 }
+
+/* ── 맞춤 룸메 알림 ── */
+/* 게시판 위 안내 띠 (모양은 ChatPage.css 의 push-prompt, 간격은 rm-feed 의 gap) */
+@media (max-width: 560px) {
+  /* 좁은 화면: 문구를 한 줄로 쓰고 버튼은 아랫줄로 */
+  .rm-alert-promo {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .rm-alert-promo .push-prompt-text {
+    flex: 1 1 calc(100% - 90px);
+    padding-top: 6px;
+  }
+
+  .rm-alert-promo .push-prompt-close {
+    order: 2;
+  }
+
+  .rm-alert-promo .btn {
+    order: 3;
+    margin-left: 42px;
+  }
+}
+
+/* 설정 창 */
+.ra-empty {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--c-text-2);
+}
+
+.ra-device > div {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.ra-notes {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-text-3);
+}

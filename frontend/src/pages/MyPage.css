@@ -380,3 +380,13 @@
     background: var(--c-surface);
   }
 }
+
+/* 알림을 받을 수 없는 곳: 채팅 알림 줄 아래 [브라우저로 열기] 등 (글자 칸에 맞춰) */
+.me-set-help {
+  padding: 0 8px 8px 56px;
+}
+
+/* 알림을 받을 수 없으면 스위치를 흐리게 (설명은 줄 안에 있으므로 눌러도 따로 안내하지 않는다) */
+.me-set-row .push-switch.is-unavailable {
+  cursor: not-allowed;
+}

@@ -131,7 +131,7 @@ npm run dev
 
 1. <https://supabase.com> 에서 프로젝트 생성 (Region: Northeast Asia (Seoul))
 2. **SQL Editor** 에서 `supabase/migrations/` 의 파일을 이름 순서대로 실행
-   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` → `20261026000000_roommate_posts_public_read.sql` → `20261027000000_roommate_room_type.sql` → `20261028000000_roommate_chat_quiet_leave.sql`)
+   (`20260926000000_init.sql` → `20260927000000_roommates.sql` → `20260928000000_roommates_public_read.sql` → `20260929000000_score_submissions.sql` → `20260930000000_admission_reports.sql` → `20261001000000_roommate_comments.sql` → `20261002000000_roommate_profiles.sql` → `20261003000000_prediction_logs_emd_optional.sql` → `20261004000000_official_2026_and_comment_profiles.sql` → `20261005000000_roommate_semester.sql` → `20261006000000_roommate_requests.sql` → `20261007000000_roommate_blocks_replies.sql` → `20261008000000_roommate_reports.sql` → `20261009000000_prediction_logs_gender.sql` → `20261010000000_admin.sql` → `20261011000000_request_guard.sql` → `20261012000000_score_gender_gpa_stats.sql` → `20261013000000_site_settings.sql` → `20261014000000_checklist_v5.sql` → `20261015000000_roommate_match_sort.sql` → `20261016000000_roommate_recruit_semester.sql` → `20261017000000_admission_distance_score.sql` → `20261018000000_score_client_key.sql` → `20261019000000_match_seat_different.sql` → `20261020000000_roommate_chat.sql` → `20261021000000_roommate_chat_actions.sql` → `20261022000000_roommate_chat_leave.sql` → `20261023000000_roommate_chat_keep_on_post_delete.sql` → `20261024000000_chat_push.sql` → `20261025000000_chat_push_first_message.sql` → `20261026000000_roommate_posts_public_read.sql` → `20261027000000_roommate_room_type.sql` → `20261028000000_roommate_chat_quiet_leave.sql` → `20261029000000_roommate_post_room.sql` → `20261030000000_roommate_alerts.sql`)
 3. **Project Settings → API Keys** 에서 확인
    - Project URL
    - publishable 키 (`sb_publishable_...`) → 프론트엔드용
@@ -157,6 +157,8 @@ npm run dev
 | `score_submissions` | 환산점수 계산 기록 (단과대학·성별·학점·거리점수·환산점수, 익명 + IP 를 알아볼 수 없게 바꾼 `client_key`) | 누구나 쓰기만, 조회는 관리자 페이지 [기록]·[학점 통계] 탭 |
 | `site_settings` | 사이트 설정 (`support_enabled`: 후원 메뉴 켜기/끄기) | 누구나 읽기, 바꾸기는 관리자 페이지 [설정] 탭 (`admin_set_setting`) |
 | `roommate_profiles` | 내 정보 (기본 정보 + 체크리스트) | 본인만 |
+| `roommate_alerts` | 맞춤 룸메 알림 설정 (몇 개 이상 맞을 때 · 호관) | 본인만 |
+| `roommate_alert_log` | 맞춤 룸메 알림을 보낸 기록 (같은 글 두 번 안 보내기 · 하루 5개) | 직접 접근 불가 |
 | `roommate_posts` | 룸메이트 찾기 게시글 | 읽기는 누구나(차단 · 정지 · 숨김 글 제외), 쓰기는 로그인 사용자, 수정·삭제는 글쓴이만 (숨김은 관리자 페이지에서, `is_open=false`) |
 
 ### ② Render — 백엔드
@@ -230,6 +232,19 @@ UptimeRobot 이 `/health` 를 계속 부르므로 방학처럼 방문자가 없�
 - 알림 내용: 제목 "글쓴이 · 한빛관"(첫 메시지는 "새 룸메 신청 · 한빛관"), 본문은 메시지 앞 120자. 잠금 화면에도 보일 수 있습니다.
 - 채팅 목록의 **[알림 켜짐/꺼짐]** 으로 이 기기의 알림을 끄고 켤 수 있고, **로그아웃해도 그 기기로 알림이 계속 옵니다** (잠금 화면에 내용이 보일 수 있음). 같은 기기에서 다른 계정으로 로그인하면 알림도 그 계정으로 옮겨 가고, 끄려면 [알림 꺼짐] 또는 브라우저·휴대폰 설정에서 끕니다.
 - 알림을 끈 · 앱을 지운 기기는 보낼 때 자동으로 목록에서 지웁니다. 안내 띠를 닫으면 7일 동안 다시 묻지 않습니다.
+- **알림을 받을 수 없는 곳**(카카오톡 · 에브리타임 · 인스타그램 등 앱 안에서 연 화면, 아이폰 Safari · 크롬, 알림을 지원하지 않는 브라우저)에서는 [채팅 알림] 스위치가 꺼진 채 흐리게 보이고, 안내 띠와 스위치를 누르면 받을 수 있는 브라우저로 안내합니다 ([브라우저로 열기] · [크롬으로 열기] · [링크 복사]).
+
+**맞춤 룸메 알림** (`20261030000000_roommate_alerts.sql`, 위 설정을 마쳤으면 추가로 할 일 없음)
+- 룸메이트 찾기 게시판 위 [맞춤 알림 받기] 또는 내 정보 > 설정 > **맞춤 룸메 알림**에서 켭니다. 몇 개 이상 맞을 때(8 · 10 · 12개) · 호관(전체 또는 하나)을 고릅니다.
+- 새 글이 올라오면 DB 트리거(`notify_roommate_post_alert`)가 같은 성별 · 체크리스트가 기준 이상 맞음 · 서로 차단하지 않음 · 정지되지 않음 · 알림을 켠 기기가 있는 사람을 골라 같은 Edge Function 으로 보냅니다. 이번 모집 학기 · 공개 · 모집 중인 글만, 한 사람에게 하루 5개까지.
+- 알림 내용: 제목 "나와 잘 맞는 룸메 글 · 창의관 2인실", 본문 "체크리스트 12개가 나와 맞아요. (소개 앞 60자)". 누르면 그 글의 자세히 보기가 열립니다.
+
+### ⑥ 공유 · 링크 미리보기
+
+- [공유] 버튼: 룸메이트 카드 · 자세히 보기 · 합격률 결과 · 내 정보 > 설정. 휴대폰은 휴대폰의 공유 창(카카오톡 등), PC 는 링크 복사입니다 (`frontend/src/lib/share.js`).
+- 사이트 링크의 미리보기 카드는 `frontend/index.html` 의 og 태그와 `frontend/public/og/og-image.png`(1200×630)입니다. **도메인을 바꾸면 og:image 주소도 바꿔 주세요** (절대 주소여야 합니다).
+- 룸메이트 글 링크는 `/p/<글 id>` 입니다. Vercel Function `frontend/api/share-post.js` 가 그 글의 호관 · 성별 · 나이 · 소개로 미리보기 카드를 만들고, 사람이 열면 `/roommates?post=<글 id>`(자세히 보기)로 보냅니다. 로그인하지 않은 방문자 권한으로 읽으므로 숨긴 글 · 정지된 사용자의 글은 보이지 않습니다. 환경변수는 프론트엔드와 같은 `VITE_SUPABASE_URL` · `VITE_SUPABASE_PUBLISHABLE_KEY` 를 그대로 씁니다 (따로 넣을 것 없음).
+- 카카오톡은 미리보기를 한동안 저장해 둡니다. 그림을 바꿨는데 예전 카드가 보이면 [카카오 공유 디버거](https://developers.kakao.com/tool/debugger/sharing)에서 주소를 넣고 [캐시 초기화]를 누르세요.
 
 ## 룸메이트 찾기
 

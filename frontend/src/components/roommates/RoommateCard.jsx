@@ -1,8 +1,17 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { CHECKLIST_ITEMS } from '../../data/roommateChecklist.js'
+import { postShareUrl } from '../../lib/share.js'
 import { IconMoreVertical } from '../common/Icons.jsx'
+import ShareButton from '../common/ShareButton.jsx'
 import { collegeName, dormTitle, genderLabel, timeAgo } from './postFormat.js'
+
+/** 룸메이트 글 공유 내용: 링크를 붙이면 그 글의 미리보기 카드가 뜬다 (자세히 보기 창에서도 쓴다) */
+export const postShareData = (post) => ({
+  title: `${dormTitle(post)} 룸메이트 찾아요`,
+  text: `${dormTitle(post)} 룸메이트 찾아요 · ${genderLabel(post.gender)} · ${post.age}세`,
+  url: postShareUrl(post.id),
+})
 
 /** 카드 오른쪽 위 ⋯ 메뉴: 신고 · 차단 (Esc · 바깥을 누르면 닫힘) */
 function CardMenu({ post, onReport, onBlock }) {
@@ -175,8 +184,9 @@ export default memo(function RoommateCard({ post, mine, sent = false, match = nu
           {action.label}
           {action.count > 0 && <span className="rm-request-count tabular">{action.count}</span>}
         </button>
-        {/* 오른쪽 버튼 줄: 내 글이면 수정·삭제 (남의 글의 신고 · 차단은 위 ⋯ 메뉴). 관리자에게는 [관리]를 함께 */}
+        {/* 오른쪽 버튼 줄: [공유], 내 글이면 수정·삭제 (남의 글의 신고 · 차단은 위 ⋯ 메뉴). 관리자에게는 [관리]를 함께 */}
         <div className="rm-own-actions">
+          {!post.isSample && <ShareButton getData={() => postShareData(post)} />}
           {adminLink && !post.isSample && (
             <Link
               to={`/admin?tab=posts&q=${post.id}`}

@@ -151,6 +151,41 @@
   transform: translateX(16px);
 }
 
+/* 알림을 받을 수 없는 곳: 꺼진 채 흐리게. 누르면 아래에 안내가 뜬다 */
+.push-switch-wrap {
+  position: relative;
+}
+
+.push-switch.is-unavailable {
+  cursor: help;
+}
+
+.push-switch.is-unavailable .push-switch-label,
+.push-switch.is-unavailable .push-switch-track,
+.push-switch.is-unavailable > svg {
+  opacity: 0.45;
+}
+
+.push-switch-help {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--c-text-2);
+}
+
 .push-switch-note {
   max-width: 260px;
   font-size: 12px;
@@ -228,6 +263,31 @@
 .push-prompt-close:hover {
   background: var(--c-surface-2);
   color: var(--c-text);
+}
+
+/* 받을 수 없는 곳 안내: 문구가 길어 버튼은 아랫줄로 ([브라우저로 열기] 등) */
+.push-prompt.is-help {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.push-prompt.is-help .push-prompt-icon {
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+}
+
+.push-prompt.is-help .push-prompt-text {
+  flex: 1 1 calc(100% - 90px);
+  padding-top: 6px;
+}
+
+.push-prompt.is-help .push-prompt-close {
+  order: 2;
+}
+
+.push-prompt.is-help .btn {
+  order: 3;
+  margin-left: 42px;
 }
 
 .chat-filter {

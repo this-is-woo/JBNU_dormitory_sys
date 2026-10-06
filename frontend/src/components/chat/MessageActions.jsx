@@ -98,26 +98,5 @@ export function SelectCopySheet({ message, onCopy, onClose }) {
   )
 }
 
-/** 클립보드에 쓰기 (지원하지 않는 브라우저는 숨긴 입력칸으로) */
-export async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text)
-    return true
-  } catch {
-    const area = document.createElement('textarea')
-    area.value = text
-    area.setAttribute('readonly', '')
-    area.style.position = 'fixed'
-    area.style.opacity = '0'
-    document.body.appendChild(area)
-    area.select()
-    let ok = false
-    try {
-      ok = document.execCommand('copy')
-    } catch {
-      ok = false
-    }
-    area.remove()
-    return ok
-  }
-}
+// 클립보드에 쓰기 (lib/share.js 로 옮김. 대화방에서 쓰던 이름 그대로)
+export { copyText } from '../../lib/share.js'

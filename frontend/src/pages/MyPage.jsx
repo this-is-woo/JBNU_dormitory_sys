@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import LoginModal from '../components/auth/LoginModal.jsx'
+import PushHelpAction from '../components/chat/PushHelp.jsx'
 import { PushToggle } from '../components/chat/PushPrompt.jsx'
 import {
   IconAlert,
@@ -14,21 +15,27 @@ import {
   IconLogout,
   IconMoon,
   IconPencil,
+  IconShare,
   IconShield,
+  IconUsers,
   IconVibrate,
   IconWave,
 } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
+import ShareButton from '../components/common/ShareButton.jsx'
 import Switch from '../components/common/Switch.jsx'
 import { OFFICIAL_DORM_URL } from '../config.js'
 import ChecklistView from '../components/roommates/ChecklistView.jsx'
 import { collegeName, genderLabel } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
+import RoommateAlertModal, { alertSummary } from '../components/roommates/RoommateAlertModal.jsx'
 import { authMode, useAuth } from '../hooks/useAuth.js'
 import { promptInstall, useInstallMode } from '../lib/install.js'
 import { canVibrate, setPreference, usePreferences } from '../lib/preferences.js'
-import { pushSupport } from '../lib/push.js'
+import { pushHelp, pushSupport, pushUnavailable } from '../lib/push.js'
+import { cachedRoommateAlert, fetchRoommateAlert } from '../lib/roommateAlerts.js'
 import { cachedProfile, fetchMyProfile, saveProfile } from '../lib/roommateProfile.js'
+import { siteUrl } from '../lib/share.js'
 // 내 정보 등록 창 · 체크리스트 표(룸메이트 찾기와 같은 스타일), 채팅 알림 스위치
 import './RoommatesPage.css'
 import './ChatPage.css'
@@ -166,36 +173,103 @@ function InstallRow() {
   )
 }
 
-/** 설정: 알림 · 화면 · 앱 · 정보. 화면 설정은 이 기기에만 저장된다 (lib/preferences.js) */
-function Settings({ user }) {
+const siteShareData = () => ({
+  title: 'JBNU Dormi | 전북대 생활관 합격 예측 · 룸메이트 찾기',
+  text: '전북대 생활관 환산점수 · 예상 합격률 계산하고 룸메이트도 찾아봐요.',
+  url: siteUrl('/'),
+})
+
+/**
+ * 맞춤 룸메 알림: 지금 설정 요약 + [켜기] / [설정] → 설정 창
+ * 내 정보(체크리스트)가 없으면 설정 창이 등록부터 안내한다
+ */
+function MatchAlertRow({ user, profile, onNeedProfile }) {
+  const [setting, setSetting] = useState(() => cachedRoommateAlert(user.id))
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    fetchRoommateAlert(user.id)
+      .then((data) => active && setSetting(data))
+      .catch(() => active && setSetting((s) => (s === undefined ? null : s)))
+    return () => {
+      active = false
+    }
+  }, [user.id])
+
+  const loading = setting === undefined
+  return (
+    <>
+      <SettingRow
+        Icon={IconUsers}
+        title="맞춤 룸메 알림"
+        desc={loading ? '불러오는 중…' : setting ? alertSummary(setting) : '나와 잘 맞는 새 룸메 글이 올라오면 알려 드려요'}
+      >
+        <button type="button" className="btn btn-secondary btn-sm" disabled={loading} onClick={() => setOpen(true)}>
+          {setting ? '설정' : '켜기'}
+        </button>
+      </SettingRow>
+      <RoommateAlertModal
+        key={open ? 'alert-open' : 'alert'}
+        open={open}
+        userId={user.id}
+        profile={profile}
+        initial={setting ?? null}
+        onClose={() => setOpen(false)}
+        onSaved={(data) => {
+          setSetting(data)
+          setOpen(false)
+        }}
+        onNeedProfile={() => {
+          setOpen(false)
+          onNeedProfile?.()
+        }}
+      />
+    </>
+  )
+}
+
+/** 설정: 알림 · 공유 · 화면 · 앱 · 정보. 화면 설정은 이 기기에만 저장된다 (lib/preferences.js) */
+function Settings({ user, profile = null, onNeedProfile }) {
   const prefs = usePreferences()
   const push = pushSupport()
+  // 알림을 받을 수 없는 곳(카카오톡 안 등): 스위치는 꺼진 채 흐리게, 받을 수 있는 브라우저로 안내
+  const help = pushUnavailable(push) ? pushHelp(push) : null
   return (
     <section className="card me-card me-settings" aria-labelledby="me-settings-title">
       <h2 id="me-settings-title" className="me-card-title">
         설정
       </h2>
 
-      {user && (
+      {user && push !== 'off' && (
         <div className="me-set-group">
           <h3>알림</h3>
           <ul className="me-set-list">
             <SettingRow
               Icon={IconBell}
               title="채팅 알림"
-              desc={
-                push === 'supported'
-                  ? '새 채팅을 이 기기의 휴대폰 상단 알림으로 받아요'
-                  : push === 'ios-install'
-                    ? '아이폰은 앱으로 설치하면 알림을 받을 수 있어요'
-                    : '이 브라우저에서는 알림을 받을 수 없어요'
-              }
+              desc={help ? help.message : '새 채팅을 이 기기의 휴대폰 상단 알림으로 받아요'}
             >
-              {push === 'supported' && <PushToggle userId={user.id} />}
+              <PushToggle userId={user.id} showHelp={false} />
             </SettingRow>
+            {help?.action && (
+              <li className="me-set-help">
+                <PushHelpAction action={help.action} />
+              </li>
+            )}
+            <MatchAlertRow user={user} profile={profile} onNeedProfile={onNeedProfile} />
           </ul>
         </div>
       )}
+
+      <div className="me-set-group">
+        <h3>공유</h3>
+        <ul className="me-set-list">
+          <SettingRow Icon={IconShare} title="친구에게 알려 주기" desc="링크를 보내면 미리보기 카드로 보여요">
+            <ShareButton tone="secondary" getData={siteShareData} />
+          </SettingRow>
+        </ul>
+      </div>
 
       <div className="me-set-group">
         <h3>화면</h3>
@@ -424,7 +498,7 @@ export default function MyPage() {
               </ul>
             </section>
 
-            <Settings user={user} />
+            <Settings user={user} profile={p} onNeedProfile={() => setFormOpen(true)} />
 
             <button type="button" className="me-logout" onClick={logout}>
               <IconLogout width={18} height={18} />

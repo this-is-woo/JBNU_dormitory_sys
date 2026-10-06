@@ -1,6 +1,7 @@
 import Modal from '../common/Modal.jsx'
+import ShareButton from '../common/ShareButton.jsx'
 import ChecklistView from './ChecklistView.jsx'
-import { requestButton } from './RoommateCard.jsx'
+import { postShareData, requestButton } from './RoommateCard.jsx'
 import { collegeName, dormTitle, genderLabel, matchCount, timeAgo } from './postFormat.js'
 import { semesterLabel } from '../../lib/semester.js'
 
@@ -58,6 +59,7 @@ export default function PostDetailModal({ post, mine = false, sent = false, arch
         post && (
           <>
             {note ? <p className="rm-contact">{note}</p> : <span className="rm-contact" aria-hidden="true" />}
+            {!post.isSample && <ShareButton tone="secondary" size="md" getData={() => postShareData(post)} />}
             {(!archived || mine) && (
               <button
                 type="button"

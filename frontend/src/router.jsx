@@ -11,6 +11,13 @@ function LegacyChatRedirect() {
   return <Navigate to={`/chats${requestId ? `/${requestId}` : ''}${search}`} replace />
 }
 
+// 룸메이트 글 공유 주소(/p/글id): 배포 환경에서는 api/share-post.js 가 미리보기 카드를 만든 뒤 이리로 보내고,
+// 개발 서버 등에서 바로 열면 여기서 그 글의 자세히 보기로 보낸다
+function SharedPostRedirect() {
+  const { postId } = useParams()
+  return <Navigate to={`/roommates?post=${encodeURIComponent(postId)}`} replace />
+}
+
 // 홈 말고는 그 페이지를 열 때 코드를 받는다 (첫 화면에서 받을 코드를 줄여 빨리 뜨게).
 // 대신 첫 화면이 뜨고 나서 한가할 때 미리 받아 두므로(prefetchPages), 탭을 눌렀을 때 기다리지 않는다.
 const pages = {
@@ -51,6 +58,7 @@ export const router = createBrowserRouter([
           // 예전 주소 호환: 합격률 예측은 홈으로 합쳐졌다
           { path: '/predict', element: <Navigate to="/" replace /> },
           { path: '/roommates', lazy: page(pages.roommates) },
+          { path: '/p/:postId', element: <SharedPostRedirect /> },
           // 채팅: 룸메 신청으로 시작된 대화
           { path: '/chats', lazy: page(pages.chatList) },
           // 새 대화창: 첫 메시지를 보내기 전까지는 아무것도 저장하지 않는다

@@ -18,18 +18,112 @@ const announce = (on) => window.dispatchEvent(new CustomEvent(PUSH_EVENT, { deta
 
 const isIos = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+const isAndroid = () => /Android/.test(navigator.userAgent)
 const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true
+
+// 다른 앱 안에서 연 화면(인앱 브라우저): 알림 · 홈 화면에 추가를 쓸 수 없다
+const IN_APPS = [
+  [/KAKAOTALK/i, '카카오톡'],
+  [/everytime/i, '에브리타임'],
+  [/Instagram/, '인스타그램'],
+  [/FBAN|FBAV|FB_IAB|FBIOS/, '페이스북'],
+  [/\bLine\//, '라인'],
+  [/NAVER\(inapp/, '네이버 앱'],
+  [/DaumApps/, '다음 앱'],
+  [/\bBAND\//, '밴드'],
+]
+
+function inAppName() {
+  const ua = navigator.userAgent
+  const known = IN_APPS.find(([re]) => re.test(ua))
+  if (known) return known[1]
+  // 이름을 모르는 앱 안의 화면: 안드로이드 WebView(; wv) · 아이폰에서 Safari 표시가 없는 화면
+  if (isAndroid() && /; wv\)/.test(ua)) return '앱'
+  if (isIos() && !isStandalone() && !/Safari\//.test(ua)) return '앱'
+  return null
+}
 
 /**
  * 이 기기에서 알림을 받을 수 있는지
- * 'supported' · 'ios-install'(아이폰 사파리: 홈 화면에 추가해야 함) · 'unsupported'
+ *   'supported'
+ *   'in-app'       다른 앱(카카오톡 등) 안에서 연 화면 → 브라우저로 열어야 함
+ *   'ios-install'  아이폰 Safari → 홈 화면에 추가한 앱에서만 받음
+ *   'ios-browser'  아이폰의 다른 브라우저(크롬 등) → Safari 에서 홈 화면에 추가해야 함
+ *   'unsupported'  알림을 지원하지 않는 브라우저
+ *   'off'          알림 기능을 설정하지 않음(VITE_VAPID_PUBLIC_KEY 없음) → 알림 관련 화면을 모두 숨긴다
  */
 export function pushSupport() {
-  if (typeof window === 'undefined' || !pushConfigured) return 'unsupported'
+  if (typeof window === 'undefined' || !pushConfigured) return 'off'
+  if (inAppName()) return 'in-app'
   const apis = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
   if (apis && window.isSecureContext) return 'supported'
-  if (isIos() && !isStandalone()) return 'ios-install'
+  if (isIos() && !isStandalone()) return /CriOS|FxiOS|EdgiOS|Whale|OPiOS|SamsungBrowser/.test(navigator.userAgent) ? 'ios-browser' : 'ios-install'
   return 'unsupported'
+}
+
+/** 알림을 받을 수 없는 곳인지 (설정 전이면 false: 아예 숨긴다) */
+export const pushUnavailable = (support = pushSupport()) => support !== 'supported' && support !== 'off'
+
+// 안드로이드: 크롬으로 이 주소를 연다 (크롬이 없으면 기본 브라우저)
+function openInChrome(url) {
+  const u = new URL(url)
+  const fallback = encodeURIComponent(url)
+  window.location.href = `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallback};end`
+}
+
+/**
+ * 알림을 받을 수 없을 때의 안내 문구와 [브라우저로 열기] 같은 버튼
+ * @returns {{ message: string, action: null | { label: string, kind: 'open' | 'copy', run?: () => void } }}
+ */
+export function pushHelp(support = pushSupport()) {
+  const here = window.location.href
+  if (support === 'in-app') {
+    const app = inAppName()
+    const where = app === '앱' ? '앱 안에서 연 화면' : `${app} 안에서 연 화면`
+    if (app === '카카오톡') {
+      return {
+        message: `${where}에서는 알림을 받을 수 없어요. 브라우저로 열어 주세요.`,
+        action: { label: '브라우저로 열기', kind: 'open', run: () => (window.location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(here)}`) },
+      }
+    }
+    if (app === '라인') {
+      const u = new URL(here)
+      u.searchParams.set('openExternalBrowser', '1')
+      return {
+        message: `${where}에서는 알림을 받을 수 없어요. 브라우저로 열어 주세요.`,
+        action: { label: '브라우저로 열기', kind: 'open', run: () => (window.location.href = u.href) },
+      }
+    }
+    if (isAndroid()) {
+      return {
+        message: `${where}에서는 알림을 받을 수 없어요. 크롬으로 열어 주세요.`,
+        action: { label: '크롬으로 열기', kind: 'open', run: () => openInChrome(here) },
+      }
+    }
+    return {
+      message: `${where}에서는 알림을 받을 수 없어요. 화면의 [⋯] 메뉴에서 'Safari로 열기'를 눌러 주세요.`,
+      action: { label: '링크 복사', kind: 'copy' },
+    }
+  }
+  if (support === 'ios-install') {
+    return { message: '아이폰은 Safari 아래의 [공유] → [홈 화면에 추가]로 설치한 앱에서 알림을 받을 수 있어요.', action: null }
+  }
+  if (support === 'ios-browser') {
+    return {
+      message: '아이폰은 Safari에서 [공유] → [홈 화면에 추가]로 설치해야 알림을 받을 수 있어요. 링크를 복사해 Safari에서 열어 주세요.',
+      action: { label: '링크 복사', kind: 'copy' },
+    }
+  }
+  if (isAndroid()) {
+    return {
+      message: '이 브라우저는 알림을 지원하지 않아요. 크롬이나 삼성 인터넷으로 열어 주세요.',
+      action: { label: '크롬으로 열기', kind: 'open', run: () => openInChrome(here) },
+    }
+  }
+  return {
+    message: '이 브라우저는 알림을 지원하지 않아요. 크롬 · 엣지 · Safari 최신 버전에서 열어 주세요.',
+    action: { label: '링크 복사', kind: 'copy' },
+  }
 }
 
 /** 알림 권한: 'default'(아직 안 물어봄) · 'granted' · 'denied' */

@@ -1,7 +1,21 @@
 import { SELECTION_TYPES } from '../../data/dormitories.js'
 import { formatScore } from '../../lib/score.js'
+import { siteUrl } from '../../lib/share.js'
 import { IconAlert, IconInfo, IconRefresh, IconSparkles } from '../common/Icons.jsx'
+import ShareButton from '../common/ShareButton.jsx'
 import './PredictionResult.css'
+
+/** 결과 공유: 내 환산점수와 가장 높은 호실 (받는 사람은 링크로 자기 점수를 계산해 본다) */
+function resultShareData(data) {
+  const top = [...data.predictions].sort((a, b) => b.probability - a.probability)[0]
+  const score = `내 생활관 환산점수는 ${formatScore(data.score.convertedScore)}점!`
+  const best = top ? ` 예상 합격률은 ${top.dormitory} ${top.roomType}이 ${Math.round(top.probability * 100)}%로 가장 높아요.` : ''
+  return {
+    title: 'JBNU Dormi | 생활관 합격 예측',
+    text: `${score}${best} 내 점수로도 계산해 보세요.`,
+    url: siteUrl('/'),
+  }
+}
 
 function ResultSkeleton({ slow }) {
   return (
@@ -85,6 +99,7 @@ export default function PredictionResult({ result, onRetry }) {
               </span>
             )}
           </div>
+          {!updating && <ShareButton tone="secondary" label="결과 공유" getData={() => resultShareData(data)} className="result-share" />}
         </div>
       )}
 

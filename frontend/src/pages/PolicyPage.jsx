@@ -3,7 +3,7 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import { CONTACT_EMAIL } from '../config.js'
 import './PolicyPage.css'
 
-const EFFECTIVE_DATE = '2026년 9월 28일'
+const EFFECTIVE_DATE = '2026년 10월 6일'
 
 function Contact() {
   return <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
@@ -54,6 +54,11 @@ export function PrivacyPage() {
               <td>채팅 알림 (선택)</td>
               <td>알림을 허용한 기기의 브라우저 푸시 주소와 암호화 키, 등록 시각</td>
               <td>채팅 화면에서 [알림 받기]를 눌러 허용할 때 (새 채팅 알림을 보내는 데만 사용, 로그아웃해도 유지되며 [알림 꺼짐]을 누르거나 계정이 삭제되면 바로 삭제, 브라우저·휴대폰 설정에서 알림을 끄면 다음 발송 때 삭제)</td>
+            </tr>
+            <tr>
+              <td>맞춤 룸메 알림 (선택)</td>
+              <td>알림 기준(체크리스트 몇 개 이상 맞을 때 · 호관), 알림을 보낸 글과 시각</td>
+              <td>[맞춤 알림 받기]로 켤 때 (내 체크리스트와 맞는 새 글을 알리는 데만 사용, 같은 글을 두 번 보내지 않고 하루 개수를 세는 데 보낸 기록을 씀. [알림 끄기]를 누르면 설정을 바로 삭제하고, 보낸 기록은 그 글이나 계정이 삭제되면 함께 삭제)</td>
             </tr>
             <tr>
               <td>차단 목록</td>

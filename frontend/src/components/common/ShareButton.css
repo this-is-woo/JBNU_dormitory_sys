@@ -1,0 +1,21 @@
+/* [공유] 버튼: 아이콘 + 짧은 글자. 복사되면 초록색 체크로 잠깐 바뀐다 */
+.share-btn {
+  gap: 6px;
+}
+
+.share-btn svg {
+  flex: none;
+}
+
+.share-btn.btn-ghost {
+  color: var(--c-text-2);
+}
+
+.share-btn.is-copied,
+.share-btn.is-copied:hover:not(:disabled) {
+  color: var(--c-success);
+}
+
+.share-btn.btn-secondary.is-copied {
+  border-color: var(--c-success);
+}

@@ -4,6 +4,7 @@ import LoginModal from '../components/auth/LoginModal.jsx'
 import ChoiceGroup from '../components/common/ChoiceGroup.jsx'
 import { IconAlert, IconInfo, IconPencil } from '../components/common/Icons.jsx'
 import PageHeader from '../components/common/PageHeader.jsx'
+import AlertPromo from '../components/roommates/AlertPromo.jsx'
 import ArchiveModal from '../components/roommates/ArchiveModal.jsx'
 import DeletePostModal from '../components/roommates/DeletePostModal.jsx'
 import MyPostsModal from '../components/roommates/MyPostsModal.jsx'
@@ -12,6 +13,7 @@ import { matchCount } from '../components/roommates/postFormat.js'
 import ProfileForm from '../components/roommates/ProfileForm.jsx'
 import BlockConfirmModal from '../components/roommates/BlockConfirmModal.jsx'
 import ReportModal from '../components/roommates/ReportModal.jsx'
+import RoommateAlertModal from '../components/roommates/RoommateAlertModal.jsx'
 import RoommateCard from '../components/roommates/RoommateCard.jsx'
 import RoommateForm from '../components/roommates/RoommateForm.jsx'
 import { DORMITORIES } from '../data/dormitories.js'
@@ -19,6 +21,8 @@ import { GENDERS } from '../data/roommateOptions.js'
 import { useAdmin } from '../hooks/useAdmin.js'
 import { authMode } from '../hooks/useAuth.js'
 import { recallAfterLogin, rememberAfterLogin } from '../lib/afterLogin.js'
+import { pushSupport } from '../lib/push.js'
+import { cachedRoommateAlert, fetchRoommateAlert } from '../lib/roommateAlerts.js'
 import { cachedProfile, fetchMyProfile, profileFields, saveProfile } from '../lib/roommateProfile.js'
 import { fetchMyStatus, reportPost } from '../lib/roommateReports.js'
 import {
@@ -39,6 +43,8 @@ import {
   roommateStorage,
   updateRoommatePost,
 } from '../lib/roommates.js'
+// 맞춤 알림 안내 띠는 채팅 알림 안내 띠와 같은 모양 (push-prompt)
+import './ChatPage.css'
 import './RoommatesPage.css'
 
 const ALL = 'all'
@@ -159,6 +165,9 @@ export default function RoommatesPage() {
   const [loginOpen, setLoginOpen] = useState(false)
   const [pending, setPending] = useState(() => readAfterLogin())
   const [archiveOpen, setArchiveOpen] = useState(false)
+  // 맞춤 룸메 알림: 설정(꺼져 있으면 data = null)과 설정 창
+  const [matchAlert, setMatchAlert] = useState({ status: 'idle', data: null })
+  const [alertOpen, setAlertOpen] = useState(false)
   // 게시판에는 지금 모집 학기 글만. 주소에 다른 학기가 있으면 그 학기 글을 읽기 전용으로 (지난 학기 글 보기)
   const { roommateSemester: recruit } = useSiteSettings()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -198,6 +207,21 @@ export default function RoommatesPage() {
       active = false
     }
   }, [signedIn, user?.id, profileRetry]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 맞춤 룸메 알림 설정 (내 정보가 있어야 비교할 수 있다 → 내 정보가 있을 때만)
+  const hasProfile = Boolean(profile.data)
+  useEffect(() => {
+    if (!signedIn || !hasProfile) return
+    let active = true
+    const cached = cachedRoommateAlert(user.id)
+    if (cached !== undefined) setMatchAlert({ status: 'ready', data: cached })
+    fetchRoommateAlert(user.id)
+      .then((data) => active && setMatchAlert({ status: 'ready', data }))
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [signedIn, user?.id, hasProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!linkedPost || !canLoad) return
@@ -583,6 +607,10 @@ export default function RoommatesPage() {
             </p>
           </div>
         )}
+        {/* 맞춤 룸메 알림 안내: 내 정보가 있고 아직 켜지 않은 사람에게 (알림 기능을 설정하지 않았으면 숨김) */}
+        {signedIn && hasProfile && matchAlert.status === 'ready' && !archived && pushSupport() !== 'off' && (
+          <AlertPromo enabled={Boolean(matchAlert.data)} onOpen={() => setAlertOpen(true)} />
+        )}
         {linkError && (
           <div className="notice notice-danger" role="alert">
             <IconAlert width={18} height={18} />
@@ -807,6 +835,24 @@ export default function RoommatesPage() {
             onDeleted={reload}
           />
         </>
+      )}
+      {user && (
+        <RoommateAlertModal
+          key={alertOpen ? 'alert-open' : 'alert'}
+          open={alertOpen}
+          userId={user.id}
+          profile={profile.data}
+          initial={matchAlert.data}
+          onClose={() => setAlertOpen(false)}
+          onSaved={(data) => {
+            setMatchAlert({ status: 'ready', data })
+            setAlertOpen(false)
+          }}
+          onNeedProfile={() => {
+            setAlertOpen(false)
+            setProfileOpen(true)
+          }}
+        />
       )}
       <ArchiveModal
         open={archiveOpen}
